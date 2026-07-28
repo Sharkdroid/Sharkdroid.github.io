@@ -1,20 +1,16 @@
-name: Deploy Documentation
+name: Deploy All Documentation
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -25,17 +21,58 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      # Build Cascade CMS Wiki
+      - name: Install Cascade CMS dependencies
+        run: pip install -r cascade-cms-wiki/requirements.txt
 
-      - name: Build documentation
-        run: properdocs build
+      - name: Build Cascade CMS Wiki
+        run: |
+          cd cascade-cms-wiki
+          properdocs build
+          cd ..
 
-      - name: Upload to GitHub Pages
+      # Build Other Project (if it has docs)
+      - name: Install Other Project dependencies
+        run: |
+          if [ -f "other-project/requirements.txt" ]; then
+            pip install -r other-project/requirements.txt
+          fi
+
+      - name: Build Other Project
+        run: |
+          if [ -f "other-project/properdocs.yml" ]; then
+            cd other-project
+            properdocs build
+            cd ..
+          fi
+
+      # Combine all site outputs
+      - name: Combine documentation sites
+        run: |
+          mkdir -p combined-site
+          cp -r cascade-cms-wiki/site/* combined-site/
+          if [ -d "other-project/site" ]; then
+            mkdir -p combined-site/other-project
+            cp -r other-project/site/* combined-site/other-project/
+          fi
+
+      - name: Upload combined artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site/
+          path: combined-site/
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
