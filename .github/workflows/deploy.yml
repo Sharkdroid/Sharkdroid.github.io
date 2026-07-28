@@ -26,10 +26,10 @@ jobs:
           cache: "pip"
 
       - name: Install dependencies
-        run: pip install mkdocs mkdocs-material
+        run: pip install -r requirement.txt
 
       - name: Build documentation
-        run: mkdocs build
+        run: properdocs build
 
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
