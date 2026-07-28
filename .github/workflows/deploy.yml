@@ -23,7 +23,7 @@ jobs:
 
       # Build Cascade CMS Wiki
       - name: Install Cascade CMS dependencies
-        run: pip install -r cascade-cms-wiki/requirements.txt
+        run: pip install -r ./wiki/cascade-cms-wiki/requirements.txt
 
       - name: Build Cascade CMS Wiki
         run: |
