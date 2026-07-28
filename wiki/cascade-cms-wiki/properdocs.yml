@@ -31,11 +31,14 @@ nav:
   
   - Cascade CMS REST Client:
     - Getting Started:
+      - Overview: ./getting-started/index.md
       - Installation: ./getting-started/installation.md
       - Quick Start: ./getting-started/quick-start.md
       - The Fluent Pattern: ./getting-started/fluent-pattern.md
     - Core Concepts: ./core-concepts/index.md
-    - Operations Reference: ./operations/all-operations.md
+    - Operations Reference:
+      - Overview: ./operations/index.md
+      - All Operations: ./operations/all-operations.md
     - Examples & Patterns:
       - Overview: ./examples/index.md
       - ID vs. Path: ./examples/pattern-read-identifiers.md
@@ -51,6 +54,7 @@ nav:
       - Multi-Site Concurrent: ./examples/pattern-concurrent-multisite.md
     - Logging & Debugging: ./logging/index.md
     - Advanced:
+      - Overview: ./advanced/index.md
       - Concurrency & Caching: ./advanced/concurrency-caching.md
     - Maintenance: ./maintenance/index.md
   

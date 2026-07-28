@@ -247,7 +247,7 @@ config_ttl = {
 
 POST and PUT requests are **never cached**, regardless of config. Only successfully parsed responses (`_cacheable=True`) are stored — error responses are never written to the cache.
 
-See [Concurrency & Caching](../advanced/concurrency-caching/) for a deeper look at the caching internals.
+See [Concurrency & Caching](../advanced/concurrency-caching.md) for a deeper look at the caching internals.
 
 ---
 
@@ -268,4 +268,4 @@ Logfile: `./logs/prod_{timestamp}.log`
 **Debug mode** (`debug={...}`): quiet console, verbose nested logfile with request URLs, payloads, response bodies, callback names, and variable snapshots on errors.
 Logfile: `./logs/prod_debug_{timestamp}.log`
 
-See [Logging & Debugging](../logging/) for how to read both modes and when to enable debug.
+See [Logging & Debugging](../logging/index.md) for how to read both modes and when to enable debug.

@@ -119,4 +119,4 @@ with CascadeWrapperBase(env, config) as cascade:
 
 ---
 
-See also: [Core Concepts: Executors](../core-concepts/#6-executors-threadpoolexecutor-vs-processpoolexecutor) · [Callback chain](./pattern-callback-chain.md)
+See also: [Core Concepts: Executors](../core-concepts/index.md#6-executors-threadpoolexecutor-vs-processpoolexecutor) · [Callback chain](./pattern-callback-chain.md)

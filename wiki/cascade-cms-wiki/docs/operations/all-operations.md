@@ -30,7 +30,7 @@ results = cascade.submit_requests(Asset)
 | **Identifier** | `IdentifierType \| Path` \| `list[IdentifierType \| Path]` |
 | **Response** | `Asset` |
 
-→ [Example: ID vs. Path](../examples/pattern-read-identifiers/) · [Example: Bulk iteration](../examples/pattern-read-iterate/)
+→ [Example: ID vs. Path](../examples/pattern-read-identifiers.md) · [Example: Bulk iteration](../examples/pattern-read-iterate.md)
 
 ---
 
@@ -57,7 +57,7 @@ results = cascade.submit_requests(IdentifierType)
 | **Payload** | `NewAsset \| list[NewAsset]` |
 | **Response** | `IdentifierType` (contains the new asset's ID, not the full asset) |
 
-→ [Example: Bulk create](../examples/pattern-create-bulk/)
+→ [Example: Bulk create](../examples/pattern-create-bulk.md)
 
 ---
 
@@ -79,7 +79,7 @@ cascade.submit_requests()
 | **Payload** | `Asset \| list[Asset]` |
 | **Response** | `CascadeError` (success or failure indicator) |
 
-→ [Example: Edit in-place](../examples/pattern-edit-in-place/)
+→ [Example: Edit in-place](../examples/pattern-edit-in-place.md)
 
 ---
 
@@ -306,7 +306,7 @@ print(wf.current_step)
 | **Identifier** | `IdentifierType \| Path` |
 | **Response** | `workflowInformation` (frozen dataclass) |
 
-→ [Example: Workflow orchestration](../examples/pattern-workflow-orchestration/)
+→ [Example: Workflow orchestration](../examples/pattern-workflow-orchestration.md)
 
 ---
 
@@ -335,7 +335,7 @@ cascade.submit_requests()
 | **Response** | `CascadeError` |
 | **Important** | Always call `readWorkflowInformation` first to validate the `actionIdentifier` against the current step |
 
-→ [Example: Workflow orchestration](../examples/pattern-workflow-orchestration/)
+→ [Example: Workflow orchestration](../examples/pattern-workflow-orchestration.md)
 
 ---
 

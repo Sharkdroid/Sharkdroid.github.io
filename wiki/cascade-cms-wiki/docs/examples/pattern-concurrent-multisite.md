@@ -106,4 +106,4 @@ with CascadeWrapperBase(env, config) as cascade:
 
 ---
 
-See also: [Core Concepts: Identifiers](../core-concepts/#3-identifiers-identifiertype-vs-path) · [Advanced: Concurrency](../advanced/concurrency-caching/)
+See also: [Core Concepts: Identifiers](../core-concepts/index.md#3-identifiers-identifiertype-vs-path) · [Advanced: Concurrency](../advanced/concurrency-caching.md)

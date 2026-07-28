@@ -85,8 +85,8 @@ with CascadeWrapperBase(env, config) as cascade:
     # print_name is called once per result
 ```
 
-Callbacks are optional. See [Examples & Patterns](../examples/) for all the ways to use them.
+Callbacks are optional. See [Examples & Patterns](../examples/index.md) for all the ways to use them.
 
 ---
 
-Next: [Core Concepts](../core-concepts/) — the design philosophy behind these patterns, or jump to [Examples](../examples/) to see the library in action.
+Next: [Core Concepts](../core-concepts/index.md) — the design philosophy behind these patterns, or jump to [Examples](../examples/index.md) to see the library in action.

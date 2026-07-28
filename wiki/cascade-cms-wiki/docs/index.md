@@ -8,7 +8,7 @@ nav_order: 1
 
 A typed, async REST client for Hannon Hill Cascade CMS. Write standalone Python scripts to read, create, edit, publish, and orchestrate assets — without hiding the REST API behind high-level abstractions.
 
-[← Back to Documentation Hub](/)
+[← Back to Documentation Hub](../)
 
 ## What this library is
 
@@ -58,13 +58,13 @@ with CascadeWrapperBase(env, config) as cascade:
 
 | Section | What you'll find |
 |---------|-----------------|
-| [Getting Started](./getting-started/) | Installation, auth setup, your first script |
-| [Core Concepts](./core-concepts/) | Philosophy, identifiers, callbacks, caching, logging |
-| [Operations Reference](./operations/all-operations/) | Every operation: signature, payload, response type |
-| [Examples & Patterns](./examples/) | 11 runnable patterns showing library mechanics |
-| [Logging & Debugging](./logging/) | Reading normal and debug mode output |
-| [Advanced Topics](./advanced/concurrency-caching/) | Executors, caching internals, concurrency model |
-| [Maintenance](./maintenance/) | Auto-update roadmap (planned) |
+| [Getting Started](./getting-started/index.md) | Installation, auth setup, your first script |
+| [Core Concepts](./core-concepts/index.md) | Philosophy, identifiers, callbacks, caching, logging |
+| [Operations Reference](./operations/all-operations.md) | Every operation: signature, payload, response type |
+| [Examples & Patterns](./examples/index.md) | 11 runnable patterns showing library mechanics |
+| [Logging & Debugging](./logging/index.md) | Reading normal and debug mode output |
+| [Advanced Topics](./advanced/concurrency-caching.md) | Executors, caching internals, concurrency model |
+| [Maintenance](./maintenance/index.md) | Auto-update roadmap (planned) |
 
 ## Using AI to write scripts?
 

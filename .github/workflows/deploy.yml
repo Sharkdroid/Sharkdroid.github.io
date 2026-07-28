@@ -46,11 +46,18 @@ jobs:
             cd ..
           fi
 
+      # Build the plain root/wiki hub pages
+      - name: Install root site dependencies
+        run: pip install markdown
+
+      - name: Build root and wiki hub pages
+        run: python build_root_site.py
+
       # Combine all site outputs
       - name: Combine documentation sites
         run: |
-          mkdir -p combined-site
-          cp -r ./wiki/cascade-cms-wiki/site/* combined-site/
+          mkdir -p combined-site/wiki/cascade-cms-wiki
+          cp -r ./wiki/cascade-cms-wiki/site/* combined-site/wiki/cascade-cms-wiki/
           if [ -d "other-project/site" ]; then
             mkdir -p combined-site/other-project
             cp -r other-project/site/* combined-site/other-project/

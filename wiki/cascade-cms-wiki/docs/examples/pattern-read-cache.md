@@ -130,4 +130,4 @@ with CascadeWrapperBase(env, None) as cascade:
 
 ---
 
-See also: [Concurrency & Caching](../advanced/concurrency-caching/) for internals · [Core Concepts: Caching](../core-concepts/#8-caching)
+See also: [Concurrency & Caching](../advanced/concurrency-caching.md) for internals · [Core Concepts: Caching](../core-concepts/index.md#8-caching)

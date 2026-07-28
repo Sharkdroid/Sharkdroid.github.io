@@ -155,4 +155,4 @@ with CascadeWrapperBase(env, config) as cascade:
 
 ---
 
-See also: [Operations: readWorkflowInformation](../operations/all-operations/#readworkflowinformation) · [Core Concepts: Philosophy](../core-concepts/#1-design-philosophy)
+See also: [Operations: readWorkflowInformation](../operations/all-operations.md#readworkflowinformationidentifier) · [Core Concepts: Philosophy](../core-concepts/index.md#1-design-philosophy)
