@@ -59,4 +59,4 @@ Run `python --version`. If it shows 3.10 or lower, install 3.11+ and create a fr
 
 ---
 
-Next: [Quick Start](./quick-start/)
+Next: [Quick Start](./quick-start.md)

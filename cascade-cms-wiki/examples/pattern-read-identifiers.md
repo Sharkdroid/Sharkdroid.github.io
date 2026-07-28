@@ -105,4 +105,4 @@ if region:
 
 ---
 
-See also: [Iterating results](./pattern-read-iterate/) · [Edit in-place](./pattern-edit-in-place/)
+See also: [Iterating results](./pattern-read-iterate.md) · [Edit in-place](./pattern-edit-in-place.md)

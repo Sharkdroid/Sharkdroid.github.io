@@ -9,4 +9,4 @@ has_children: true
 
 Deep dives for users who need to tune, debug, or understand the internals of the library.
 
-- **[Concurrency & Caching](./concurrency-caching/)** — Event loop lifecycle, semaphore limits, cache internals, executor tuning, error propagation, memory management
+- **[Concurrency & Caching](./concurrency-caching.md)** — Event loop lifecycle, semaphore limits, cache internals, executor tuning, error propagation, memory management

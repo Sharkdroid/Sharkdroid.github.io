@@ -99,4 +99,4 @@ cascade.operations.read(ids).then(validate_metadata).then(normalize_keywords).th
 
 ---
 
-See also: [Dependent callbacks](./pattern-callback-dependent/) · [No callbacks](./pattern-callback-none/) for the baseline
+See also: [Dependent callbacks](./pattern-callback-dependent.md) · [No callbacks](./pattern-callback-none.md) for the baseline

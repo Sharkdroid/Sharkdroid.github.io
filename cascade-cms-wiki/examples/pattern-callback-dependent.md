@@ -92,4 +92,4 @@ Use dependent callbacks when the set of operations you need to run depends on th
 
 ---
 
-See also: [Callback chain](./pattern-callback-chain/) · [Workflow orchestration](./pattern-workflow-orchestration/) for a structured multi-pass pattern
+See also: [Callback chain](./pattern-callback-chain.md) · [Workflow orchestration](./pattern-workflow-orchestration.md) for a structured multi-pass pattern

@@ -58,13 +58,13 @@ with CascadeWrapperBase(env, config) as cascade:
 
 | Section | What you'll find |
 |---------|-----------------|
-| [Getting Started](./getting-started/) | Installation, auth setup, your first script |
-| [Core Concepts](./core-concepts/) | Philosophy, identifiers, callbacks, caching, logging |
+| [Getting Started](./getting-started.md) | Installation, auth setup, your first script |
+| [Core Concepts](./core-concepts.md) | Philosophy, identifiers, callbacks, caching, logging |
 | [Operations Reference](./operations/all-operations/) | Every operation: signature, payload, response type |
-| [Examples & Patterns](./examples/) | 11 runnable patterns showing library mechanics |
-| [Logging & Debugging](./logging/) | Reading normal and debug mode output |
+| [Examples & Patterns](./examples.md) | 11 runnable patterns showing library mechanics |
+| [Logging & Debugging](./logging.md) | Reading normal and debug mode output |
 | [Advanced Topics](./advanced/concurrency-caching/) | Executors, caching internals, concurrency model |
-| [Maintenance](./maintenance/) | Auto-update roadmap (planned) |
+| [Maintenance](./maintenance.md) | Auto-update roadmap (planned) |
 
 ## Using AI to write scripts?
 

@@ -91,4 +91,4 @@ with CascadeWrapperBase(env, config) as cascade:
 
 ---
 
-See also: [Callback chain](./pattern-callback-chain/) for callbacks that modify in-place · [Operations: edit](../operations/all-operations/#edit)
+See also: [Callback chain](./pattern-callback-chain.md) for callbacks that modify in-place · [Operations: edit](../operations/all-operations/#edit)

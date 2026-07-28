@@ -82,4 +82,4 @@ for e in errors:
 
 ---
 
-See also: [Callback chain](./pattern-callback-chain/) to add post-processing · [Iterating results](./pattern-read-iterate/) for more result-handling patterns
+See also: [Callback chain](./pattern-callback-chain.md) to add post-processing · [Iterating results](./pattern-read-iterate.md) for more result-handling patterns

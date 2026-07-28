@@ -111,4 +111,4 @@ Callbacks do not replace the returned `results` list — `submit_requests()` sti
 
 ---
 
-See also: [Callback chain](./pattern-callback-chain/) · [ID vs. Path](./pattern-read-identifiers/)
+See also: [Callback chain](./pattern-callback-chain.md) · [ID vs. Path](./pattern-read-identifiers.md)

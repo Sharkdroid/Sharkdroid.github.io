@@ -80,4 +80,4 @@ for asset in created_assets:
 
 ---
 
-See also: [Edit in-place](./pattern-edit-in-place/) · [Operations: create](../operations/all-operations/#create)
+See also: [Edit in-place](./pattern-edit-in-place.md) · [Operations: create](../operations/all-operations/#create)

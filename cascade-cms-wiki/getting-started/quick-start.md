@@ -94,4 +94,4 @@ The `id` value is your UUID. The `type` value is your `asset_type`.
 
 ---
 
-Next: [The Fluent Pattern](./fluent-pattern/)
+Next: [The Fluent Pattern](./fluent-pattern.md)

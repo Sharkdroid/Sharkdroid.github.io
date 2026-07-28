@@ -9,4 +9,4 @@ has_children: true
 
 Complete reference for every operation available on `cascade.operations`. Operations are grouped by category.
 
-- **[All Operations](./all-operations/)** — CRUD, search, publishing, workflow, access control, audit, messaging
+- **[All Operations](./all-operations.md)** — CRUD, search, publishing, workflow, access control, audit, messaging
