@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Cascade CMS Wiki
         run: |
-          cd cascade-cms-wiki
+          cd ./wiki/cascade-cms-wiki/
           properdocs build
           cd ..
 
