@@ -1,3 +1,41 @@
-title: My Projects/Documentation
-description: Documention for all my projects at CSI
-theme: jekyll-theme-cayman
+title: "Your Project Hub"
+description: "Documentation for your projects"
+baseurl: ""
+url: "https://<your-username>.github.io"
+
+theme: jekyll-theme-primer
+
+plugins:
+  - jekyll-sitemap
+
+sidebar:
+  - title: "Projects"
+    pages:
+      - title: "Cascade CMS REST Client"
+        url: /cascade-cms-wiki/
+      - title: "Other Project"
+        url: /other-project/
+      - title: "Another Project"
+        url: /another-project/
+
+  - title: "Cascade CMS: Getting Started"
+    pages:
+      - title: "Installation"
+        url: /cascade-cms-wiki/getting-started/installation/
+      - title: "Quick Start"
+        url: /cascade-cms-wiki/getting-started/quick-start/
+      - title: "The Fluent Pattern"
+        url: /cascade-cms-wiki/getting-started/fluent-pattern/
+
+  - title: "Cascade CMS: Reference"
+    pages:
+      - title: "Core Concepts"
+        url: /cascade-cms-wiki/core-concepts/
+      - title: "All Operations"
+        url: /cascade-cms-wiki/operations/all-operations/
+      - title: "Examples & Patterns"
+        url: /cascade-cms-wiki/examples/
+      - title: "Logging & Debugging"
+        url: /cascade-cms-wiki/logging/
+      - title: "Advanced: Concurrency & Caching"
+        url: /cascade-cms-wiki/advanced/concurrency-caching/
