@@ -50,7 +50,7 @@ jobs:
       - name: Combine documentation sites
         run: |
           mkdir -p combined-site
-          cp -r cascade-cms-wiki/site/* combined-site/
+          cp -r ./wiki/cascade-cms-wiki/site/* combined-site/
           if [ -d "other-project/site" ]; then
             mkdir -p combined-site/other-project
             cp -r other-project/site/* combined-site/other-project/
