@@ -1,0 +1,56 @@
+site_name: Cascade CMS REST Client 
+site_author: Keith Shark
+site_description: Unified documentation for py-cascade-cms
+
+theme:
+  name: material
+  palette:
+    primary: blue
+    accent: blue
+  features:
+    - navigation.instant
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+  - minify
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - tables
+  - md_in_html
+
+nav:
+  - Home: index.md
+  
+  - Cascade CMS REST Client:
+    - Getting Started:
+      - Installation: ./getting-started/installation.md
+      - Quick Start: ./getting-started/quick-start.md
+      - The Fluent Pattern: ./getting-started/fluent-pattern.md
+    - Core Concepts: ./core-concepts/index.md
+    - Operations Reference: ./operations/all-operations.md
+    - Examples & Patterns:
+      - Overview: ./examples/index.md
+      - ID vs. Path: ./examples/pattern-read-identifiers.md
+      - Cache Behavior: ./examples/pattern-read-cache.md
+      - Iterating Results: ./examples/pattern-read-iterate.md
+      - Bulk Create: ./examples/pattern-create-bulk.md
+      - Edit In-Place: ./examples/pattern-edit-in-place.md
+      - No Callbacks: ./examples/pattern-callback-none.md
+      - Callback Chain: ./examples/pattern-callback-chain.md
+      - Dependent Callbacks: ./examples/pattern-callback-dependent.md
+      - CPU-Bound Callbacks: ./examples/pattern-callback-cpu-bound.md
+      - Workflow Orchestration: ./examples/pattern-workflow-orchestration.md
+      - Multi-Site Concurrent: ./examples/pattern-concurrent-multisite.md
+    - Logging & Debugging: ./logging/index.md
+    - Advanced:
+      - Concurrency & Caching: ./advanced/concurrency-caching.md
+    - Maintenance: ./maintenance/index.md
+  

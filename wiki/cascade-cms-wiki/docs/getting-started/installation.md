@@ -41,7 +41,7 @@ The library installs these automatically:
 |---------|---------|
 | `pydantic>=2` | Payload models, response parsing, serialization |
 | `aiohttp-client-cache[sqlite]` | Async HTTP client with SQLite-backed GET cache |
-| `python-dotenv` | Loading environment variables from `.env` files |
+| `python-dotenv` (optional) | Loading environment variables from `.env` files |
 
 ## Troubleshooting
 

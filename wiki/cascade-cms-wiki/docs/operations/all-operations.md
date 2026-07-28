@@ -27,7 +27,7 @@ results = cascade.submit_requests(Asset)
 |--|--|
 | **Method** | `GET` |
 | **URL** | `/read/{type}/{id}` or `/read/{type}/{siteName}/{path}` |
-| **Identifier** | `IdentifierType \| Path \| list[IdentifierType \| Path]` |
+| **Identifier** | `IdentifierType \| Path` \| `list[IdentifierType \| Path]` |
 | **Response** | `Asset` |
 
 → [Example: ID vs. Path](../examples/pattern-read-identifiers/) · [Example: Bulk iteration](../examples/pattern-read-iterate/)
