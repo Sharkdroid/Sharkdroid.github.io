@@ -27,7 +27,7 @@ markdown_extensions:
   - md_in_html
 
 nav:
-  - Home: index.md
+  - Home: ../index.md
   
   - Cascade CMS REST Client:
     - Getting Started:
