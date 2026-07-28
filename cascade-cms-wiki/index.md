@@ -58,7 +58,7 @@ with CascadeWrapperBase(env, config) as cascade:
 
 | Section | What you'll find |
 |---------|-----------------|
-| [Getting Started](./getting-started.md) | Installation, auth setup, your first script |
+| [Getting Started](./getting-started) | Installation, auth setup, your first script |
 | [Core Concepts](./core-concepts.md) | Philosophy, identifiers, callbacks, caching, logging |
 | [Operations Reference](./operations/all-operations/) | Every operation: signature, payload, response type |
 | [Examples & Patterns](./examples.md) | 11 runnable patterns showing library mechanics |
