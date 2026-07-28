@@ -15,7 +15,7 @@ Each example is self-contained and runnable. Swap in real UUIDs and environment 
 
 | Example | What you learn |
 |---------|---------------|
-| [ID vs. Path addressing](./pattern-read-identifiers) | Two ways to reference the same asset; `get_data_structure()` and `get_page_configuration()` |
+| [ID vs. Path addressing](./pattern-read-identifiers.md) | Two ways to reference the same asset; `get_data_structure()` and `get_page_configuration()` |
 | [Cache behavior](./pattern-read-cache/) | Repeated reads skip the network; how to configure or disable caching |
 | [Iterating results three ways](./pattern-read-iterate/) | List comprehension, for-loop, and callback on the same result set |
 
