@@ -47,7 +47,7 @@ Processed: 12/12 (1 failed)
 
 ## 2. Debug mode
 
-Pass a `debug` dict to `CascadeWrapperBase`. All keys are required.
+Pass a `debug` dict to `CascadeWrapperBase`. All keys are optional — any key you omit falls back to the default listed in [§3](#3-debug-config-keys-explained).
 
 ```python
 debug_config = {
@@ -64,6 +64,8 @@ debug_config = {
 with CascadeWrapperBase(env, config, debug=debug_config) as cascade:
     ...
 ```
+
+Every key above is shown at its default value — this example is for illustration only. In practice, pass just the keys you want to override, e.g. `debug={"response_line_limit": -1}`. Even an empty dict (`debug={}`) is enough to turn on debug mode with every key at its default.
 
 **Console in debug mode:** Only `[INIT]`, `[DEBUG]`, progress counter, and errors. No operation details.
 
@@ -87,16 +89,16 @@ The pipe-indented nesting shows depth: top-level operations are prefixed with `>
 
 ## 3. Debug config keys explained
 
-| Key | Type | Description |
-|-----|------|-------------|
-| `log_dir` | `str` | Directory for logfiles. Created if it doesn't exist. |
-| `log_operations` | `bool` | Write an operation block per request (URL, payload, parser, identifier). |
-| `log_callbacks` | `bool` | Log callback chain `fn1 >> fn2 >> fn3` for each result. |
-| `log_responses` | `bool` | Write the raw response body inside each operation block. |
-| `show_payload_data` | `bool` | Include the serialized payload in operation blocks. |
-| `show_network_headers` | `bool` | Write request and response HTTP headers. Useful for debugging caching and auth issues. |
-| `show_error_variables` | `bool` | On Python exceptions, dump local variable names and values from the failing frame. |
-| `response_line_limit` | `int` | Max lines of response body to include. `-1` dumps the full body. |
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `log_dir` | `str` | `"./logs"` | Directory for logfiles. Created if it doesn't exist. |
+| `log_operations` | `bool` | `True` | Write an operation block per request (URL, payload, parser, identifier). |
+| `log_callbacks` | `bool` | `True` | Log callback chain `fn1 >> fn2 >> fn3` for each result. |
+| `log_responses` | `bool` | `True` | Write the raw response body inside each operation block. |
+| `show_payload_data` | `bool` | `True` | Include the serialized payload in operation blocks. |
+| `show_network_headers` | `bool` | `False` | Write request and response HTTP headers. Useful for debugging caching and auth issues. |
+| `show_error_variables` | `bool` | `True` | On Python exceptions, dump local variable names and values from the failing frame. |
+| `response_line_limit` | `int` | `8` | Max lines of response body to include. `-1` dumps the full body. |
 
 ---
 

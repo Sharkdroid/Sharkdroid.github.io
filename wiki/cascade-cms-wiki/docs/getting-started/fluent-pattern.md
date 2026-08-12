@@ -63,7 +63,7 @@ with CascadeWrapperBase(env, config) as cascade:
 
 ## The type hint on submit_requests()
 
-The `_result_type` argument is a type hint for static analysis tools (Pylance, mypy). It does not change runtime behavior — it tells your editor what type to expect in the returned list.
+The `result_type` argument is a type hint for static analysis tools (Pylance, mypy). It does not change runtime behavior — it tells your editor what type to expect in the returned list.
 
 ```python
 results = cascade.submit_requests(Asset)      # type: List[Asset]
@@ -86,6 +86,27 @@ with CascadeWrapperBase(env, config) as cascade:
 ```
 
 Callbacks are optional. See [Examples & Patterns](../examples/index.md) for all the ways to use them.
+
+## Controlling callback execution with executor
+
+`submit_requests()` also takes an optional, keyword-only `executor` argument. It controls how *synchronous* callbacks (registered via `.then()`) are run.
+
+```python
+results = cascade.submit_requests(Asset)  # executor defaults to None
+```
+
+By default (`executor=None`), sync callbacks run on the event loop's default `ThreadPoolExecutor` — lightweight, and fine for I/O-bound callbacks. For CPU-bound callbacks (image optimization, etc.), pass a `ProcessPoolExecutor` for true parallelism:
+
+```python
+from concurrent.futures import ProcessPoolExecutor
+from os import cpu_count
+
+with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
+    cascade.operations.read(identifiers).then(optimize_image)
+    results = cascade.submit_requests(Asset, executor=executor)
+```
+
+Async callbacks (`async def`) ignore `executor` entirely — they're awaited directly on the event loop regardless of what's passed.
 
 ---
 

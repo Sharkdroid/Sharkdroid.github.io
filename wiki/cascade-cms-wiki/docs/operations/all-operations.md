@@ -34,7 +34,7 @@ results = cascade.submit_requests(Asset)
 
 ---
 
-### `create(payload)`
+### `create(payload, parser=None)`
 
 Create one or more new assets.
 
@@ -61,7 +61,7 @@ results = cascade.submit_requests(IdentifierType)
 
 ---
 
-### `edit(payload)`
+### `edit(payload, parser=parse_success)`
 
 Save one or more modified assets.
 
@@ -83,7 +83,7 @@ cascade.submit_requests()
 
 ---
 
-### `delete(identifier, payload=None)`
+### `delete(identifier, payload=None, parser=parse_success)`
 
 Delete an asset.
 
@@ -105,7 +105,7 @@ cascade.submit_requests()
 
 ---
 
-### `copy(identifier, payload)`
+### `copy(identifier, payload, parser=parse_success)`
 
 Copy an asset to a new location.
 
@@ -131,7 +131,7 @@ cascade.submit_requests()
 
 ---
 
-### `move(identifier, payload)`
+### `move(identifier, payload, parser=parse_success)`
 
 Move or rename an asset.
 
@@ -161,7 +161,7 @@ cascade.submit_requests()
 
 ## Search & Discovery
 
-### `search(payload)`
+### `search(payload, parser=parse_list_elements)`
 
 Search for assets matching criteria.
 
@@ -187,7 +187,7 @@ results = cascade.submit_requests(ListElements)
 
 ---
 
-### `listSites()`
+### `listSites(parser=parse_list_elements)`
 
 List all sites the API key can access.
 
@@ -204,7 +204,7 @@ results = cascade.submit_requests(ListElements)
 
 ---
 
-### `listSubscribers(identifier)`
+### `listSubscribers(identifier, parser=parse_list_elements)`
 
 List all assets that subscribe to (reference) a given asset.
 
@@ -225,7 +225,7 @@ results = cascade.submit_requests(ListElements)
 
 ## Publishing & Version Control
 
-### `publish(identifier, payload=None)`
+### `publish(identifier, payload=None, parser=parse_success)`
 
 Publish one or more assets.
 
@@ -245,7 +245,7 @@ cascade.submit_requests()
 
 ---
 
-### `checkOut(identifier)`
+### `checkOut(identifier, parser=parse_checked_out_asset)`
 
 Check out an asset for editing, creating a working copy. Also toggles the local checkout ledger.
 
@@ -264,7 +264,7 @@ working_copy_id = results[0].workingCopyIdentifier
 
 ---
 
-### `checkIn(identifier, payload)`
+### `checkIn(identifier, payload, parser=parse_success)`
 
 Check in an asset after editing. Also toggles the local checkout ledger.
 
@@ -288,7 +288,7 @@ cascade.submit_requests()
 
 ## Workflow Operations
 
-### `readWorkflowInformation(identifier)`
+### `readWorkflowInformation(identifier, parser=parse_workflow_information)`
 
 Read the active workflow state for an asset, including current step and available actions.
 
@@ -310,7 +310,7 @@ print(wf.current_step)
 
 ---
 
-### `performWorkflowTransition(identifier, payload)`
+### `performWorkflowTransition(identifier, payload, parser=parse_success)`
 
 Advance an asset's workflow to the next step. Does not auto-publish or send notifications — those are determined by the workflow definition.
 
@@ -339,7 +339,7 @@ cascade.submit_requests()
 
 ---
 
-### `readWorkflowSettings(identifier)`
+### `readWorkflowSettings(identifier, parser=parse_workflow_settings)`
 
 Read the workflow definitions associated with an asset.
 
@@ -357,7 +357,7 @@ results = cascade.submit_requests(workflowSettingsPayload)
 
 ---
 
-### `editWorkflowSettings(payload)`
+### `editWorkflowSettings(payload, parser=parse_success)`
 
 Update the workflow settings for an asset. Identifier is extracted from the payload.
 
@@ -378,7 +378,7 @@ cascade.submit_requests()
 
 ## Access Control
 
-### `readAccessRights(identifier)`
+### `readAccessRights(identifier, parser=parse_access_rights)`
 
 Read the ACL entries for an asset.
 
@@ -416,7 +416,7 @@ cascade.submit_requests()
 
 ## Audit & Admin
 
-### `readAudits(payload)`
+### `readAudits(payload, parser=parse_list_elements)`
 
 Read the audit log for a user, group, or role.
 
@@ -441,7 +441,7 @@ results = cascade.submit_requests(ListElements)
 
 ---
 
-### `siteCopy(payload)`
+### `siteCopy(payload, parser=parse_success)`
 
 Copy an entire site.
 
@@ -465,7 +465,7 @@ cascade.submit_requests()
 
 ---
 
-### `readPreferences()`
+### `readPreferences(parser=parse_payloads)`
 
 Read the current user's Cascade preferences.
 
@@ -506,7 +506,7 @@ cascade.submit_requests()
 
 ## Messaging
 
-### `listMessages()`
+### `listMessages(parser=parse_list_elements)`
 
 List all messages in the current user's inbox.
 
