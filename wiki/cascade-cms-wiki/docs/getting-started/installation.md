@@ -9,20 +9,20 @@ nav_order: 1
 
 ## Requirements
 
-- Python 3.11 or higher (the library uses `Self`, `X | Y` unions, and `TypeAlias` from 3.11+)
+- Python 3.12 or higher (the library uses `Self`, `TypeAlias`, and PEP 604 unions)
 - A Cascade CMS instance with REST API access
 - A valid Cascade API key
 
 ## Install from PyPI
 
 ```bash
-pip install cascade-cms
+pip install cascade-cms-rest
 ```
 
 To include development dependencies (testing, linting, type checking):
 
 ```bash
-pip install "cascade-cms[dev]"
+pip install "cascade-cms-rest[dev]"
 ```
 
 ## Verify the install
@@ -41,7 +41,7 @@ The library installs these automatically:
 |---------|---------|
 | `pydantic>=2` | Payload models, response parsing, serialization |
 | `aiohttp-client-cache[sqlite]` | Async HTTP client with SQLite-backed GET cache |
-| `python-dotenv` (optional) | Loading environment variables from `.env` files |
+| `python-dotenv` | Loading environment variables from `.env` files (required, not optional) |
 
 ## Troubleshooting
 
@@ -55,7 +55,7 @@ pip install aiosqlite
 ```
 
 **Python version mismatch**
-Run `python --version`. If it shows 3.10 or lower, install 3.11+ and create a fresh virtual environment.
+Run `python --version`. If it shows 3.11 or lower, install 3.12+ and create a fresh virtual environment.
 
 ---
 

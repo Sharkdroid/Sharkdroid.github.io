@@ -77,7 +77,7 @@ cascade.submit_requests()
 | **Method** | `POST` |
 | **URL** | `/edit` |
 | **Payload** | `Asset \| list[Asset]` |
-| **Response** | `CascadeError` (success or failure indicator) |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 
 → [Example: Edit in-place](../examples/pattern-edit-in-place.md)
 
@@ -101,7 +101,7 @@ cascade.submit_requests()
 | **URL** | `/delete/{type}/{id}` |
 | **Identifier** | `IdentifierType \| Path` |
 | **Payload** | `deleteParameters` (optional) |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 
 ---
 
@@ -127,7 +127,7 @@ cascade.submit_requests()
 | **URL** | `/copy/{type}/{id}` |
 | **Identifier** | `IdentifierType \| Path \| list[...]` |
 | **Payload** | `copyParameters` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 
 ---
 
@@ -155,7 +155,7 @@ cascade.submit_requests()
 | **URL** | `/move/{type}/{id}` |
 | **Identifier** | `IdentifierType \| Path \| list[...]` |
 | **Payload** | `moveParameters` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 
 ---
 
@@ -241,7 +241,7 @@ cascade.submit_requests()
 | **URL** | `/publish/{type}/{id}` |
 | **Identifier** | `IdentifierType \| Path \| list[...]` |
 | **Payload** | `publishInformation` (optional) |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 
 ---
 
@@ -282,7 +282,7 @@ cascade.submit_requests()
 | **URL** | `/checkIn/{type}/{id}` |
 | **Identifier** | `IdentifierType \| Path \| list[...]` |
 | **Payload** | `Comment` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 
 ---
 
@@ -332,7 +332,7 @@ cascade.submit_requests()
 | **URL** | `/performWorkflowTransition/{type}/{id}` |
 | **Identifier** | `IdentifierType \| Path` |
 | **Payload** | `workflowTransitionInformation` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 | **Important** | Always call `readWorkflowInformation` first to validate the `actionIdentifier` against the current step |
 
 → [Example: Workflow orchestration](../examples/pattern-workflow-orchestration.md)
@@ -371,7 +371,7 @@ cascade.submit_requests()
 | **Method** | `POST` |
 | **URL** | `/editWorkflowSettings/{type}/{id}` |
 | **Payload** | `workflowSettingsPayload` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 | **Note** | Returns `None` rather than `Self` — does not support method chaining |
 
 ---
@@ -410,7 +410,7 @@ cascade.submit_requests()
 | **Method** | `POST` |
 | **URL** | `/editAccessRights` |
 | **Payload** | `accessRightsInformationPayload` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 
 ---
 
@@ -461,7 +461,7 @@ cascade.submit_requests()
 | **Method** | `POST` |
 | **URL** | `/siteCopy` |
 | **Payload** | `SiteCopyParameter` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 
 ---
 
@@ -499,8 +499,22 @@ cascade.submit_requests()
 | **Method** | `POST` |
 | **URL** | `/editPreference` |
 | **Payload** | `preference` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 | **Note** | Returns `None` rather than `Self` |
+
+---
+
+## Response Models
+
+### `CascadeSuccess`
+
+Response model for successful write operations (`{"success": true}`). Indicates the operation completed without error.
+
+| Field | Type | Notes |
+|--|--|--|
+| `success` | `bool` | Always `True` |
+
+Available since: 2.0.2
 
 ---
 
@@ -539,7 +553,7 @@ cascade.submit_requests()
 | **Method** | `POST` |
 | **URL** | `/markMessage/{type}/{id}` |
 | **Payload** | `Message` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 | **Note** | Returns `None` rather than `Self` |
 
 ---
@@ -558,5 +572,5 @@ cascade.submit_requests()
 | **Method** | `POST` |
 | **URL** | `/deleteMessage/{type}/{id}` |
 | **Payload** | `Message` |
-| **Response** | `CascadeError` |
+| **Response** | `CascadeSuccess` on success, `CascadeError` on failure (see `parse_success`) |
 | **Note** | Returns `None` rather than `Self` |

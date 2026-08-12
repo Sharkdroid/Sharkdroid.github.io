@@ -41,7 +41,7 @@ def normalize_keywords(asset: Asset):
     """Strip whitespace and lowercase all keywords in-place."""
     raw = asset.get("keywords", "")
     cleaned = ", ".join(k.strip().lower() for k in raw.split(",") if k.strip())
-    asset["keywords"] = cleaned
+    asset.keywords = cleaned
 
 def log_asset(asset: Asset):
     """Print a summary line for each processed asset."""
