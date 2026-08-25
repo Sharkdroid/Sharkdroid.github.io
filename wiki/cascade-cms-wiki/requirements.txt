@@ -1,5 +1,6 @@
 properdocs
 mkdocs-material
 mkdocs-minify-plugin
-properdocs
 pymdown-extensions
+mkdocstrings[python]
+cascade-cms-rest

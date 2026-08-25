@@ -17,6 +17,15 @@ theme:
 plugins:
   - search
   - minify
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            members_order: source
 
 markdown_extensions:
   - pymdownx.highlight
@@ -28,33 +37,8 @@ markdown_extensions:
 
 nav:
   - Home: ./index.md
-  
-  - Cascade CMS REST Client:
-    - Getting Started:
-      - Overview: ./getting-started/index.md
-      - Installation: ./getting-started/installation.md
-      - Quick Start: ./getting-started/quick-start.md
-      - The Fluent Pattern: ./getting-started/fluent-pattern.md
-    - Core Concepts: ./core-concepts/index.md
-    - Operations Reference:
-      - Overview: ./operations/index.md
-      - All Operations: ./operations/all-operations.md
-    - Examples & Patterns:
-      - Overview: ./examples/index.md
-      - ID vs. Path: ./examples/pattern-read-identifiers.md
-      - Cache Behavior: ./examples/pattern-read-cache.md
-      - Iterating Results: ./examples/pattern-read-iterate.md
-      - Bulk Create: ./examples/pattern-create-bulk.md
-      - Edit In-Place: ./examples/pattern-edit-in-place.md
-      - No Callbacks: ./examples/pattern-callback-none.md
-      - Callback Chain: ./examples/pattern-callback-chain.md
-      - Dependent Callbacks: ./examples/pattern-callback-dependent.md
-      - CPU-Bound Callbacks: ./examples/pattern-callback-cpu-bound.md
-      - Workflow Orchestration: ./examples/pattern-workflow-orchestration.md
-      - Multi-Site Concurrent: ./examples/pattern-concurrent-multisite.md
-    - Logging & Debugging: ./logging/index.md
-    - Advanced:
-      - Overview: ./advanced/index.md
-      - Concurrency & Caching: ./advanced/concurrency-caching.md
-    - Maintenance: ./maintenance/index.md
-  
+  - Operations: ./operations/operations.md
+  - CMS Types: ./operations/cmstypes.md
+  - Wrapper: ./operations/wrapper.md
+  - Driver: ./operations/driver.md
+  - Operation Logger: ./operations/operation_logger.md
