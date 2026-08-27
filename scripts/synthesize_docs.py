@@ -220,7 +220,9 @@ def validate_output(filled: str, template: str) -> tuple[bool, list[str]]:
 
 def main():
     version = os.environ["LIBRARY_VERSION"]
-    model   = os.getenv("DOCS_SYNTHESIS_MODEL", "gemini/gemini-3.5-flash-lite")
+    # os.getenv's default only applies when the var is absent — but an unset
+    # GitHub Actions repo variable still defines the env var, just as "".
+    model   = os.getenv("DOCS_SYNTHESIS_MODEL") or "gemini/gemini-3.5-flash-lite"
 
     print(f"[synthesize_docs] cascade_cms {version}")
     print(f"[synthesize_docs] Model: {model}")

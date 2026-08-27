@@ -94,7 +94,11 @@ def main():
             branch_name,
         )
 
-    # Prepend OUTDATED banner to failed files
+    # Prepend OUTDATED banner to failed files. If the page already exists
+    # (a re-synthesis that failed), keep the previously-deployed content and
+    # just flag it stale. If it doesn't exist yet (e.g. the very first run),
+    # write a stub so the page — and the failure — is visible for review,
+    # rather than silently leaving nothing to commit.
     for template_name, errors in failed_files.items():
         wiki_path  = TEMPLATE_TO_WIKI_PATH.get(template_name)
         if not wiki_path:
@@ -105,17 +109,16 @@ def main():
         try:
             existing = repo.get_contents(wiki_path, ref=branch_name)
             current  = existing.decoded_content.decode()
-            if "synthesis-failed" not in current:
-                repo.update_file(
-                    wiki_path,
-                    f"docs({version}): mark {template_name} outdated",
-                    banner + current,
-                    existing.sha,
-                    branch=branch_name,
-                )
+            if "synthesis-failed" in current:
+                continue
+            content = banner + current
+            message = f"docs({version}): mark {template_name} outdated"
         except GithubException as e:
             if e.status != 404:
                 raise
+            content = banner + f"# {template_name}\n\n_Content pending successful synthesis._\n"
+            message = f"docs({version}): stub {template_name} (synthesis failed)"
+        write_file(repo, wiki_path, content, message, branch_name)
 
     # Build PR body
     success_list = "\n".join(f"- ✅ {n}" for n in sorted(filled_names))
