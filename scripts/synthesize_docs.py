@@ -157,9 +157,25 @@ def fill_template(template_text: str, grounding_text: str, model: str) -> str:
     """Call Gemini to fill template placeholders. Retries once on a rate
     limit — a single run makes 7 sequential calls with large grounding
     payloads, which free-tier keys can plausibly exceed mid-run."""
+    if grounding_text:
+        reference_section = (
+            "REFERENCE DOCS (source all field names and examples from here only):\n\n"
+            f"{grounding_text}"
+        )
+    else:
+        # A template with no grounding docs (e.g. a pure TOC page) still
+        # has placeholders that need filling — they just don't need any
+        # field names or code sourced from a reference doc. Without this,
+        # the model has repeatedly left such placeholders untouched,
+        # apparently reading rule 3 ("source ONLY from reference docs") as
+        # forbidding it from writing anything when that section is empty.
+        reference_section = (
+            "REFERENCE DOCS: none needed for this template — it has no code "
+            "examples or field names to source. Fill its placeholder(s) using "
+            "only the descriptive context already given in the template below."
+        )
     user_prompt = (
-        "REFERENCE DOCS (source all field names and examples from here only):\n\n"
-        f"{grounding_text}\n\n"
+        f"{reference_section}\n\n"
         "---\n\n"
         "TEMPLATE (fill every [PLACEHOLDER: ...] block, touch nothing else):\n\n"
         f"{template_text}"
