@@ -37,6 +37,15 @@ markdown_extensions:
 
 nav:
   - Home: ./index.md
+  - Core Concepts: ./core-concepts/index.md
+  - Advanced:
+      - ./advanced/index.md
+      - ./advanced/caching.md
+      - ./advanced/logging.md
+      - ./advanced/cpu-intensive.md
+  - Examples:
+      - ./examples/main-patterns.md
+      - ./examples/administrative.md
   - Operations: ./operations/operations.md
   - CMS Types: ./operations/cmstypes.md
   - Wrapper: ./operations/wrapper.md

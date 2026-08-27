@@ -1,0 +1,115 @@
+name: AI Docs Synthesis
+
+on:
+  schedule:
+    - cron: '0 9 * * *'      # Daily at 9 AM UTC
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Force Phase 2 synthesis even if version matches"
+        type: boolean
+        default: false
+
+concurrency:
+  group: docs-synthesis
+  cancel-in-progress: false
+
+jobs:
+  # ============================================================================
+  # Phase 1: Rebuild reference docs — always runs, no cost, no gating
+  # ============================================================================
+  rebuild-reference-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout wiki repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Cascade CMS Wiki dependencies
+        run: pip install -r wiki/cascade-cms-wiki/requirements.txt
+
+      - name: Rebuild reference docs via mkdocstrings
+        run: |
+          cd wiki/cascade-cms-wiki
+          properdocs build
+          cd ..
+
+      - name: Commit and push reference doc updates
+        run: |
+          git config user.name "docs-synthesis[bot]"
+          git config user.email "docs-synthesis@github.local"
+          git add wiki/cascade-cms-wiki/docs/operations/
+          git commit -m "chore: rebuild reference docs via mkdocstrings" || true
+          git push || true
+
+  # ============================================================================
+  # Phase 2a: Detect version drift — runs after Phase 1, still no API cost
+  # ============================================================================
+  detect-drift:
+    needs: rebuild-reference-docs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      has_drift: ${{ steps.check.outputs.has_drift }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Checkout wiki repo
+        uses: actions/checkout@v4
+
+      - name: Detect version drift
+        id: check
+        env:
+          FORCE_SYNTHESIS: ${{ github.event.inputs.force }}
+        run: bash scripts/detect_drift.sh
+
+  # ============================================================================
+  # Phase 2b: Synthesize narrative docs — only runs if drift detected
+  # ============================================================================
+  synthesize:
+    needs: detect-drift
+    if: needs.detect-drift.outputs.has_drift == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout wiki repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Cascade CMS Wiki dependencies
+        run: pip install -r wiki/cascade-cms-wiki/requirements.txt
+
+      - name: Rebuild docs site (for HTML grounding extraction)
+        run: |
+          cd wiki/cascade-cms-wiki
+          properdocs build
+          cd ..
+
+      - name: Install synthesis dependencies
+        run: pip install litellm PyGithub beautifulsoup4
+
+      - name: Run synthesis
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DOCS_SYNTHESIS_MODEL: ${{ vars.DOCS_SYNTHESIS_MODEL }}
+          LIBRARY_VERSION: ${{ needs.detect-drift.outputs.version }}
+        run: python scripts/synthesize_docs.py
+
+      - name: Create PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/create_pr.py
