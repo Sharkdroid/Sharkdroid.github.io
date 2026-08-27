@@ -18,6 +18,7 @@ import os
 import re
 import sys
 import json
+import time
 import litellm
 from bs4 import BeautifulSoup
 
@@ -69,6 +70,7 @@ KNOWN_FIELDS = {
     "searchTerms", "searchFields", "searchTypes", "doWorkflow",
     "destinations", "unpublish", "name", "value", "flat", "children",
     "type", "read", "delete", "create", "edit", "search",
+    "operations", "submit_requests", "message", "elements",
 }
 
 SYSTEM_PROMPT = """\
@@ -77,9 +79,9 @@ pre-structured markdown template for a Python library wiki.
 
 Rules — follow all of them exactly:
 1. Fill every [PLACEHOLDER: ...] block with accurate, concise prose or code.
-2. Do NOT modify any text outside a [PLACEHOLDER: ...] block — preserve all \
+2. Do NOT modify any text outside a [PLACEHOLDER: ...] block — copy all \
    headings, admonition blocks (!!!), tables, cross-page links, and fixed \
-   code blocks exactly as given.
+   code blocks character-for-character, including exact heading wording.
 3. Source ALL code examples and field names ONLY from the reference docs \
    provided below. Do NOT invent field names, method signatures, or parameters \
    that do not appear in the reference docs.
@@ -152,7 +154,9 @@ def load_grounding(template_name: str) -> str:
 
 
 def fill_template(template_text: str, grounding_text: str, model: str) -> str:
-    """Call Gemini to fill template placeholders."""
+    """Call Gemini to fill template placeholders. Retries once on a rate
+    limit — a single run makes 7 sequential calls with large grounding
+    payloads, which free-tier keys can plausibly exceed mid-run."""
     user_prompt = (
         "REFERENCE DOCS (source all field names and examples from here only):\n\n"
         f"{grounding_text}\n\n"
@@ -160,16 +164,23 @@ def fill_template(template_text: str, grounding_text: str, model: str) -> str:
         "TEMPLATE (fill every [PLACEHOLDER: ...] block, touch nothing else):\n\n"
         f"{template_text}"
     )
-    response = litellm.completion(
-        model=model,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": user_prompt},
-        ],
-        temperature=0,
-        max_tokens=3000,
-    )
-    return response.choices[0].message.content.strip()
+    for attempt in range(2):
+        try:
+            response = litellm.completion(
+                model=model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user",   "content": user_prompt},
+                ],
+                temperature=0,
+                max_tokens=3000,
+            )
+            return response.choices[0].message.content.strip()
+        except litellm.RateLimitError:
+            if attempt == 1:
+                raise
+            print("  ! Rate limited, waiting 30s before one retry...")
+            time.sleep(30)
 
 
 def append_version_footer(content: str, version: str) -> str:
@@ -188,7 +199,12 @@ def validate_output(filled: str, template: str) -> tuple[bool, list[str]]:
 
     # Check 2: Markdown heading structure preserved
     def extract_headings(md: str) -> list[str]:
-        return re.findall(r'^(#{1,3} .+)$', md, re.M)
+        # Strip fenced code blocks first — templates explicitly ask for
+        # inline `# comments` in generated code, and a Python comment like
+        # "# Open the wrapper session..." otherwise matches the same regex
+        # as a markdown heading.
+        without_code = re.sub(r'```.*?```', '', md, flags=re.S)
+        return re.findall(r'^(#{1,3} .+)$', without_code, re.M)
 
     if extract_headings(template) != extract_headings(filled):
         errors.append(
