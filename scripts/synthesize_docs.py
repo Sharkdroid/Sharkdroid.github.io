@@ -70,7 +70,7 @@ KNOWN_FIELDS = {
     "searchTerms", "searchFields", "searchTypes", "doWorkflow",
     "destinations", "unpublish", "name", "value", "flat", "children",
     "type", "read", "delete", "create", "edit", "search",
-    "operations", "submit_requests", "message", "elements",
+    "operations", "submit_requests", "message", "elements", "marked",
 }
 
 SYSTEM_PROMPT = """\
@@ -214,17 +214,30 @@ def validate_output(filled: str, template: str) -> tuple[bool, list[str]]:
         )
 
     # Check 3: No invented field names in code blocks
+    def strip_strings_and_comments(code: str) -> str:
+        # Real reference values (e.g. a default like "./cache/cache.sqlite",
+        # or an illustrative example URL) legitimately appear inside string
+        # literals and comments. Strip those before scanning for attribute
+        # access so quoted text isn't mistaken for `cascade.<attr>` usage.
+        code = re.sub(r'""".*?"""|\'\'\'.*?\'\'\'', '', code, flags=re.S)
+        code = re.sub(r'"[^"\n]*"|\'[^\'\n]*\'', '', code)
+        code = re.sub(r'#.*$', '', code, flags=re.M)
+        return code
+
     code_blocks = re.findall(r'```(?:python)?(.*?)```', filled, re.S)
-    invented = set()
+    invented = {}
     for block in code_blocks:
-        attrs = re.findall(
-            r'(?:result|asset|cascade|response|msg|pref)\.(\w+)', block
-        )
-        for attr in attrs:
-            if attr not in KNOWN_FIELDS and not attr.startswith("_"):
-                invented.add(attr)
+        cleaned = strip_strings_and_comments(block)
+        for m in re.finditer(
+            r'(?:result|asset|cascade|response|msg|pref)\.(\w+)', cleaned
+        ):
+            attr = m.group(1)
+            if attr not in KNOWN_FIELDS and not attr.startswith("_") and attr not in invented:
+                start = max(0, m.start() - 30)
+                invented[attr] = cleaned[start:m.end() + 15].strip()
     if invented:
-        errors.append(f"Potentially invented field names: {sorted(invented)}")
+        details = [f"{attr!r} (near: ...{ctx}...)" for attr, ctx in sorted(invented.items())]
+        errors.append(f"Potentially invented field names: {details}")
 
     return len(errors) == 0, errors
 
