@@ -1,22 +1,22 @@
-# Logging & Debugging
+# Logging & Deployment
 
-Operation logger owns all console, logfile, and (verbose mode) request/response file output for the cascade_cms library. Two output modes exist: normal mode for everyday use and debug mode for diagnosing failures, controlled solely by whether `debug_config` is `None`. Both produce logfiles; debug mode adds a verbose nested call-chain log alongside a quieter console output.
+The cascade_cms library provides two distinct output modes: a clean normal mode for everyday use, and a verbose debug mode designed for diagnosing pipeline failures. Both modes produce dedicated logfiles, while debug mode additionally outputs a verbose nested call-chain log alongside a quieter console output.
 
 ---
 
 ## Normal Mode Output
 
-Normal mode produces minimal console output and a simple logfile. It logs lifecycle markers such as `[INIT]`, `[RUNNING]`, `[DONE]`, and `[EXIT]`, along with batch tallies and operation progress lines. The normal logfile is named `{SERVER}_{timestamp}.log` and records one line per chain.
+In normal mode, output is minimal on the console and clean in the logfile. It outputs lifecycle markers (`[INIT]`, `[RUNNING]`, `[DONE]`, `[EXIT]`), per-operation progress lines, and a normal logfile named with `{server}_{timestamp}.log` containing one line per operation.
 
 ### Normal Logfile Format
 
 ```text
-[INIT]: Connecting to myserver.com
-[RUNNING]: myscript.py
+[INIT]: Connecting to cms.example.com
+[RUNNING]: batch_script.py
 (uuid_or_path, asset_type) OP1 -> fn_name: Type -> ...
-1/1 succeeded
-[DONE]: 1 assets processed in 0.5s
-[EXIT]: Disconnecting from myserver.com
+10/10 succeeded
+[DONE]: 10 assets processed in 1.2s
+[EXIT]: Disconnecting from cms.example.com
 ```
 
 ---
@@ -24,17 +24,19 @@ Normal mode produces minimal console output and a simple logfile. It logs lifecy
 ## Enabling Debug Mode
 
 ```python
-wrapper = CascadeWrapperBase("myserver.com", debug_config={
-    "log_dir": "./logs",
-    "show_network_headers": True
-})
+wrapper = CascadeClient(
+    url="https://cms.example.com",
+    api_key="your-api-key",
+    debug_config={
+        "log_dir": "./logs",
+        "show_network_headers": True,
+    }
+)
 ```
 
 ---
 
 ## Debug Configuration Options
-
-Recognized `debug_config` keys control the log directory and network header visibility.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -45,14 +47,13 @@ Recognized `debug_config` keys control the log directory and network header visi
 
 ## Debug Logfile Format
 
-The debug logfile uses the naming convention `{SERVER}_debug_{timestamp}.log`. It features a quiet console, a verbose logfile, and per-request JSON files. There is no longer a separate "log operations vs. callbacks vs. responses" toggle — `_is_debug` is the single on/off switch for verbose behavior.
+The debug logfile follows the naming convention `{server}_debug_{timestamp}.log`, outputting quiet console logs and a verbose logfile plus per-request JSON files.
 
 ### Sample Debug Log
 
 ```text
->>>> START REQUEST <<+
+>>>> START REQUEST <<<<
 (uuid_or_path, asset_type) OP1 -> fn_name: Type -> ...
-[GET] https://myserver.com/api/v1/read/site/path
 1/1 succeeded
 >>>> END REQUEST <<<<
 ```
@@ -61,6 +62,6 @@ The debug logfile uses the naming convention `{SERVER}_debug_{timestamp}.log`. I
 
 ## Interpreting Errors in Debug Mode
 
-Error lines in debug mode utilize a `v` marker followed by an `!ERROR:` block indicating the failure at the specified step index. Chain-level failures go through `flush_chain_error` which has step-index context. `log_cascade_error` provides a thin wrapper to log a `CascadeError` (API-level failure) outside of chain context, while `log_python_error` logs an unhandled Python exception with traceback, file name, and line number.
+Error lines in debug mode output a `v` marker followed by an `!ERROR:` block indicating the exact point of failure, utilizing the `failing_step_index` to align under the failing operation's first character. `CascadeError` covers API-level failures with step-index context, whereas Python exceptions handled by `log_python_error` extract traceback information to log the exception type, message, file name, and line number.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.3 -->
