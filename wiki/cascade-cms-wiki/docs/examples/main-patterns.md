@@ -22,89 +22,80 @@ before using a result.
 ## Pattern 1 — `read`: fetching a structured asset
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build a Path identifier referencing a page in the site
+with CascadeWrapperBase("https://cascade.example.com", "username", "api-key") as cascade:
+    # 1. Define a Path identifier for the asset
     identifier = Path(asset_type="page", path="index", siteName="Default")
-    
-    # Queue the read operation
+
+    # 2. Queue the read operation
     cascade.operations.read(identifier)
-    
-    # Submit requests and get back the results list
+
+    # 3. Execute all queued requests concurrently
     results = cascade.submit_requests()
     result = results[0]
-    
-    # Check if the operation returned a CascadeError
+
+    # 4. Check for API errors before accessing asset fields
     if isinstance(result, CascadeError):
         print(f"Error: {result.message}")
     else:
-        # Access structured asset fields
         print(result.displayName)
         print(result.metadata)
 ```
 
-`read` represents the response shape most other "fetch" operations follow — `readAudits`, `readAccessRights`, `readWorkflowSettings`, etc. — and they all return a structured object specific to what was requested.
+The `read` pattern represents the response shape most other "fetch" operations follow — `readAudits`, `readAccessRights`, `readWorkflowSettings`, and others — which all return a structured object specific to what was requested.
 
 ---
 
 ## Pattern 2 — `delete`: a simple success response
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build a Path identifier for the asset to delete
+with CascadeWrapperBase("https://cascade.example.com", "username", "api-key") as cascade:
+    # 1. Define a Path identifier for the asset to delete
     identifier = Path(asset_type="page", path="old-page", siteName="Default")
-    
-    # Configure delete parameters
-    payload = deleteParameters(
-        doWorkflow=False,
-        destinations_identifiers=[],
-        unpublish=True
-    )
-    
-    # Queue the delete operation
+
+    # 2. Define the delete parameters payload
+    payload = deleteParameters(doWorkflow=False, destinations=[], unpublish=True)
+
+    # 3. Queue the delete operation with parameters
     cascade.operations.delete(identifier, payload=payload)
-    
-    # Submit requests and get the result
+
+    # 4. Execute the deletion
     results = cascade.submit_requests()
     result = results[0]
-    
+
+    # 5. Check if the deletion succeeded
     if isinstance(result, CascadeError):
         print(f"Delete failed: {result.message}")
     else:
-        print("Asset successfully deleted.")
+        print("Asset successfully deleted!")
 ```
 
-`delete` and other mutating operations (`copy`, `move`, `publish`, `checkIn`, `editAccessRights`) return confirmation only — not the modified asset — so callers should not expect asset data back from these operations.
+Mutating operations like `delete`, `copy`, `move`, `publish`, `checkIn`, and `editAccessRights` return confirmation only rather than the modified asset, meaning callers should not expect asset data back from these endpoints.
 
 ---
 
 ## Pattern 3 — `search`: payload-driven, list response
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build the SearchInformation payload
-    payload = SearchInformation(
-        siteName="Default",
-        searchTerms="news",
-        searchFields=["name"],
-        searchTypes=["page"]
-    )
-    
-    # Queue the search operation
+with CascadeWrapperBase("https://cascade.example.com", "username", "api-key") as cascade:
+    # 1. Construct the SearchInformation payload
+    payload = SearchInformation(siteName="Default", searchTerms="welcome")
+
+    # 2. Queue the search operation
     cascade.operations.search(payload)
-    
-    # Submit requests and inspect the result
+
+    # 3. Execute the search
     results = cascade.submit_requests()
     result = results[0]
-    
+
+    # 4. Handle errors or iterate over results using .flat
     if isinstance(result, CascadeError):
         print(f"Search failed: {result.message}")
     else:
-        # Iterate over the flat list elements
-        for item in result.flat:
-            print(item)
+        for element in result.flat:
+            print(element)
 ```
 
-`search` requires a typed payload object — there is no bare identifier shortcut — and naming the other operations that follow the same pattern: `readAudits` (`auditParameters`), `editWorkflowSettings`, etc.
+The `search` operation requires a typed payload object with no bare identifier shortcut, following the same payload-driven pattern used by `readAudits` (`auditParameters`), `editWorkflowSettings`, and similar operations.
 
 ---
 
@@ -115,16 +106,16 @@ queue multiple chains — even mixing operation types — before calling
 `submit_requests()` once:
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Queue multiple independent chains
+with CascadeWrapperBase("https://cascade.example.com", "username", "api-key") as cascade:
+    # Queue three independent chains
     cascade.operations.read(Path(asset_type="page", path="index", siteName="Default"))
-    cascade.operations.delete(Path(asset_type="page", path="old-page", siteName="Default"), payload=deleteParameters(doWorkflow=False, destinations_identifiers=[], unpublish=True))
-    cascade.operations.search(SearchInformation(siteName="Default", searchTerms="news", searchFields=["name"], searchTypes=["page"]))
-    
-    # All three run concurrently and results are returned in creation order
+    cascade.operations.delete(Path(asset_type="page", path="old-page", siteName="Default"))
+    cascade.operations.search(SearchInformation(siteName="Default", searchTerms="news"))
+
+    # All three chains run concurrently; results are returned in creation order
     results = cascade.submit_requests()
 ```
 
 See [Administrative Operations](administrative.md) for the `messages` and `preferences` operations.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.3 -->
