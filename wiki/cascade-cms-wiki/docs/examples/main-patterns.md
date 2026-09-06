@@ -22,89 +22,98 @@ before using a result.
 ## Pattern 1 — `read`: fetching a structured asset
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build a Path identifier referencing a page in the site
-    identifier = Path(asset_type="page", path="index", siteName="Default")
+from cascade_cms import CascadeWrapperBase
+from cascade_cms.cmstypes import Path, CascadeError
+
+with CascadeWrapperBase() as cascade:
+    # 1. Define a Path identifier for the asset
+    path = Path(path="/index", siteName="default", asset_type="page")
     
-    # Queue the read operation
-    cascade.operations.read(identifier)
+    # 2. Queue the read operation
+    cascade.operations.read(path)
     
-    # Submit requests and get back the results list
+    # 3. Execute all queued requests concurrently
     results = cascade.submit_requests()
     result = results[0]
     
-    # Check if the operation returned a CascadeError
+    # 4. Check for errors before inspecting the asset
     if isinstance(result, CascadeError):
         print(f"Error: {result.message}")
     else:
-        # Access structured asset fields
         print(result.displayName)
         print(result.metadata)
 ```
 
-`read` represents the response shape most other "fetch" operations follow — `readAudits`, `readAccessRights`, `readWorkflowSettings`, etc. — and they all return a structured object specific to what was requested.
+The `read` pattern represents the response shape most other "fetch" operations follow — `readAudits`, `readAccessRights`, `readWorkflowSettings`, etc. — returning a structured object specific to what was requested. Because `read` returns an `Asset` wrapper around the underlying Cascade JSON, you can access asset-specific properties directly from the result once verified.
 
 ---
 
 ## Pattern 2 — `delete`: a simple success response
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build a Path identifier for the asset to delete
-    identifier = Path(asset_type="page", path="old-page", siteName="Default")
+from cascade_cms import CascadeWrapperBase
+from cascade_cms.cmstypes import Path, deleteParameters, CascadeError, IdentifierType
+
+with CascadeWrapperBase() as cascade:
+    # 1. Define a Path identifier for the asset to delete
+    path = Path(path="/old-page", siteName="default", asset_type="page")
     
-    # Configure delete parameters
-    payload = deleteParameters(
+    # 2. Create the delete parameters payload
+    # Note: destinations_identifiers requires a list of IdentifierType objects
+    params = deleteParameters(
         doWorkflow=False,
-        destinations_identifiers=[],
+        destinations=[],
         unpublish=True
     )
     
-    # Queue the delete operation
-    cascade.operations.delete(identifier, payload=payload)
+    # 3. Queue the delete operation with parameters
+    cascade.operations.delete(path, payload=params)
     
-    # Submit requests and get the result
+    # 4. Submit and inspect the result
     results = cascade.submit_requests()
     result = results[0]
     
     if isinstance(result, CascadeError):
-        print(f"Delete failed: {result.message}")
+        print(f"Deletion failed: {result.message}")
     else:
-        print("Asset successfully deleted.")
+        print("Asset successfully deleted!")
 ```
 
-`delete` and other mutating operations (`copy`, `move`, `publish`, `checkIn`, `editAccessRights`) return confirmation only — not the modified asset — so callers should not expect asset data back from these operations.
+The `delete` operation and other mutating operations (`copy`, `move`, `publish`, `checkIn`, `editAccessRights`) return confirmation only — not the modified asset — so callers should not expect asset data back from these operations.
 
 ---
 
 ## Pattern 3 — `search`: payload-driven, list response
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build the SearchInformation payload
+from cascade_cms import CascadeWrapperBase
+from cascade_cms.cmstypes import SearchInformation, CascadeError
+
+with CascadeWrapperBase() as cascade:
+    # 1. Construct the SearchInformation payload
     payload = SearchInformation(
-        siteName="Default",
-        searchTerms="news",
+        siteName="default",
+        searchTerms="blog",
         searchFields=["name"],
         searchTypes=["page"]
     )
     
-    # Queue the search operation
+    # 2. Queue the search operation
     cascade.operations.search(payload)
     
-    # Submit requests and inspect the result
+    # 3. Submit and inspect the result container
     results = cascade.submit_requests()
     result = results[0]
     
     if isinstance(result, CascadeError):
         print(f"Search failed: {result.message}")
     else:
-        # Iterate over the flat list elements
-        for item in result.flat:
-            print(item)
+        # 4. Iterate over the flat list of matched elements
+        for element in result.flat:
+            print(element)
 ```
 
-`search` requires a typed payload object — there is no bare identifier shortcut — and naming the other operations that follow the same pattern: `readAudits` (`auditParameters`), `editWorkflowSettings`, etc.
+The `search` operation requires a typed payload object — there is no bare identifier shortcut — and follows the same payload-driven pattern as operations like `readAudits` (`auditParameters`), `editWorkflowSettings`, and others.
 
 ---
 
@@ -115,16 +124,19 @@ queue multiple chains — even mixing operation types — before calling
 `submit_requests()` once:
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Queue multiple independent chains
-    cascade.operations.read(Path(asset_type="page", path="index", siteName="Default"))
-    cascade.operations.delete(Path(asset_type="page", path="old-page", siteName="Default"), payload=deleteParameters(doWorkflow=False, destinations_identifiers=[], unpublish=True))
-    cascade.operations.search(SearchInformation(siteName="Default", searchTerms="news", searchFields=["name"], searchTypes=["page"]))
+from cascade_cms import CascadeWrapperBase
+from cascade_cms.cmstypes import Path, SearchInformation, deleteParameters
+
+with CascadeWrapperBase() as cascade:
+    # Queue three independent chains
+    cascade.operations.read(Path(path="/about", siteName="default", asset_type="page"))
+    cascade.operations.delete(Path(path="/temp", siteName="default", asset_type="page"), payload=deleteParameters(doWorkflow=False, destinations=[], unpublish=True))
+    cascade.operations.search(SearchInformation(siteName="default", searchTerms="news"))
     
-    # All three run concurrently and results are returned in creation order
+    # All three run concurrently, and results are returned in creation order
     results = cascade.submit_requests()
 ```
 
 See [Administrative Operations](administrative.md) for the `messages` and `preferences` operations.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.3 -->

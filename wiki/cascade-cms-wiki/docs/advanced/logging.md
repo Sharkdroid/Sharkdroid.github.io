@@ -1,21 +1,21 @@
-# Logging & Debugging
+# Logging & Diagnosis
 
-Operation logger owns all console, logfile, and (verbose mode) request/response file output for the cascade_cms library. Two output modes exist: normal mode for everyday use and debug mode for diagnosing failures, controlled solely by whether `debug_config` is `None`. Both produce logfiles; debug mode adds a verbose nested call-chain log alongside a quieter console output.
+cascade_cms features two distinct output modes: a normal mode for everyday operation, and a debug mode for diagnosing network or parsing failures. Both produce timestamped logfiles under the hood, but debug mode switches on a verbose pipeline log alongside a quieter console output.
 
 ---
 
 ## Normal Mode Output
 
-Normal mode produces minimal console output and a simple logfile. It logs lifecycle markers such as `[INIT]`, `[RUNNING]`, `[DONE]`, and `[EXIT]`, along with batch tallies and operation progress lines. The normal logfile is named `{SERVER}_{timestamp}.log` and records one line per chain.
+In normal mode (`debug_config=None`), output is split between a minimal console feed showing lifecycle markers (`[INIT]`, `[RUNNING]`, `[DONE]`, `[EXIT]`) and summary tallies, and a clean logfile. The logfile records one line per executed chain using the format `(uuid_or_path, asset_type) OP1 -> fn_name: Type -> ...`.
 
 ### Normal Logfile Format
 
 ```text
 [INIT]: Connecting to myserver.com
-[RUNNING]: myscript.py
-(uuid_or_path, asset_type) OP1 -> fn_name: Type -> ...
-1/1 succeeded
-[DONE]: 1 assets processed in 0.5s
+[RUNNING]: my_migration_script.py
+(uuid:12345, page) read -> edit -> release
+3/4 succeeded
+[DONE]: 4 assets processed in 1.2s
 [EXIT]: Disconnecting from myserver.com
 ```
 
@@ -23,18 +23,21 @@ Normal mode produces minimal console output and a simple logfile. It logs lifecy
 
 ## Enabling Debug Mode
 
+Debug mode is activated by passing a `debug_config` dictionary (even an empty one) to the library, which switches `_is_debug` on.
+
 ```python
-wrapper = CascadeWrapperBase("myserver.com", debug_config={
-    "log_dir": "./logs",
-    "show_network_headers": True
-})
+cascade = CascadeWrapperBase(
+    server="myserver.com",
+    api_key="123456",
+    debug_config={"log_dir": "./logs"}
+)
 ```
 
 ---
 
 ## Debug Configuration Options
 
-Recognized `debug_config` keys control the log directory and network header visibility.
+The `debug_config` dictionary accepts specific keys to control verbose output behavior, with default values falling back if omitted.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -45,22 +48,23 @@ Recognized `debug_config` keys control the log directory and network header visi
 
 ## Debug Logfile Format
 
-The debug logfile uses the naming convention `{SERVER}_debug_{timestamp}.log`. It features a quiet console, a verbose logfile, and per-request JSON files. There is no longer a separate "log operations vs. callbacks vs. responses" toggle — `_is_debug` is the single on/off switch for verbose behavior.
+When debug mode is active, `OperationLogger` names the logfile following the pattern `{SERVER}_debug_{timestamp}.log`. It outputs quieter console information while writing comprehensive pipeline segments, individual network request URLs via `[METHOD] URL`, and separate request/response JSON payload files into the log directory.
 
 ### Sample Debug Log
 
 ```text
->>>> START REQUEST <<+
-(uuid_or_path, asset_type) OP1 -> fn_name: Type -> ...
-[GET] https://myserver.com/api/v1/read/site/path
-1/1 succeeded
->>>> END REQUEST <<<<
+>>>> START REQUEST <<<
+(uuid:12345, page) read -> edit -> release
+[GET] https://myserver.com/api/v1/read/page/uuid:12345
+[POST] https://myservers.com/api/v1/edit/page/uuid:12345 | payload: uuid:12345_request.json
+3/4 succeeded
+>>>> END REQUEST <<<<<
 ```
 
 ---
 
 ## Interpreting Errors in Debug Mode
 
-Error lines in debug mode utilize a `v` marker followed by an `!ERROR:` block indicating the failure at the specified step index. Chain-level failures go through `flush_chain_error` which has step-index context. `log_cascade_error` provides a thin wrapper to log a `CascadeError` (API-level failure) outside of chain context, while `log_python_error` logs an unhandled Python exception with traceback, file name, and line number.
+When a chain fails, `OperationLogger` captures the failure at the exact `failing_step_index`, rendering a `v` alignment marker directly under the failing segment's column, followed by an `!ERROR:` block containing the multi-line message and source file location (`@{file}:{line}`). Standalone exceptions outside of a chain context are routed through `log_cascade_error` or `log_python_error`, logging the exception type, message, and local file/line number without an enclosing pipeline line.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.3 -->
