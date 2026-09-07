@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- Potentially invented field names: ["'m_date' (near: ...g.m_subject,\n            date=msg.m_date,\n            i...)", "'m_from' (near: ...age(Message(\n            from=msg.m_from,\n            t...)", "'m_id' (near: ...te=msg.m_date,\n            id=msg.m_id,\n            m...)", "'m_subject' (near: ...msg.m_to,\n            subject=msg.m_subject,\n            d...)", "'m_to' (near: ...om=msg.m_from,\n            to=msg.m_to,\n            s...)"]
+-->
+
 # Administrative Operations: Messages & Preferences
 
 These operations don't touch CMS assets — they manage the current user's
