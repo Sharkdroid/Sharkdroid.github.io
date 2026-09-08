@@ -1,6 +1,6 @@
 # Advanced
 
-Welcome to the advanced power user guide for tuning and scaling your application. This section covers configuration and performance topics that go beyond the defaults, including caching behavior, debug logging, and CPU-intensive callback patterns.
+Welcome to the advanced power user guide. This section covers configuration and performance topics that go beyond the defaults — including caching behavior, debug logging, and CPU-intensive callback patterns — to help you optimize and troubleshoot your implementation.
 
 ---
 
@@ -12,4 +12,4 @@ Welcome to the advanced power user guide for tuning and scaling your application
 | [Logging & Debugging](logging.md) | Enabling debug mode, configuring the debug dict, reading log output, and walking through a sample logfile |
 | [CPU-Intensive Tasks](cpu-intensive.md) | When to use `ProcessPoolExecutor`, pickling constraints, and performance trade-offs vs `ThreadPoolExecutor` |
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.3 -->

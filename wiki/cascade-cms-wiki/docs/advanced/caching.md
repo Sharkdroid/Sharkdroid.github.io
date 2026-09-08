@@ -1,12 +1,12 @@
 # Caching
 
-The caching layer is a thin wrapper around an aiohttp-client-cache SQLite backend. It exists to avoid redundant GET requests in bulk scripts, skipping the network for repeated reads. The cache is scoped to a single driver instance and is not persistent across runs by default.
+The caching layer is a thin wrapper around an aiohttp-client-cache SQLite backend. It exists to avoid redundant GET requests in bulk scripts, skipping the network for repeated reads. The cache is scoped to a single driver instance and is not persistent across separate script runs by default.
 
 ---
 
 ## What Gets Cached
 
-Only GET responses are ever cached (enforced by the backend's `allowed_methods` config) so repeated reads skip the network, while POST/PUT requests always hit the server. Mutating operations like `create`, `edit`, `delete`, and `publish` are never cached.
+Only GET responses are ever cached (enforced by the backend's `allowed_methods` config) so repeated reads skip the network, while POST/PUT requests always hit the server. Mutating operations such as `create`, `edit`, `delete`, and `publish` are never cached.
 
 ---
 
@@ -24,13 +24,15 @@ SQLiteBackend(
 
 ## Custom Configuration
 
+To override the default cache config, pass `backendConfig` as keyword arguments forwarded to `SQLiteBackend` when instantiating `CascadeCMSRestDriver`:
+
 ```python
 driver = CascadeCMSRestDriver(
     apiKey="your-api-key",
-    cascade_url="https://cascade.example.edu",
+    cascade_url="https://cascade.example.com",
     backendConfig={
         "cache_name": "./custom_cache/cache.sqlite",
-        "allowed_codes": (200,),
+        "allowed_codes": (200, 201),
         "allowed_methods": ("GET",),
     }
 )
@@ -40,14 +42,14 @@ driver = CascadeCMSRestDriver(
 
 ## Cache Scope & Lifetime
 
-* **Driver-Scoped:** The cache is bound to a single driver and session instance, constructed via `SQLiteBackend` or the default backend on demand.
-* **Reduction of API Calls:** Cache hits short-circuit repeated GETs, returning cached responses directly and skipping network I/O.
-* **Tear Down:** Calling `close()` on the driver tears down the cache DB along with the aiohttp session and event loop.
+* **Driver Instance Scope:** The cache is tied to the lifecycle of the `CascadeCMSRestDriver` instance and its underlying event loop/session.
+* **Latency & API Calls:** Cache hits read from the SQLite database (`./cache/cache.sqlite` by default), reducing latency and API calls within a single session.
+* **Cleanup:** The cache database and session are torn down when `driver.close()` is called.
 
 ---
 
 ## When to Disable Caching
 
-Caching should be turned off or bypassed when scripts need to retrieve the freshest asset state from the server after recent modifications. It should also be avoided in polling loops or when debugging stale results where fresh network data is required for every request.
+You should disable or bypass caching when working with scripts that require the absolute freshest asset state from the CMS, or when executing polling loops where data changes frequently between checks. Caching can also lead to stale results during debugging if you are actively modifying assets and expecting immediate reflection in subsequent GET requests without a cache expiration or custom backend config.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.3 -->

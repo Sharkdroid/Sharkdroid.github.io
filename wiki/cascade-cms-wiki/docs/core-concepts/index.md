@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- Potentially invented field names: ["'get' (near: ...else:\n            print(result.get())...)"]
+-->
+
 # Core Concepts
 
 Building on the quick-start guide, this page explores the library's core mental model: a single-script session is managed by a wrapper (`CascadeWrapperBase`), which exposes an operations builder (`Operations`) to construct fluent operation chains (`OperationChain`), executed concurrently via `submit_requests()`.
