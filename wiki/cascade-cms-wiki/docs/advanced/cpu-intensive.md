@@ -6,10 +6,10 @@ By default `.then()` callbacks run on the async event loop, which is fine for I/
 
 ## When to Use `ProcessPoolExecutor`
 
-- Image resizing, compression, or optimization
-- Parsing large XML/JSON structures or heavy data transformation
-- Running intensive regular expressions across large HTML bodies
-- Light callbacks like simple string replacements or metadata dictionary updates do not need it and perform better on the default thread pool or event loop.
+- Image resizing, compression, and format optimization where CPU cycles are heavily consumed.
+- Large-file parsing and heavy structured data transformation on retrieved assets.
+- Running complex regular expression matching or parsing across large HTML bodies.
+- Light callbacks (such as a simple title string replacement or metadata dictionary update) do not need it and should rely on the default executor.
 
 ---
 
@@ -18,15 +18,13 @@ By default `.then()` callbacks run on the async event loop, which is fine for I/
 ```python
 from concurrent.futures import ProcessPoolExecutor
 from os import cpu_count
-from cascade_cms import CascadeWrapperBase
 
-env = {"SERVER": "prod", "API_KEY": "secret", "CASCADE_URL": "https://cascade.example.com"}
-
+# Define a picklable module-level callback function
 def optimize_image(asset):
-    # CPU-bound image processing work here
+    # Perform CPU-bound image optimization here
     return asset
 
-with CascadeWrapperBase(env, {}) as cascade:
+with CascadeWrapperBase(env_vars, config_vars) as cascade:
     with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
         cascade.operations.read(id).then(optimize_image)
         results = cascade.submit_requests(executor=executor)
@@ -58,12 +56,19 @@ cascade.operations.read(id).then(transform)
 
 ## `ProcessPoolExecutor` vs `ThreadPoolExecutor`
 
-`ProcessPoolExecutor` provides true parallelism across multiple CPU cores in separate memory spaces, but requires all callback functions and data to be picklable and incurs inter-process communication overhead. `ThreadPoolExecutor` uses shared memory with minimal overhead and no pickling restrictions, but remains limited by Python's Global Interpreter Lock (GIL) for CPU-bound tasks. Use `ProcessPoolExecutor` for heavy CPU computation, and stick with `ThreadPoolExecutor` (the default) for I/O-bound work.
+| Feature | `ProcessPoolExecutor` | `ThreadPoolExecutor` |
+| :--- | :--- | :--- |
+| **Concurrency Type** | True parallelism via separate worker processes | Concurrent threads within the same process |
+| **Memory Space** | Separate memory space (requires pickling) | Shared memory space (no pickling required) |
+| **GIL Impact** | Bypasses the Global Interpreter Lock (GIL) | Subject to the GIL (not truly parallel for CPU-bound work) |
+| **Overhead** | Higher overhead per task due to process startup/serialization | Lower overhead; well-suited for I/O-bound tasks |
+
+Use `ProcessPoolExecutor` for CPU-heavy processing, and `ThreadPoolExecutor` (or the default) for I/O-bound or mixed workloads.
 
 ---
 
 ## Performance Considerations
 
-Spawning and managing worker processes carries an initialization overhead, meaning extremely fast callbacks may run slower in a process pool than synchronously due to serialization costs. Additionally, offloading CPU work via the executor does not change the network concurrency rules; the driver's underlying `MAX_REQUESTS` semaphore still governs HTTP request limits.
+Spawning worker processes carries a startup cost, so for very fast callbacks the serialization overhead may outweigh the concurrency benefit. Additionally, keep in mind that the driver's request-level concurrency remains governed independently by its internal semaphore limits.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.3 -->
