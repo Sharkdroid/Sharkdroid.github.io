@@ -13,26 +13,30 @@ skeleton as the main patterns, just applied to two unrelated features.
 ## Messages: list, mark, delete
 
 ```python
-from cascade_cms.cmstypes import CascadeError
+from cascade_cms import CascadeCMS
+from cascade_cms.cmstypes import CascadeError, Message
 
-# Phase 1: List inbox messages
-cascade.operations.listMessages()
-messages = cascade.submit_requests()
+client = CascadeCMS("https://cascade.example.com", "user", "pass")
 
-if isinstance(messages, CascadeError):
-    raise RuntimeError(messages.message)
+# Phase 1: Retrieve inbox messages
+client.operations.listMessages()
+result = client.submit_requests()
 
-# Pick a message from the list elements
-message = messages.flat[0]
+if isinstance(result, CascadeError):
+    raise RuntimeError(result.message)
 
-# Phase 2: Mark as read and then delete
-cascade.operations.markMessage(message)
-cascade.operations.deleteMessage(message)
-results = cascade.submit_requests()
-
-for res in results:
-    if isinstance(res, CascadeError):
-        raise RuntimeError(res.message)
+# Assume we select the first message from the inbox list
+messages = result.flat
+if messages:
+    msg: Message = messages[0]
+    
+    # Phase 2: Mark the message as read, then delete it
+    client.operations.markMessage(msg)
+    client.operations.deleteMessage(msg)
+    
+    mark_result = client.submit_requests()
+    if isinstance(mark_result, CascadeError):
+        raise RuntimeError(mark_result.message)
 ```
 
 !!! note
@@ -44,21 +48,24 @@ for res in results:
 ## Preferences: read, edit
 
 ```python
+from cascade_cms import CascadeCMS
 from cascade_cms.cmstypes import CascadeError, preference
 
-# Read current preferences
-cascade.operations.readPreferences()
-prefs = cascade.submit_requests()
+client = CascadeCMS("https://cascade.example.com", "user", "pass")
 
-if isinstance(prefs, CascadeError):
-    raise RuntimeError(prefs.message)
-
-# Update a user preference
-cascade.operations.editPreference(preference(name="pref_name", value="new_value"))
-result = cascade.submit_requests()
+# Read current user preferences
+client.operations.readPreferences()
+result = client.submit_requests()
 
 if isinstance(result, CascadeError):
     raise RuntimeError(result.message)
+
+# Update a single user preference
+client.operations.editPreference(preference(name="defaultView", value="grid"))
+update_result = client.submit_requests()
+
+if isinstance(update_result, CascadeError):
+    raise RuntimeError(update_result.message)
 ```
 
 !!! note
@@ -70,4 +77,4 @@ if isinstance(result, CascadeError):
 See [Core Patterns](main-patterns.md) for `read`, `delete`, and `search` — the
 primary asset-management workflow and response-shape conventions.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.5 -->

@@ -22,18 +22,21 @@ before using a result.
 ## Pattern 1 — `read`: fetching a structured asset
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build a Path identifier referencing a page in the site
-    identifier = Path(asset_type="page", path="index", siteName="Default")
+from cascade_cms import CascadeWrapperBase
+from cascade_cms.cmstypes import Path, CascadeError
+
+with CascadeWrapperBase() as cascade:
+    # Build a Path identifier for the asset
+    path = Path(asset_type="page", path="/index", siteName="Default")
     
-    # Queue the read operation
-    cascade.operations.read(identifier)
+    # Queue a read operation
+    cascade.operations.read(path)
     
-    # Submit requests and get back the results list
+    # Execute the queued request(s) concurrently
     results = cascade.submit_requests()
     result = results[0]
-    
-    # Check if the operation returned a CascadeError
+
+    # Check for API-level failures
     if isinstance(result, CascadeError):
         print(f"Error: {result.message}")
     else:
@@ -42,69 +45,66 @@ with CascadeWrapperBase("config.json") as cascade:
         print(result.metadata)
 ```
 
-`read` represents the response shape most other "fetch" operations follow — `readAudits`, `readAccessRights`, `readWorkflowSettings`, etc. — and they all return a structured object specific to what was requested.
+The `read` operation represents the response shape most other "fetch" operations follow — such as `readAudits`, `readAccessRights`, and `readWorkflowSettings`. All of these operations return a structured object specific to what was requested, which can then be inspected or transformed further down the line.
 
 ---
 
 ## Pattern 2 — `delete`: a simple success response
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build a Path identifier for the asset to delete
-    identifier = Path(asset_type="page", path="old-page", siteName="Default")
+from cascade_cms import CascadeWrapperBase
+from cascade_cms.cmstypes import Path, deleteParameters, CascadeError, CascadeSuccess
+
+with CascadeWrapperBase() as cascade:
+    path = Path(asset_type="page", path="/old-page", siteName="Default")
     
     # Configure delete parameters
     payload = deleteParameters(
         doWorkflow=False,
-        destinations_identifiers=[],
-        unpublish=True
+        destinations=[],
+        unpublish=True,
     )
     
-    # Queue the delete operation
-    cascade.operations.delete(identifier, payload=payload)
-    
-    # Submit requests and get the result
+    cascade.operations.delete(path, payload=payload)
     results = cascade.submit_requests()
     result = results[0]
-    
+
     if isinstance(result, CascadeError):
         print(f"Delete failed: {result.message}")
-    else:
+    elif isinstance(result, CascadeSuccess):
         print("Asset successfully deleted.")
 ```
 
-`delete` and other mutating operations (`copy`, `move`, `publish`, `checkIn`, `editAccessRights`) return confirmation only — not the modified asset — so callers should not expect asset data back from these operations.
+Mutating operations like `delete`, `copy`, `move`, `publish`, `checkIn`, and `editAccessRights` return confirmation only rather than the modified asset data. Callers should check for a `CascadeSuccess` response rather than expecting structured asset fields back from these operations.
 
 ---
 
 ## Pattern 3 — `search`: payload-driven, list response
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
-    # Build the SearchInformation payload
+from cascade_cms import CascadeWrapperBase
+from cascade_cms.cmstypes import SearchInformation, CascadeError, ListElements
+
+with CascadeWrapperBase() as cascade:
+    # Construct the required search payload
     payload = SearchInformation(
         siteName="Default",
-        searchTerms="news",
-        searchFields=["name"],
-        searchTypes=["page"]
+        searchTerms="blog",
     )
     
-    # Queue the search operation
     cascade.operations.search(payload)
-    
-    # Submit requests and inspect the result
     results = cascade.submit_requests()
     result = results[0]
-    
+
     if isinstance(result, CascadeError):
         print(f"Search failed: {result.message}")
     else:
-        # Iterate over the flat list elements
+        # Iterate over the flat list elements returned
         for item in result.flat:
             print(item)
 ```
 
-`search` requires a typed payload object — there is no bare identifier shortcut — and naming the other operations that follow the same pattern: `readAudits` (`auditParameters`), `editWorkflowSettings`, etc.
+Searching requires a typed payload object such as `SearchInformation` — there is no bare identifier shortcut. Other operations that follow this same payload-driven pattern include `readAudits` (using `auditParameters`) and `editWorkflowSettings`.
 
 ---
 
@@ -115,16 +115,22 @@ queue multiple chains — even mixing operation types — before calling
 `submit_requests()` once:
 
 ```python
-with CascadeWrapperBase("config.json") as cascade:
+from cascade_cms import CascadeWrapperBase
+from cascade_cms.cmstypes import Path, SearchInformation
+
+with CascadeWrapperBase() as cascade:
+    path = Path(asset_type="page", path="/index", siteName="Default")
+    search_payload = SearchInformation(siteName="Default", searchTerms="test")
+
     # Queue multiple independent chains
-    cascade.operations.read(Path(asset_type="page", path="index", siteName="Default"))
-    cascade.operations.delete(Path(asset_type="page", path="old-page", siteName="Default"), payload=deleteParameters(doWorkflow=False, destinations_identifiers=[], unpublish=True))
-    cascade.operations.search(SearchInformation(siteName="Default", searchTerms="news", searchFields=["name"], searchTypes=["page"]))
-    
+    cascade.operations.read(path)
+    cascade.operations.delete(path)
+    cascade.operations.search(search_payload)
+
     # All three run concurrently and results are returned in creation order
     results = cascade.submit_requests()
 ```
 
 See [Administrative Operations](administrative.md) for the `messages` and `preferences` operations.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.5 -->
