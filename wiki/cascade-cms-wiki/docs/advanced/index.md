@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- 1 unfilled placeholder(s) remain: ['[PLACEHOLDER: This section explores advanced configuration and performance tunin...']
+-->
+
 # Advanced
 
 Welcome to the advanced power user guide for tuning and scaling your application. This section covers configuration and performance topics that go beyond the defaults, including caching behavior, debug logging, and CPU-intensive callback patterns.
