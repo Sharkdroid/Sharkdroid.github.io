@@ -13,26 +13,28 @@ skeleton as the main patterns, just applied to two unrelated features.
 ## Messages: list, mark, delete
 
 ```python
-from cascade_cms.cmstypes import CascadeError
+from cascade_cms.cmstypes import CascadeError, Message
 
 # Phase 1: List inbox messages
-cascade.operations.listMessages()
-messages = cascade.submit_requests()
+wrapper.operations.listMessages()
+results = wrapper.submit_requests()
+messages_result = results[0]
 
-if isinstance(messages, CascadeError):
-    raise RuntimeError(messages.message)
+if isinstance(messages_result, CascadeError):
+    raise RuntimeError(messages_result.message)
 
-# Pick a message from the list elements
-message = messages.flat[0]
+# Assume we want to mark the first message read and delete the second
+messages = messages_result.flat
 
-# Phase 2: Mark as read and then delete
-cascade.operations.markMessage(message)
-cascade.operations.deleteMessage(message)
-results = cascade.submit_requests()
+if messages:
+    # Phase 2: Mark read and delete selected messages
+    wrapper.operations.markMessage(messages[0])
+    wrapper.operations.deleteMessage(messages[1])
+    action_results = wrapper.submit_requests()
 
-for res in results:
-    if isinstance(res, CascadeError):
-        raise RuntimeError(res.message)
+    for res in action_results:
+        if isinstance(res, CascadeError):
+            raise RuntimeError(res.message)
 ```
 
 !!! note
@@ -46,19 +48,20 @@ for res in results:
 ```python
 from cascade_cms.cmstypes import CascadeError, preference
 
-# Read current preferences
-cascade.operations.readPreferences()
-prefs = cascade.submit_requests()
+# Phase 1: Read current user preferences
+wrapper.operations.readPreferences()
+results = wrapper.submit_requests()
+prefs_result = results[0]
 
-if isinstance(prefs, CascadeError):
-    raise RuntimeError(prefs.message)
+if isinstance(prefs_result, CascadeError):
+    raise RuntimeError(prefs_result.message)
 
-# Update a user preference
-cascade.operations.editPreference(preference(name="pref_name", value="new_value"))
-result = cascade.submit_requests()
+# Phase 2: Update a user preference
+wrapper.operations.editPreference(preference(name="theme", value="dark"))
+edit_results = wrapper.submit_requests()
 
-if isinstance(result, CascadeError):
-    raise RuntimeError(result.message)
+if isinstance(edit_results[0], CascadeError):
+    raise RuntimeError(edit_results[0].message)
 ```
 
 !!! note
@@ -70,4 +73,4 @@ if isinstance(result, CascadeError):
 See [Core Patterns](main-patterns.md) for `read`, `delete`, and `search` — the
 primary asset-management workflow and response-shape conventions.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.5 -->
