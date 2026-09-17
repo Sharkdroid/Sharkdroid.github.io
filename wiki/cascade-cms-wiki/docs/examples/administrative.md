@@ -13,24 +13,26 @@ skeleton as the main patterns, just applied to two unrelated features.
 ## Messages: list, mark, delete
 
 ```python
-from cascade_cms.cmstypes import CascadeError
+from cascade_cms.cmstypes import CascadeError, Message
 
 # Phase 1: List inbox messages
-cascade.operations.listMessages()
-messages = cascade.submit_requests()
+res = cascade.operations.listMessages().submit_requests()
+if isinstance(res, CascadeError):
+    raise RuntimeError(res.message)
 
-if isinstance(messages, CascadeError):
-    raise RuntimeError(messages.message)
+messages = res.flat
 
-# Pick a message from the list elements
-message = messages.flat[0]
-
-# Phase 2: Mark as read and then delete
-cascade.operations.markMessage(message)
-cascade.operations.deleteMessage(message)
-results = cascade.submit_requests()
-
-for res in results:
+# Phase 2: Mark the first message as read, then delete it
+if messages:
+    msg: Message = messages[0]
+    
+    # Mark message
+    res = cascade.operations.markMessage(msg).submit_requests()
+    if isinstance(res, CascadeError):
+        raise RuntimeError(res.message)
+        
+    # Delete message
+    res = cascade.operations.deleteMessage(msg).submit_requests()
     if isinstance(res, CascadeError):
         raise RuntimeError(res.message)
 ```
@@ -46,19 +48,15 @@ for res in results:
 ```python
 from cascade_cms.cmstypes import CascadeError, preference
 
-# Read current preferences
-cascade.operations.readPreferences()
-prefs = cascade.submit_requests()
-
-if isinstance(prefs, CascadeError):
-    raise RuntimeError(prefs.message)
+# Read current user preferences
+res = cascade.operations.readPreferences().submit_requests()
+if isinstance(res, CascadeError):
+    raise RuntimeError(res.message)
 
 # Update a user preference
-cascade.operations.editPreference(preference(name="pref_name", value="new_value"))
-result = cascade.submit_requests()
-
-if isinstance(result, CascadeError):
-    raise RuntimeError(result.message)
+res = cascade.operations.editPreference(preference(name="theme", value="dark")).submit_requests()
+if isinstance(res, CascadeError):
+    raise RuntimeError(res.message)
 ```
 
 !!! note
@@ -70,4 +68,4 @@ if isinstance(result, CascadeError):
 See [Core Patterns](main-patterns.md) for `read`, `delete`, and `search` — the
 primary asset-management workflow and response-shape conventions.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.5 -->
