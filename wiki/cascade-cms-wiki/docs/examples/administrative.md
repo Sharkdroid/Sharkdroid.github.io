@@ -13,23 +13,25 @@ skeleton as the main patterns, just applied to two unrelated features.
 ## Messages: list, mark, delete
 
 ```python
-from cascade_cms.cmstypes import CascadeError
+from cascade_cms import CascadeCMSRestDriver, CascadeError
 
-# Phase 1: List inbox messages
-cascade.operations.listMessages()
-messages = cascade.submit_requests()
+driver = CascadeCMSRestDriver(base_url="...", username="...", password="...")
+
+# Phase 1: Retrieve inbox messages
+driver.operations.listMessages()
+messages = driver.submit_requests()
 
 if isinstance(messages, CascadeError):
     raise RuntimeError(messages.message)
 
-# Pick a message from the list elements
-message = messages.flat[0]
+# Phase 2: Mark the first message as read and delete the second message
+for msg in messages.flat:
+    if msg.marked == "unread":
+        driver.operations.markMessage(msg)
+    else:
+        driver.operations.deleteMessage(msg)
 
-# Phase 2: Mark as read and then delete
-cascade.operations.markMessage(message)
-cascade.operations.deleteMessage(message)
-results = cascade.submit_requests()
-
+results = driver.submit_requests()
 for res in results:
     if isinstance(res, CascadeError):
         raise RuntimeError(res.message)
@@ -44,18 +46,20 @@ for res in results:
 ## Preferences: read, edit
 
 ```python
-from cascade_cms.cmstypes import CascadeError, preference
+from cascade_cms import CascadeCMSRestDriver, CascadeError, preference
 
-# Read current preferences
-cascade.operations.readPreferences()
-prefs = cascade.submit_requests()
+driver = CascadeCMSRestDriver(base_url="...", username="...", password="...")
+
+# Read current user preferences
+driver.operations.readPreferences()
+prefs = driver.submit_requests()
 
 if isinstance(prefs, CascadeError):
     raise RuntimeError(prefs.message)
 
-# Update a user preference
-cascade.operations.editPreference(preference(name="pref_name", value="new_value"))
-result = cascade.submit_requests()
+# Update a specific preference
+driver.operations.editPreference(preference(name="dateFormat", value="yyyy-MM-dd"))
+result = driver.submit_requests()
 
 if isinstance(result, CascadeError):
     raise RuntimeError(result.message)
@@ -70,4 +74,4 @@ if isinstance(result, CascadeError):
 See [Core Patterns](main-patterns.md) for `read`, `delete`, and `search` — the
 primary asset-management workflow and response-shape conventions.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.6 -->
