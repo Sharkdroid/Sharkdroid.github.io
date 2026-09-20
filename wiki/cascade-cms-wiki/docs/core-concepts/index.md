@@ -1,71 +1,65 @@
 # Core Concepts
 
-Building on the quick-start guide, this page explores the library's core mental model: a single-script session is managed by a wrapper (`CascadeWrapperBase`), which exposes an operations builder (`Operations`) to construct fluent operation chains (`OperationChain`), executed concurrently via `submit_requests()`.
+This page details the library's core mental model, building on the quick-start guide by examining how the wrapper, operations builder, execution chains, and request submission work together under the hood.
 
 ---
 
 ## Basic Operation Calls
 
-Every script follows the same structural skeleton: open the wrapper as a context manager, queue one or more operations on `cascade.operations`, attach optional callbacks with `.then()`, and finally invoke `submit_requests()` to execute all queued chains concurrently. Chains run independently, so a failure in one operation chain does not affect any other.
+Every automation script follows the same structural skeleton: instantiate or open the wrapper as a context manager, queue one or more operations on `cascade.operations`, chain post-processing callbacks with `.then()`, and finally invoke `submit_requests()` to execute all queued chains concurrently. This design keeps API calls declarative while managing network I/O and batching transparently.
 
 ### Example
 
 ```python
-from cascade_cms.wrapper import CascadeWrapperBase
-from cascade_cms.cmstypes import CascadeError
-
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
-
-with CascadeWrapperBase(env, {}) as cascade:
-    # Start a chain to read an asset by its identifier
+# Open the wrapper context manager
+with CascadeWrapperBase(env_vars, config_vars) as cascade:
+    # Queue a read operation on an asset identifier
     cascade.operations.read(identifier)
     
-    # Execute all queued chains and return results in the order they were created
+    # Execute the request and retrieve results
     results = cascade.submit_requests()
     
+    # Guard against API-level failures returned as values
     for result in results:
         if isinstance(result, CascadeError):
             print(f"API Error: {result.message}")
-        else:
-            print(f"Success: {result}")
 ```
 
 ### Expected Output
 
 ```python
-# Success returns an Asset object wrapping the requested resource:
-Success: Asset(_asset_type='page', _data={...})
+[
+    Asset(
+        _asset_type='page',
+        _data={'id': 'abc123uuid...', 'name': 'index', 'path': '/index', ...}
+    )
+]
 ```
 
 ---
 
 ## Payload Models
 
-Payload models are typed Pydantic objects (inheriting from `SimplePayload`) that pair with specific operations to ensure the Cascade CMS API endpoint receives the exact structure and fields it expects. They provide input validation, type safety, and automatic serialization via aliases.
+Payload models are typed, Pydantic-backed classes (inheriting from `SimplePayload`) that pair with specific API operations to ensure endpoints receive properly structured and validated input fields. They enforce schema compliance and catch configuration errors early without relying on raw, error-prone dictionaries.
 
 ### Example: `SearchInformation` paired with `search`
 
 ```python
-from cascade_cms.wrapper import CascadeWrapperBase
 from cascade_cms.cmstypes import SearchInformation
 
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
+# Construct the search payload using the typed model
+payload = SearchInformation(
+    siteName="Default",
+    searchTerms="blog",
+    searchFields=["name", "title"],
+    searchTypes=["page"]
+)
 
-with CascadeWrapperBase(env, {}) as cascade:
-    # Construct the payload model specifying search criteria
-    payload = SearchInformation(
-        siteName="Default",
-        searchTerms="news",
-        searchFields=["name"],
-        searchTypes=["page"]
-    )
-    
-    # Pass the payload model directly to the search operation
-    cascade.operations.search(payload)
-    results = cascade.submit_requests()
+# Pass the payload directly into the search operation
+cascade.operations.search(payload)
 ```
 
-Payload models enforce strict validation rules on required fields and field types before any request is sent to the API, and other operations follow the exact same pattern using models like `deleteParameters`, `auditParameters`, and `Comment`.
+The `SearchInformation` model validates required fields (`siteName`, `searchTerms`) and handles serialization defaults for optional fields like `searchFields` and `searchTypes`. Other operations use equivalent models (such as `deleteParameters`, `auditParameters`, and `copyParameters`) to guarantee strict API compatibility.
 
 ---
 
@@ -76,14 +70,10 @@ For operations involving heavy computation in `.then()` callbacks — image proc
 ```python
 from concurrent.futures import ProcessPoolExecutor
 from os import cpu_count
-from cascade_cms.wrapper import CascadeWrapperBase
-
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
 
 with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
-    with CascadeWrapperBase(env, {}) as cascade:
-        cascade.operations.read(id).then(optimize_image)
-        results = cascade.submit_requests(executor=executor)
+    cascade.operations.read(identifier).then(optimize_image)
+    results = cascade.submit_requests(executor=executor)
 ```
 
 !!! note "Module-level functions only"
@@ -97,4 +87,4 @@ See [Advanced: CPU-Intensive Tasks](../advanced/cpu-intensive.md) for full confi
 
 Ready to go deeper? The [Advanced](../advanced/index.md) section covers configuration topics for power users: caching strategies, debug logging, and CPU-intensive workload patterns.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.6 -->
