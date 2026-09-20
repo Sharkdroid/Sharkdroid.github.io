@@ -13,26 +13,31 @@ skeleton as the main patterns, just applied to two unrelated features.
 ## Messages: list, mark, delete
 
 ```python
-from cascade_cms.cmstypes import CascadeError
+from cascade_cms import CascadeCMS
+from cascade_cms.cmstypes import CascadeError, Message
+
+client = CascadeCMS("https://cascade.example.com", "username", "password")
 
 # Phase 1: List inbox messages
-cascade.operations.listMessages()
-messages = cascade.submit_requests()
+client.operations.listMessages()
+messages = client.submit_requests()
 
 if isinstance(messages, CascadeError):
     raise RuntimeError(messages.message)
 
-# Pick a message from the list elements
-message = messages.flat[0]
+# Phase 2: Mark the first message as read and delete the second message
+if messages.elements:
+    first_msg = messages.elements[0]
+    second_msg = messages.elements[1] if len(messages.elements) > 1 else None
 
-# Phase 2: Mark as read and then delete
-cascade.operations.markMessage(message)
-cascade.operations.deleteMessage(message)
-results = cascade.submit_requests()
+    if isinstance(first_msg, Message):
+        client.operations.markMessage(first_msg)
+    if second_msg and isinstance(second_msg, Message):
+        client.operations.deleteMessage(second_msg)
 
-for res in results:
-    if isinstance(res, CascadeError):
-        raise RuntimeError(res.message)
+    result = client.submit_requests()
+    if isinstance(result, CascadeError):
+        raise RuntimeError(result.message)
 ```
 
 !!! note
@@ -44,18 +49,21 @@ for res in results:
 ## Preferences: read, edit
 
 ```python
+from cascade_cms import CascadeCMS
 from cascade_cms.cmstypes import CascadeError, preference
 
-# Read current preferences
-cascade.operations.readPreferences()
-prefs = cascade.submit_requests()
+client = CascadeCMS("https://cascade.example.com", "username", "password")
+
+# Call 1: Read current user preferences
+client.operations.readPreferences()
+prefs = client.submit_requests()
 
 if isinstance(prefs, CascadeError):
     raise RuntimeError(prefs.message)
 
-# Update a user preference
-cascade.operations.editPreference(preference(name="pref_name", value="new_value"))
-result = cascade.submit_requests()
+# Call 2: Update a preference using the preference payload
+client.operations.editPreference(preference(name="emailNotifications", value="true"))
+result = client.submit_requests()
 
 if isinstance(result, CascadeError):
     raise RuntimeError(result.message)
@@ -70,4 +78,4 @@ if isinstance(result, CascadeError):
 See [Core Patterns](main-patterns.md) for `read`, `delete`, and `search` — the
 primary asset-management workflow and response-shape conventions.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.1.6 -->
