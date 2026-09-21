@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- 8 unfilled placeholder(s) remain: ['[PLACEHOLDER: The cascade_cms library provides two distinct logging and diagnost...', '[PLACEHOLDER: Normal mode runs with `debug_config=None`, providing a minimal con...', '[PLACEHOLDER:  [INIT]: Connecting to example.cascadecms.com [RUNNING]: batch_scr...', '[PLACEHOLDER:  ```python wrapper = CascadeWrapperBase(     server="example.casca...', '[PLACEHOLDER: Recognized keys and options for the `debug_config` dictionary that...', '[PLACEHOLDER: In debug mode (`debug_config=dict`), the file logger generates a f...', '[PLACEHOLDER:  >>>> START REQUEST <<<< (uuid-1234, page) read -> edit -> publish...', '[PLACEHOLDER: Errors captured during execution are written using `flush_chain_er...']
+-->
+
 # Logging & Debugging
 
 Operation logger owns all console, logfile, and (verbose mode) request/response file output for the cascade_cms library. Two output modes exist: normal mode for everyday use and debug mode for diagnosing failures, controlled solely by whether `debug_config` is `None`. Both produce logfiles; debug mode adds a verbose nested call-chain log alongside a quieter console output.
