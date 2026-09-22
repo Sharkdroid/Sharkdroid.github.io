@@ -2,7 +2,9 @@
 
 My name is Keith,
 
+[Wiki directory](https://sharkdroid.github.io/wiki/)
+
 ## Current works
 
-## Cascade CMS REST Library
-<!-- [py-cascade-cms](...) -->
+### Journals
+Cascade REST Library ([journal](https://sharkdroid.github.io/journals/journals/four-years-four-rewrites.md),[wiki](https://sharkdroid.github.io/wiki/cascade-cms-wiki/))
