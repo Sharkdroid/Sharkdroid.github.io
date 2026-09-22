@@ -45,6 +45,16 @@ def render(md_path: Path, out_path: Path, title: str) -> None:
     out_path.write_text(TEMPLATE.format(title=html.escape(title), body=body), encoding="utf-8")
 
 
+def render_journals() -> None:
+    journals_dir = ROOT / "journals"
+    if not journals_dir.is_dir():
+        return
+    for md_path in journals_dir.glob("*.md"):
+        title = md_path.stem.replace("-", " ").title()
+        render(md_path, OUTPUT / "journals" / f"{md_path.stem}.html", title)
+
+
 if __name__ == "__main__":
     render(ROOT / "index.md", OUTPUT / "index.html", "Keith Shark")
     render(ROOT / "wiki" / "index.md", OUTPUT / "wiki" / "index.html", "Wiki Registry")
+    render_journals()

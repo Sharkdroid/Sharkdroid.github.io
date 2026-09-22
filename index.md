@@ -7,4 +7,4 @@ My name is Keith,
 ## Current works
 
 ### Journals
-Cascade REST Library ([journal](https://sharkdroid.github.io/journals/four-years-four-rewrites.md),[wiki](https://sharkdroid.github.io/wiki/cascade-cms-wiki/))
+Cascade REST Library ([journal](https://sharkdroid.github.io/journals/four-years-four-rewrites.html),[wiki](https://sharkdroid.github.io/wiki/cascade-cms-wiki/))
