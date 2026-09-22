@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- Potentially invented field names: ["'m_subject' (near: ...s.markMessage(msg)\n    if  in msg.m_subject:\n        casca...)"]
+-->
+
 # Administrative Operations: Messages & Preferences
 
 These operations don't touch CMS assets — they manage the current user's
