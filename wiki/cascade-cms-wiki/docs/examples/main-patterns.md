@@ -23,17 +23,17 @@ before using a result.
 
 ```python
 with CascadeWrapperBase("config.json") as cascade:
-    # Build a Path identifier referencing a page in the site
-    identifier = Path(asset_type="page", path="index", siteName="Default")
+    # Define a Path identifier for the asset
+    path = Path(path="index", siteName="Default", asset_type="page")
     
     # Queue the read operation
-    cascade.operations.read(identifier)
+    cascade.operations.read(path)
     
-    # Submit requests and get back the results list
+    # Execute all queued requests
     results = cascade.submit_requests()
     result = results[0]
-    
-    # Check if the operation returned a CascadeError
+
+    # Guard against API-level errors
     if isinstance(result, CascadeError):
         print(f"Error: {result.message}")
     else:
@@ -42,7 +42,7 @@ with CascadeWrapperBase("config.json") as cascade:
         print(result.metadata)
 ```
 
-`read` represents the response shape most other "fetch" operations follow — `readAudits`, `readAccessRights`, `readWorkflowSettings`, etc. — and they all return a structured object specific to what was requested.
+`read` represents the response shape most other "fetch" operations follow — `readAudits`, `readAccessRights`, `readWorkflowSettings`, etc. — and that they all return a structured object specific to what was requested.
 
 ---
 
@@ -50,27 +50,24 @@ with CascadeWrapperBase("config.json") as cascade:
 
 ```python
 with CascadeWrapperBase("config.json") as cascade:
-    # Build a Path identifier for the asset to delete
-    identifier = Path(asset_type="page", path="old-page", siteName="Default")
+    # Define a Path identifier for the asset to delete
+    path = Path(path="old-page", siteName="Default", asset_type="page")
     
-    # Configure delete parameters
-    payload = deleteParameters(
-        doWorkflow=False,
-        destinations_identifiers=[],
-        unpublish=True
-    )
+    # Prepare delete parameters payload
+    params = deleteParameters(doWorkflow=False, destinations=[], unpublish=True)
     
     # Queue the delete operation
-    cascade.operations.delete(identifier, payload=payload)
+    cascade.operations.delete(path, payload=params)
     
-    # Submit requests and get the result
+    # Execute all queued requests
     results = cascade.submit_requests()
     result = results[0]
-    
+
+    # Guard against API-level errors
     if isinstance(result, CascadeError):
         print(f"Delete failed: {result.message}")
     else:
-        print("Asset successfully deleted.")
+        print("Asset deleted successfully.")
 ```
 
 `delete` and other mutating operations (`copy`, `move`, `publish`, `checkIn`, `editAccessRights`) return confirmation only — not the modified asset — so callers should not expect asset data back from these operations.
@@ -81,10 +78,10 @@ with CascadeWrapperBase("config.json") as cascade:
 
 ```python
 with CascadeWrapperBase("config.json") as cascade:
-    # Build the SearchInformation payload
+    # Construct the required SearchInformation payload
     payload = SearchInformation(
         siteName="Default",
-        searchTerms="news",
+        searchTerms="blog",
         searchFields=["name"],
         searchTypes=["page"]
     )
@@ -92,16 +89,17 @@ with CascadeWrapperBase("config.json") as cascade:
     # Queue the search operation
     cascade.operations.search(payload)
     
-    # Submit requests and inspect the result
+    # Execute all queued requests
     results = cascade.submit_requests()
     result = results[0]
-    
+
+    # Guard against API-level errors
     if isinstance(result, CascadeError):
         print(f"Search failed: {result.message}")
     else:
-        # Iterate over the flat list elements
-        for item in result.flat:
-            print(item)
+        # Iterate over the flat list of elements
+        for element in result.flat:
+            print(element)
 ```
 
 `search` requires a typed payload object — there is no bare identifier shortcut — and naming the other operations that follow the same pattern: `readAudits` (`auditParameters`), `editWorkflowSettings`, etc.
@@ -116,15 +114,19 @@ queue multiple chains — even mixing operation types — before calling
 
 ```python
 with CascadeWrapperBase("config.json") as cascade:
-    # Queue multiple independent chains
-    cascade.operations.read(Path(asset_type="page", path="index", siteName="Default"))
-    cascade.operations.delete(Path(asset_type="page", path="old-page", siteName="Default"), payload=deleteParameters(doWorkflow=False, destinations_identifiers=[], unpublish=True))
-    cascade.operations.search(SearchInformation(siteName="Default", searchTerms="news", searchFields=["name"], searchTypes=["page"]))
-    
+    path_read = Path(path="index", siteName="Default", asset_type="page")
+    path_delete = Path(path="old-page", siteName="Default", asset_type="page")
+    search_payload = SearchInformation(siteName="Default", searchTerms="news")
+
+    # Queue three independent chains
+    cascade.operations.read(path_read)
+    cascade.operations.delete(path_delete, payload=deleteParameters(doWorkflow=False, destinations=[], unpublish=True))
+    cascade.operations.search(search_payload)
+
     # All three run concurrently and results are returned in creation order
     results = cascade.submit_requests()
 ```
 
 See [Administrative Operations](administrative.md) for the `messages` and `preferences` operations.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.2.1 -->

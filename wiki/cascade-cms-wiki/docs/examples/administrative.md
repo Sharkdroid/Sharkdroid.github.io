@@ -13,26 +13,33 @@ skeleton as the main patterns, just applied to two unrelated features.
 ## Messages: list, mark, delete
 
 ```python
-from cascade_cms.cmstypes import CascadeError
+from cascade_cms.cmstypes import CascadeError, Message
 
 # Phase 1: List inbox messages
 cascade.operations.listMessages()
-messages = cascade.submit_requests()
+result = cascade.submit_requests()
 
-if isinstance(messages, CascadeError):
-    raise RuntimeError(messages.message)
+if isinstance(result, CascadeError):
+    raise RuntimeError(result.message)
 
-# Pick a message from the list elements
-message = messages.flat[0]
+messages = result.elements
 
-# Phase 2: Mark as read and then delete
-cascade.operations.markMessage(message)
-cascade.operations.deleteMessage(message)
-results = cascade.submit_requests()
-
-for res in results:
-    if isinstance(res, CascadeError):
-        raise RuntimeError(res.message)
+# Phase 2: Mark the first message as read and delete the second
+if messages:
+    cascade.operations.markMessage(Message(
+        from=messages[0].m_from,
+        to=messages[0].m_to,
+        subject=messages[0].m_subject,
+        date=messages[0].m_date,
+        id=messages[0].m_id,
+        markType="read"
+    ))
+    cascade.operations.deleteMessage(messages[1])
+    
+    results = cascade.submit_requests()
+    for res in results:
+        if isinstance(res, CascadeError):
+            print(f"Error: {res.message}")
 ```
 
 !!! note
@@ -46,19 +53,19 @@ for res in results:
 ```python
 from cascade_cms.cmstypes import CascadeError, preference
 
-# Read current preferences
+# Read current user preferences
 cascade.operations.readPreferences()
-prefs = cascade.submit_requests()
-
-if isinstance(prefs, CascadeError):
-    raise RuntimeError(prefs.message)
-
-# Update a user preference
-cascade.operations.editPreference(preference(name="pref_name", value="new_value"))
 result = cascade.submit_requests()
 
 if isinstance(result, CascadeError):
     raise RuntimeError(result.message)
+
+# Update a specific preference
+cascade.operations.editPreference(preference(name="dateFormat", value="yyyy-MM-dd"))
+edit_result = cascade.submit_requests()
+
+if isinstance(edit_result, CascadeError):
+    raise RuntimeError(edit_result.message)
 ```
 
 !!! note
@@ -70,4 +77,4 @@ if isinstance(result, CascadeError):
 See [Core Patterns](main-patterns.md) for `read`, `delete`, and `search` — the
 primary asset-management workflow and response-shape conventions.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.2.1 -->
