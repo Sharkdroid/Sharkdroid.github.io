@@ -1,71 +1,65 @@
 # Core Concepts
 
-Building on the quick-start guide, this page explores the library's core mental model: a single-script session is managed by a wrapper (`CascadeWrapperBase`), which exposes an operations builder (`Operations`) to construct fluent operation chains (`OperationChain`), executed concurrently via `submit_requests()`.
+Building on the quick-start guide, this page explores the library's foundational mental model: the wrapper manages the session, which hands off to the operations builder, which spawns independent operation chains before executing them concurrently via `submit_requests()`.
 
 ---
 
 ## Basic Operation Calls
 
-Every script follows the same structural skeleton: open the wrapper as a context manager, queue one or more operations on `cascade.operations`, attach optional callbacks with `.then()`, and finally invoke `submit_requests()` to execute all queued chains concurrently. Chains run independently, so a failure in one operation chain does not affect any other.
+Every script follows the same skeleton — open the wrapper as a context manager, queue operations on `cascade.operations`, chain callbacks with `.then()`, then call `submit_requests()` once to execute all chains concurrently. Keep it to 3–4 sentences.
 
 ### Example
 
 ```python
-from cascade_cms.wrapper import CascadeWrapperBase
-from cascade_cms.cmstypes import CascadeError
+from cascade_cms import CascadeWrapperBase, CascadeError
 
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
-
-with CascadeWrapperBase(env, {}) as cascade:
-    # Start a chain to read an asset by its identifier
+# Open the wrapper context manager with required environment and config variables
+with CascadeWrapperBase(env_vars, config_vars) as cascade:
+    # Queue a read operation for an asset identifier
     cascade.operations.read(identifier)
     
-    # Execute all queued chains and return results in the order they were created
+    # Submit all queued requests and retrieve the ChainResults container
     results = cascade.submit_requests()
     
-    for result in results:
-        if isinstance(result, CascadeError):
-            print(f"API Error: {result.message}")
-        else:
-            print(f"Success: {result}")
+    # Inspect the result using the first entry in ChainResults
+    result = results[0]
+    if isinstance(result, CascadeError):
+        print(f"Operation failed: {result.message}")
+    else:
+        print(f"Success! Asset type: {result.internal_type}")
 ```
 
 ### Expected Output
 
 ```python
-# Success returns an Asset object wrapping the requested resource:
-Success: Asset(_asset_type='page', _data={...})
+# Output from a successful read operation returning the wrapped Asset object:
+Asset(internal_type='page', _data={'id': '1234567890abcdef...', 'name': 'index', 'path': 'index'})
 ```
 
 ---
 
 ## Payload Models
 
-Payload models are typed Pydantic objects (inheriting from `SimplePayload`) that pair with specific operations to ensure the Cascade CMS API endpoint receives the exact structure and fields it expects. They provide input validation, type safety, and automatic serialization via aliases.
+Payload models are strongly typed Pydantic objects (inheriting from `SimplePayload`) that pair with specific operations to ensure API endpoints receive expected parameters with correct aliasing. They provide type safety and IDE autocomplete while managing serialization format rules under the hood.
 
 ### Example: `SearchInformation` paired with `search`
 
 ```python
-from cascade_cms.wrapper import CascadeWrapperBase
 from cascade_cms.cmstypes import SearchInformation
 
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
+# Construct SearchInformation payload with required search criteria
+payload = SearchInformation(
+    siteName="Default",
+    searchTerms="blog",
+    searchFields=["name", "metadata"],
+    searchTypes=["page", "file"]
+)
 
-with CascadeWrapperBase(env, {}) as cascade:
-    # Construct the payload model specifying search criteria
-    payload = SearchInformation(
-        siteName="Default",
-        searchTerms="news",
-        searchFields=["name"],
-        searchTypes=["page"]
-    )
-    
-    # Pass the payload model directly to the search operation
-    cascade.operations.search(payload)
-    results = cascade.submit_requests()
+# Pass the payload directly to the operations builder search method
+cascade.operations.search(payload)
 ```
 
-Payload models enforce strict validation rules on required fields and field types before any request is sent to the API, and other operations follow the exact same pattern using models like `deleteParameters`, `auditParameters`, and `Comment`.
+Passing a raw dictionary directly to operations requiring these models will fail validation; every operation expects its corresponding typed parameter class (such as `deleteParameters`, `auditParameters`, or `SearchInformation`) to guarantee correct request body generation.
 
 ---
 
@@ -76,13 +70,11 @@ For operations involving heavy computation in `.then()` callbacks — image proc
 ```python
 from concurrent.futures import ProcessPoolExecutor
 from os import cpu_count
-from cascade_cms.wrapper import CascadeWrapperBase
-
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
+from cascade_cms import CascadeWrapperBase
 
 with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
-    with CascadeWrapperBase(env, {}) as cascade:
-        cascade.operations.read(id).then(optimize_image)
+    with CascadeWrapperBase(env_vars, config_vars) as cascade:
+        cascade.operations.read(identifier).then(optimize_image)
         results = cascade.submit_requests(executor=executor)
 ```
 
@@ -97,4 +89,4 @@ See [Advanced: CPU-Intensive Tasks](../advanced/cpu-intensive.md) for full confi
 
 Ready to go deeper? The [Advanced](../advanced/index.md) section covers configuration topics for power users: caching strategies, debug logging, and CPU-intensive workload patterns.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.2.1 -->
