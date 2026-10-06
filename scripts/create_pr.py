@@ -19,11 +19,10 @@ STAGING_DIR = "/tmp/filled-docs"
 TEMPLATE_TO_WIKI_PATH = {
     "core-concepts-index.md":    "wiki/cascade-cms-wiki/docs/core-concepts/index.md",
     "advanced-index.md":         "wiki/cascade-cms-wiki/docs/advanced/index.md",
-    "advanced-caching.md":       "wiki/cascade-cms-wiki/docs/advanced/caching.md",
     "advanced-logging.md":       "wiki/cascade-cms-wiki/docs/advanced/logging.md",
     "advanced-cpu-intensive.md": "wiki/cascade-cms-wiki/docs/advanced/cpu-intensive.md",
     "examples-main-patterns.md": "wiki/cascade-cms-wiki/docs/examples/main-patterns.md",
-    "examples-administrative.md":"wiki/cascade-cms-wiki/docs/examples/administrative.md",
+    "examples-administrative.md":"wiki/cascade-cms-wiki/docs/examples/administrative-ops.md",
 }
 
 OUTDATED_BANNER = """\

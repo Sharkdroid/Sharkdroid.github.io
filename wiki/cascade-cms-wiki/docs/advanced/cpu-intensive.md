@@ -18,7 +18,7 @@ By default `.then()` callbacks run on the async event loop, which is fine for I/
 ```python
 from concurrent.futures import ProcessPoolExecutor
 from os import cpu_count
-from cascade_cms import CascadeWrapperBase
+from cascade_cms import Cascade
 
 env = {"SERVER": "prod", "API_KEY": "secret", "CASCADE_URL": "https://cascade.example.com"}
 
@@ -26,7 +26,7 @@ def optimize_image(asset):
     # CPU-bound image processing work here
     return asset
 
-with CascadeWrapperBase(env, {}) as cascade:
+with Cascade(env, {}) as cascade:
     with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
         cascade.operations.read(id).then(optimize_image)
         results = cascade.submit_requests(executor=executor)

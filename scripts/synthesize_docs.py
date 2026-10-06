@@ -35,7 +35,6 @@ STAGING_DIR   = "/tmp/filled-docs"
 TEMPLATE_TO_REF_DOCS = {
     "core-concepts-index.md":    ["operations.md", "cmstypes.md", "wrapper.md"],
     "advanced-index.md":         [],    # pure TOC — no grounding needed
-    "advanced-caching.md":       ["driver.md"],
     "advanced-logging.md":       ["operation_logger.md"],
     "advanced-cpu-intensive.md": ["wrapper.md", "operations.md"],
     "examples-main-patterns.md": ["operations.md", "cmstypes.md"],
@@ -46,11 +45,10 @@ TEMPLATE_TO_REF_DOCS = {
 TEMPLATE_TO_WIKI_PATH = {
     "core-concepts-index.md":    "wiki/cascade-cms-wiki/docs/core-concepts/index.md",
     "advanced-index.md":         "wiki/cascade-cms-wiki/docs/advanced/index.md",
-    "advanced-caching.md":       "wiki/cascade-cms-wiki/docs/advanced/caching.md",
     "advanced-logging.md":       "wiki/cascade-cms-wiki/docs/advanced/logging.md",
     "advanced-cpu-intensive.md": "wiki/cascade-cms-wiki/docs/advanced/cpu-intensive.md",
     "examples-main-patterns.md": "wiki/cascade-cms-wiki/docs/examples/main-patterns.md",
-    "examples-administrative.md":"wiki/cascade-cms-wiki/docs/examples/administrative.md",
+    "examples-administrative.md":"wiki/cascade-cms-wiki/docs/examples/administrative-ops.md",
 }
 
 # Maps a "docs/operations/*.md" name to the built HTML page(s) that render it.

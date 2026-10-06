@@ -1,100 +1,197 @@
 # Core Concepts
 
-Building on the quick-start guide, this page explores the library's core mental model: a single-script session is managed by a wrapper (`CascadeWrapperBase`), which exposes an operations builder (`Operations`) to construct fluent operation chains (`OperationChain`), executed concurrently via `submit_requests()`.
+## The `Cascade` class
+
+`Cascade` is the single entry point for all library interactions. Open a
+session with it as a [context manager](https://docs.python.org/3/reference/datamodel.html#context-managers):
+
+```python
+from cascade_cms.wrapper import Cascade, EnvironmentVars
+
+env: EnvironmentVars = {
+    "SERVER": "my-site",
+    "API_KEY": "your-api-key",
+    "CASCADE_URL": "https://your-cascade-instance.com",
+}
+
+with Cascade(env) as cascade:
+    # queue operations here
+    ...
+```
+
+Previously known as `CascadeWrapperBase`; the alias still works but `Cascade`
+is the current name.
+
+### Constructor
+
+```python
+Cascade(
+    environmentVariables: EnvironmentVars,
+    debug: dict[str, Any] | None = None,
+    *,
+    exit_on_failure: bool = True,
+    log_dir: str | os.PathLike | None = None,
+)
+```
+
+`EnvironmentVars` is a `TypedDict` with three required keys:
+
+| Key | Description |
+|---|---|
+| `SERVER` | Label used in log output (not a network address) |
+| `API_KEY` | Cascade REST API bearer token |
+| `CASCADE_URL` | Base URL of your Cascade CMS instance |
+
+`exit_on_failure=True` (default) ends the script non-zero on any failure.
+Pass `False` for long-lived processes like the MCP server.
 
 ---
 
-## Basic Operation Calls
+## Operations
 
-Every script follows the same structural skeleton: open the wrapper as a context manager, queue one or more operations on `cascade.operations`, attach optional callbacks with `.then()`, and finally invoke `submit_requests()` to execute all queued chains concurrently. Chains run independently, so a failure in one operation chain does not affect any other.
-
-### Example
-
-```python
-from cascade_cms.wrapper import CascadeWrapperBase
-from cascade_cms.cmstypes import CascadeError
-
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
-
-with CascadeWrapperBase(env, {}) as cascade:
-    # Start a chain to read an asset by its identifier
-    cascade.operations.read(identifier)
-    
-    # Execute all queued chains and return results in the order they were created
-    results = cascade.submit_requests()
-    
-    for result in results:
-        if isinstance(result, CascadeError):
-            print(f"API Error: {result.message}")
-        else:
-            print(f"Success: {result}")
-```
-
-### Expected Output
+`cascade.operations` is the entry point for all CMS operations. It returns
+an `Operations` builder that accepts the first call in a chain:
 
 ```python
-# Success returns an Asset object wrapping the requested resource:
-Success: Asset(_asset_type='page', _data={...})
+with Cascade(env) as cascade:
+    chain = cascade.operations.read("abc123")
 ```
+
+Available operations mirror the Cascade REST API:
+
+| Operation | Description |
+|---|---|
+| `.read(id)` | Read one asset |
+| `.edit(payload)` | Edit an asset via callback or direct payload |
+| `.publish(id)` | Publish an asset |
+| `.delete(id)` | Delete an asset |
+| `.copy(id, dest)` | Copy an asset |
+| `.move(id, dest)` | Move an asset |
+| `.checkIn(id)` | Check in an asset |
+| `.checkOut(id)` | Check out an asset |
+| `.search(query)` | Search assets |
+| `.create(asset)` | Create a new asset |
+
+See the [API Reference](../operations/operations.md) for full signatures.
 
 ---
 
-## Payload Models
+## Operation chains
 
-Payload models are typed Pydantic objects (inheriting from `SimplePayload`) that pair with specific operations to ensure the Cascade CMS API endpoint receives the exact structure and fields it expects. They provide input validation, type safety, and automatic serialization via aliases.
-
-### Example: `SearchInformation` paired with `search`
+Each operation call returns an `OperationChain`, not a result. Nothing
+executes until you call `.submit_requests()`. This design lets you compose
+multi-step workflows before any network requests are made:
 
 ```python
-from cascade_cms.wrapper import CascadeWrapperBase
-from cascade_cms.cmstypes import SearchInformation
+from cascade_cms.cmstypes import Asset
 
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
+def set_searchable(asset: Asset) -> Asset:
+    asset.searchable = True
+    return asset
 
-with CascadeWrapperBase(env, {}) as cascade:
-    # Construct the payload model specifying search criteria
-    payload = SearchInformation(
-        siteName="Default",
-        searchTerms="news",
-        searchFields=["name"],
-        searchTypes=["page"]
+with Cascade(env) as cascade:
+    results = (
+        cascade.operations
+        .read("abc123")
+        .edit(set_searchable)
+        .publish("abc123")
+        .submit_requests(Asset)
     )
-    
-    # Pass the payload model directly to the search operation
-    cascade.operations.search(payload)
-    results = cascade.submit_requests()
 ```
 
-Payload models enforce strict validation rules on required fields and field types before any request is sent to the API, and other operations follow the exact same pattern using models like `deleteParameters`, `auditParameters`, and `Comment`.
+The type argument to `.submit_requests()` is for the type checker. `Asset`
+covers most cases; use a more specific type when the operation returns one.
 
 ---
 
-## CPU-Intensive Operations
+## `edit()` and callbacks
 
-For operations involving heavy computation in `.then()` callbacks — image processing, data transformation, bulk string manipulation — offload work to a `ProcessPoolExecutor` rather than running it on the async event loop.
+`edit()` accepts a callable, a single asset, or a list of assets. The
+callable form is the most common in practice:
 
 ```python
-from concurrent.futures import ProcessPoolExecutor
-from os import cpu_count
-from cascade_cms.wrapper import CascadeWrapperBase
+def update_keywords(asset: Asset) -> Asset:
+    asset.keywords = "updated"
+    return asset
 
-env = {"SERVER": "myserver", "API_KEY": "my-token", "CASCADE_URL": "https://cascade.example.com"}
-
-with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
-    with CascadeWrapperBase(env, {}) as cascade:
-        cascade.operations.read(id).then(optimize_image)
-        results = cascade.submit_requests(executor=executor)
+cascade.operations.edit(update_keywords)
 ```
 
-!!! note "Module-level functions only"
-    Callbacks passed to `ProcessPoolExecutor` must be defined at module level — lambdas and nested functions are not picklable and will raise at runtime.
-
-See [Advanced: CPU-Intensive Tasks](../advanced/cpu-intensive.md) for full configuration details, performance trade-offs, and `ThreadPoolExecutor` comparison.
+The callback receives the current asset and must return the modified asset.
+The identifier is derived from the asset's own `id`/`path`/`siteName` fields
+— there is no separate identifier argument on `edit()` in 3.9.1.
 
 ---
 
-## Next Steps
+## Batch execution and `ChainGroup`
 
-Ready to go deeper? The [Advanced](../advanced/index.md) section covers configuration topics for power users: caching strategies, debug logging, and CPU-intensive workload patterns.
+Passing a list to operations that accept identifiers — `read`, `delete`,
+`publish`, etc. — creates one independent `OperationChain` per identifier,
+returned as a `ChainGroup`:
 
-<!-- synthesized-for: 3.1.1 -->
+```python
+with Cascade(env) as cascade:
+    results = (
+        cascade.operations
+        .read(["id1", "id2", "id3"])
+        .submit_requests(Asset)
+    )
+```
+
+Failures in one chain do not cancel others. The returned `ChainResults`
+covers all chains in the group.
+
+---
+
+## Result handling
+
+`.submit_requests()` returns `ChainResults[T]` — a list subclass with
+`.success` and `.failed` properties. See [Result Handling](../getting-started/result-handling.md)
+for full details.
+
+```python
+results = cascade.operations.read("abc123").submit_requests(Asset)
+
+for asset in results.success:
+    print(asset.path)
+
+for failure in results.failed:
+    print(f"[{failure.category}] {failure.message}")
+```
+
+---
+
+## Script logging
+
+`script_log.note()` writes annotated log lines from within a script:
+
+```python
+from cascade_cms.utils import script_log
+
+with Cascade(env) as cascade:
+    script_log.note("Starting run")
+    results = cascade.operations.read("abc123").submit_requests(Asset)
+    script_log.note(f"Done — {len(results.success)} succeeded")
+```
+
+Calls outside the `with` block drop silently with a `RuntimeWarning`.
+API keys are automatically redacted from log output.
+
+---
+
+## Identifiers
+
+The `utils.identifiers` module (added in 3.8.3) coerces raw Cascade
+identifier dicts to `IdentifierType`:
+
+```python
+from cascade_cms.utils.identifiers import to_identifier, to_identifiers
+
+identifier = to_identifier({"id": "abc123", "type": "page", "path": None})
+identifiers = to_identifiers([{"id": "a"}, {"id": "b"}])
+```
+
+Use these when processing raw API responses before passing identifiers to
+operations.
+
+<!-- synthesized-for: 3.9.1 -->

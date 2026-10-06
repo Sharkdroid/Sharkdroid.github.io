@@ -51,4 +51,4 @@ queue multiple chains — even mixing operation types — before calling
 
 [PLACEHOLDER: Code block showing three chains queued in a single `CascadeWrapperBase` block — `read`, `delete`, and `search` — before one `submit_requests()` call, with a comment that all three run concurrently and results are returned in creation order. Source from `submit_requests` docstring in wrapper.md.]
 
-See [Administrative Operations](administrative.md) for the `messages` and `preferences` operations.
+See [Administrative Operations](administrative-ops.md) for the `messages` and `preferences` operations.

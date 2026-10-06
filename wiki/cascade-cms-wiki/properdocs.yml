@@ -37,17 +37,22 @@ markdown_extensions:
 
 nav:
   - Home: ./index.md
+  - Getting Started:
+      - Introduction: getting-started/index.md
+      - Result Handling: getting-started/result-handling.md
+      - Version History: getting-started/version-history.md
   - Core Concepts: ./core-concepts/index.md
   - Advanced:
-      - ./advanced/index.md
-      - ./advanced/caching.md
-      - ./advanced/logging.md
-      - ./advanced/cpu-intensive.md
+      - Logging: advanced/logging.md
+      - CPU-Intensive Operations: advanced/cpu-intensive.md
   - Examples:
-      - ./examples/main-patterns.md
-      - ./examples/administrative.md
+      - Patterns: examples/main-patterns.md
+      - Administrative Operations: examples/administrative-ops.md
   - Operations: ./operations/operations.md
   - CMS Types: ./operations/cmstypes.md
   - Wrapper: ./operations/wrapper.md
   - Driver: ./operations/driver.md
   - Operation Logger: ./operations/operation_logger.md
+  - AI & Automation:
+      - Overview: ai/index.md
+      - Library Maintenance: ai/library-maintenance.md

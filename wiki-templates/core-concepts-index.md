@@ -45,4 +45,4 @@ See [Advanced: CPU-Intensive Tasks](../advanced/cpu-intensive.md) for full confi
 
 ## Next Steps
 
-Ready to go deeper? The [Advanced](../advanced/index.md) section covers configuration topics for power users: caching strategies, debug logging, and CPU-intensive workload patterns.
+Ready to go deeper? The [Advanced](../advanced/index.md) section covers configuration topics for power users: debug logging and CPU-intensive workload patterns.
