@@ -22,30 +22,15 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      # Build Cascade CMS Wiki
-      - name: Install Cascade CMS dependencies
-        run: pip install -r ./wiki/cascade-cms-wiki/requirements.txt
-
-      - name: Build Cascade CMS Wiki
+      - name: Build documentation projects
         run: |
-          cd ./wiki/cascade-cms-wiki/
-          properdocs build
-          cd ..
-
-      # Build Other Project (if it has docs)
-      - name: Install Other Project dependencies
-        run: |
-          if [ -f "other-project/requirements.txt" ]; then
-            pip install -r other-project/requirements.txt
-          fi
-
-      - name: Build Other Project
-        run: |
-          if [ -f "other-project/properdocs.yml" ]; then
-            cd other-project
+          for project_dir in $(find ./wiki -maxdepth 2 -name "properdocs.yml" -exec dirname {} \;); do
+            cd "$project_dir"
+            if [ -f "requirements.txt" ]; then pip install -r requirements.txt
+            else pip install properdocs; fi
             properdocs build
-            cd ..
-          fi
+            cd - > /dev/null
+          done
 
       # Build the plain root/wiki hub pages
       - name: Install root site dependencies
@@ -57,12 +42,15 @@ jobs:
       # Combine all site outputs
       - name: Combine documentation sites
         run: |
-          mkdir -p combined-site/wiki/cascade-cms-wiki
-          cp -r ./wiki/cascade-cms-wiki/site/* combined-site/wiki/cascade-cms-wiki/
-          if [ -d "other-project/site" ]; then
-            mkdir -p combined-site/other-project
-            cp -r other-project/site/* combined-site/other-project/
-          fi
+          mkdir -p combined-site/wiki
+          if [ -f "wiki/index.md" ]; then cp wiki/index.md combined-site/wiki/index.md; fi
+          for project_dir in $(find ./wiki -maxdepth 2 -name "properdocs.yml" -exec dirname {} \;); do
+            project_name=$(basename "$project_dir")
+            if [ -d "$project_dir/site" ]; then
+              mkdir -p "combined-site/wiki/$project_name"
+              cp -r "$project_dir/site/"* "combined-site/wiki/$project_name/"
+            fi
+          done
 
       - name: Upload combined artifact
         uses: actions/upload-pages-artifact@v3
