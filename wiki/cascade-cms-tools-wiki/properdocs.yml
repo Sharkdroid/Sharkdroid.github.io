@@ -1,0 +1,45 @@
+site_name: cascade-cms-tools
+site_description: MCP server and Claude Code skill for cascade-cms-rest
+docs_dir: docs
+site_dir: site
+
+nav:
+  - Home: index.md
+  - MCP Server Reference: mcp-reference.md
+  - Skill Overview: skill-overview.md
+  - Maintenance: maintenance.md
+  - Version History: version-history.md
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.top
+    - search.suggest
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - admonition
+  - pymdownx.details
+  - attr_list
