@@ -22,7 +22,7 @@ Normal mode provides minimal console output and a simple logfile. It records ses
 ## Enabling Debug Mode
 
 ```python
-wrapper = CascadeWrapperBase(
+wrapper = Cascade(
     server="myserver",
     debug_config={
         "log_dir": "./logs",
