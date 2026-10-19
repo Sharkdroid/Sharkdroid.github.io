@@ -5,6 +5,7 @@ site_description: Unified documentation for py-cascade-cms
 theme:
   name: material
   favicon: assets/fav32x32.gif
+  logo: assets/logo.gif
   palette:
     primary: blue
     accent: blue
