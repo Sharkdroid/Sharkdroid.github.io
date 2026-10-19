@@ -6,6 +6,7 @@ overwritten by them.
 """
 
 import html
+import shutil
 from pathlib import Path
 
 import markdown
@@ -19,6 +20,9 @@ TEMPLATE = """<!doctype html>
 <meta charset="utf-8">
 <title>{title}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/gif" sizes="16x16" href="/fav16x16.gif">
+<link rel="icon" type="image/gif" sizes="32x32" href="/fav32x32.gif">
+<link rel="icon" type="image/gif" sizes="48x48" href="/fav48x48.gif">
 <style>
   body {{ font-family: system-ui, sans-serif; max-width: 42rem; margin: 3rem auto; padding: 0 1.5rem; line-height: 1.6; color: #1a1a1a; }}
   a {{ color: #0969da; }}
@@ -58,3 +62,5 @@ if __name__ == "__main__":
     render(ROOT / "index.md", OUTPUT / "index.html", "Keith Shark")
     render(ROOT / "wiki" / "index.md", OUTPUT / "wiki" / "index.html", "Wiki Registry")
     render_journals()
+    for icon in ROOT.glob("fav*.gif"):
+        shutil.copy(icon, OUTPUT / icon.name)

@@ -12,6 +12,7 @@ nav:
 
 theme:
   name: material
+  favicon: assets/fav32x32.gif
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
