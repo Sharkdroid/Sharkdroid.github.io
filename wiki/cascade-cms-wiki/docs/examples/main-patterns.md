@@ -1,191 +1,118 @@
-# Main Patterns
+# Core Patterns: `read`, `delete`, `search`
 
-Common usage patterns for `cascade-cms-rest` 3.9.1.
+Every script that uses `cascade_cms` follows the same shape: open the wrapper as
+a context manager, queue up one or more operations on `cascade.operations`, then
+call `submit_requests()` once to run them all concurrently.
 
-```python
-from cascade_cms.wrapper import Cascade, EnvironmentVars
-from cascade_cms.cmstypes import Asset
+The three examples below use the same skeleton but highlight the **three
+distinct response shapes** you'll see across the library:
 
-env: EnvironmentVars = {
-    "SERVER": "my-site",
-    "API_KEY": "your-api-key",
-    "CASCADE_URL": "https://your-cascade-instance.com",
-}
-```
+| Operation | Returns | Why it's shown |
+|-----------|---------|----------------|
+| `read` | A large, structured `Asset` object | Most operations that touch an existing asset return this shape |
+| `delete` | A simple success object (`CascadeSuccess`) | Mutating operations that don't return data use this minimal shape |
+| `search` | A list result, driven by a required `SearchInformation` payload | Shows the "operation needs a payload object" pattern |
 
----
-
-## Read a single asset
-
-```python
-with Cascade(env) as cascade:
-    results = cascade.operations.read("abc123").submit_requests(Asset)
-
-if results.success:
-    asset = results.success[0]
-    print(asset.path)
-    print(asset.siteName)
-```
+All three also demonstrate the same failure-handling rule: **failures are
+returned as values, not raised.** Always check `isinstance(result, CascadeError)`
+before using a result.
 
 ---
 
-## Edit and save
-
-Use a callback that receives the current asset and returns the modified one:
+## Pattern 1 — `read`: fetching a structured asset
 
 ```python
-def update_metadata(asset: Asset) -> Asset:
-    asset.keywords = "cascade, cms, updated"
-    asset.metaDescription = "Updated via py-cascade-cms"
-    return asset
+with CascadeWrapperBase("https://cascade.example.com", "username", "api-key") as cascade:
+    # Build a Path identifier pointing to a page asset
+    identifier = Path(asset_type=AssetTypes.PAGE, site_name="default", path="/index")
+    
+    # Queue the read operation
+    cascade.operations.read(identifier)
+    
+    # Execute all queued operations concurrently
+    result = cascade.submit_requests()[0]
 
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .read("abc123")
-        .edit(update_metadata)
-        .submit_requests(Asset)
+    # Always check if the result is a CascadeError before using it
+    if isinstance(result, CascadeError):
+        print(f"Failed to read asset: {result.message}")
+    else:
+        # Access structured properties on the returned Asset object
+        print(result.displayName)
+        print(result.metadata)
+```
+
+`read` represents the core fetch pattern used by the library. Other methods like `readAudits`, `readAccessRights`, and `readWorkflowSettings` follow this same convention, returning structured domain objects specific to what was requested.
+
+---
+
+## Pattern 2 — `delete`: a simple success response
+
+```python
+with CascadeWrapperBase("https://cascade.example.com", "username", "api-key") as cascade:
+    identifier = Path(asset_type=AssetTypes.PAGE, site_name="default", path="/old-page")
+    
+    payload = deleteParameters(
+        doWorkflow=False,
+        destinations=[],
+        unpublish=True
     )
+    
+    cascade.operations.delete(identifier, payload=payload)
+    result = cascade.submit_requests()[0]
 
-if results.failed:
-    for failure in results.failed:
-        print(f"[{failure.category}] {failure.step_name}: {failure.message}")
+    if isinstance(result, CascadeError):
+        print(f"Delete failed: {result.message}")
+    else:
+        print("Delete succeeded successfully.")
 ```
 
-The callback receives the asset after `.read()` completes. The identifier
-is derived from the asset's own `id`/`path`/`siteName` fields — no separate
-argument on `edit()`.
+Mutating operations like `delete`, `copy`, `move`, `publish`, `checkIn`, and `editAccessRights` return a simple success indicator rather than the updated asset data. Callers should not expect asset attributes back from these actions.
 
 ---
 
-## Publish
-
-Chain `.publish()` after editing to write and publish in one batch:
+## Pattern 3 — `search`: payload-driven, list response
 
 ```python
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .read("abc123")
-        .edit(update_metadata)
-        .publish("abc123")
-        .submit_requests(Asset)
+with CascadeWrapperBase("https://cascade.example.com", "username", "api-key") as cascade:
+    payload = SearchInformation(
+        siteName="default",
+        searchTerms="news",
+        searchFields=[FieldsSearchTypes.NAME],
+        searchTypes=[AssetTypes.PAGE]
     )
+    
+    cascade.operations.search(payload)
+    result = cascade.submit_requests()[0]
+
+    if isinstance(result, CascadeError):
+        print(f"Search failed: {result.message}")
+    else:
+        # Iterate over the flat list of matching elements
+        for item in result.flat:
+            print(item)
 ```
 
-Or publish without editing:
-
-```python
-with Cascade(env) as cascade:
-    results = cascade.operations.publish("abc123").submit_requests(Asset)
-```
+`search` requires a structured payload object rather than a simple identifier. Operations like `readAudits` and `editWorkflowSettings` adopt this same pattern, requiring explicit parameters to filter or describe the request.
 
 ---
 
-## Search
+## Chaining and Batching
+
+All three patterns above run a single operation per script. In practice you can
+queue multiple chains — even mixing operation types — before calling
+`submit_requests()` once:
 
 ```python
-from cascade_cms.cmstypes import SearchInformation, ListElements
-
-payload = SearchInformation(
-    searchTerms="annual report",
-    siteName="site123",
-)
-
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .search(payload)
-        .submit_requests(ListElements)
-    )
-
-if results.success:
-    for item in results.success:
-        print(item)
+with CascadeWrapperBase("https://cascade.example.com", "username", "api-key") as cascade:
+    # Queue multiple independent chains
+    cascade.operations.read(Path(asset_type=AssetTypes.PAGE, site_name="default", path="/index"))
+    cascade.operations.delete(Path(asset_type=AssetTypes.PAGE, site_name="default", path="/old-page"), payload=deleteParameters(doWorkflow=False, destinations=[], unpublish=True))
+    cascade.operations.search(SearchInformation(siteName="default", searchTerms="report"))
+    
+    # Run them all concurrently; results are returned in creation order
+    results = cascade.submit_requests()
 ```
 
-`SearchInformation` is the typed payload; `ListElements` is the return type
-from `.search()`. Both are in `cascade_cms.cmstypes`.
+See [Administrative Operations](administrative-ops.md) for the `messages` and `preferences` operations.
 
----
-
-## Bulk operations
-
-Pass a list of identifiers. Each gets its own independent chain — failures
-in one do not cancel others:
-
-```python
-asset_ids = ["id1", "id2", "id3"]
-
-def tag_asset(asset: Asset) -> Asset:
-    asset.tags = [{"name": "bulk-update"}]
-    return asset
-
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .read(asset_ids)
-        .edit(tag_asset)
-        .publish(asset_ids)
-        .submit_requests(Asset)
-    )
-
-print(f"{len(results.success)} updated, {len(results.failed)} failed")
-
-for failure in results.failed:
-    print(f"  {failure.identifier}: [{failure.category}] {failure.message}")
-```
-
----
-
-## Handling failures by category
-
-`ChainFailure.category` holds the `FailureCategory` value — use it directly:
-
-```python
-from cascade_cms.utils.failures import FailureCategory
-
-with Cascade(env, exit_on_failure=False) as cascade:
-    results = cascade.operations.read(asset_ids).submit_requests(Asset)
-
-network_errors = []
-cascade_errors = []
-
-for failure in results.failed:
-    if failure.category == FailureCategory.NETWORK:
-        network_errors.append(failure.identifier)
-    elif failure.category == FailureCategory.CASCADE:
-        cascade_errors.append(failure.identifier)
-
-if network_errors:
-    print(f"Network failures (retry candidates): {network_errors}")
-if cascade_errors:
-    print(f"Cascade errors (check identifiers): {cascade_errors}")
-```
-
-`exit_on_failure=False` keeps the process alive to inspect failures
-programmatically.
-
----
-
-## Script logging
-
-```python
-from cascade_cms.utils import script_log
-
-with Cascade(env) as cascade:
-    script_log.note("Starting bulk keyword update")
-
-    results = (
-        cascade.operations
-        .read(asset_ids)
-        .edit(tag_asset)
-        .submit_requests(Asset)
-    )
-
-    script_log.note(f"Complete: {len(results.success)} updated")
-```
-
-`script_log.note()` only works inside the `with` block.
-
-<!-- synthesized-for: 3.9.1 -->
+<!-- synthesized-for: 3.9.2 -->
