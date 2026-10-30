@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- 7 unfilled placeholder(s) remain: ['[PLACEHOLDER: Short paragraph explaining what normal mode logs — lifecycle marke...', '[PLACEHOLDER: Code block showing a sample normal logfile — a few representative ...', '[PLACEHOLDER: Code block showing how to pass the `debug` dict to `CascadeWrapper...', '[PLACEHOLDER: Table or bullet list of all keys in the debug config dict — what e...', '[PLACEHOLDER: Paragraph explaining the debug logfile naming convention (`{SERVER...', '[PLACEHOLDER: Code block showing a representative debug log excerpt — a few line...', '[PLACEHOLDER: Short explanation of how error blocks appear in debug mode — parsi...']
+-->
+
 # Logging & Debugging
 
 Operation logger owns all console, logfile, and (verbose mode) request/response file output for the cascade_cms library. Two output modes exist: normal mode for everyday use and debug mode for diagnosing failures, controlled solely by whether `debug_config` is `None`. Both produce logfiles; debug mode adds a verbose nested call-chain log alongside a quieter console output.
