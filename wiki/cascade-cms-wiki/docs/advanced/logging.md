@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- Potentially invented field names: ["'server' (near: ...[INIT]: Connecting to example.cascade.server\n[LOG]: ./logs/...)", "'server_2023' (near: ....server\n[LOG]: ./logs/example.cascade.server_2023-10-27T12-00-00...)"]
+-->
+
 # Logging & Debugging
 
 Operation logger owns all console, logfile, and (verbose mode) request/response file output for the cascade_cms library. Two output modes exist: normal mode for everyday use and debug mode for diagnosing failures, controlled solely by whether `debug_config` is `None`. Both produce logfiles; debug mode adds a verbose nested call-chain log alongside a quieter console output.
