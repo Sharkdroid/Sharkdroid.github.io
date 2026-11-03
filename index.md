@@ -6,6 +6,10 @@ My name is Keith,
 
 ## Current works
 
+### AI Usage
+
+[AI Transcript Dashboard](ai-usage/)
+
 ### Journals
 | Projects | reflection | repo | wiki |
 | ------ | ----- | ----- | ----- | 

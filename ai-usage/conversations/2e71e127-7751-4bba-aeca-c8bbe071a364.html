@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cascade PerformWorkflowTransition</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>Cascade PerformWorkflowTransition</h1>
+<p class="meta">2026-07-21 &middot; py-cascade-cms &middot; claude.ai &middot; 10 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude.ai</span></span></div><div class="item"><b>Last updated</b><span>2026-07-21</span></div></div><details class="sum"><summary>Summary</summary><div class="part">Conversation Overview
+
+The person is building a Python REST client library for the Cascade CMS API and is working to understand and implement the `performWorkflowTransition` operation. The conversation focused on researching the complete schema for the `workflowTransitionInformation` object, understanding the workflow transition flow, and establishing design principles for the library. The person came in with an existing three-field payload mapping (`workflowId`, `actionIdentifier`, `transitionComment`) and wanted to verify its completeness against official documentation.
+
+Research confirmed the three-field mapping is complete and correct per the SOAP WSDL schema, which the REST API mirrors exactly. Required fields are `workflowId` and `actionIdentifier`; `transitionComment` is optional. The conversation established that `workflowId` is a runtime workflow instance ID (not a definition ID) obtained from `readWorkflowInformation`, and that `actionIdentifier` must correspond to an action available on the asset&#x27;s current workflow step — not any arbitrary step. The REST endpoint is `POST /api/v1/performWorkflowTransition` with `Bearer` or `Basic` authentication via header.
+
+A key design decision was reached: workflow orchestration (reading workflow info, validating action availability against the current step, tracking post-transition state, and handling side effects like publishing or email notifications) is the end user&#x27;s responsibility, not the library&#x27;s. The person explicitly chose to keep the library lean and explicit rather than abstracting workflow complexity. This decision was saved to memory and the person indicated they want it documented for end users, including a recommended usage pattern: call `readWorkflowInformation` first, validate the action exists on the current step, perform the transition, then call `readWorkflowInformation` again to confirm the new state. The person also indicated they want to fully understand the flow and processing model before writing any implementation code, and deferred a question about whether the library should auto-fetch workflow info or leave that to the caller.</div></details><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Research the full and minimum required fields for Cascade CMS&#x27;s `workflowTransitionInformation` object. Reference the SOAP operations but make sure It&#x27;s relevant to the REST API implementation. This is what I have mapped out so far:
+
+```json
+{
+    &quot;workflowTransitionInformation&quot;:{
+        &quot;workflowId&quot;:&quot;....&quot;,
+        &quot;actionIdentifier&quot;:&quot;finish&quot;,
+        &quot;transitionComment&quot;:&quot;Finish performed through the API as test...&quot;
+    }
+}
+```</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Good question to dig into — the `workflowTransitionInformation` payload isn&#x27;t as well documented as the core asset endpoints, so worth confirming field requirements against Cascade&#x27;s actual WSDL/REST references rather than guessing from your current stub.
+
+Before I launch research, quick check on scope:
+```
+This block is not supported on your current device yet.
+```</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Q: Should I also cover the related &#x27;performWorkflowTransition&#x27; operation details (e.g. valid actionIdentifier values, how to discover them), since your operations.py has a stub for it?
+A: Yes, include that</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The query has enough detail to proceed with the research.
+```
+This block is not supported on your current device yet.
+```
+
+Your Cascade CMS `performWorkflowTransition` reference is ready. It confirms your three-field mapping (`workflowId`, `actionIdentifier`, `transitionComment`) is complete and correct, with the WSDL-verified schema, required vs. optional fields, and minimum valid payload. The report also covers the REST endpoint and auth options, how to source `workflowId` and `actionIdentifier` from `readWorkflowInformation`, SOAP-vs-REST naming parity, response handling via `operationResult`, a Python `requests` example, related workflow endpoints, and caveats about action identifiers being workflow-definition-defined rather than a fixed enumeration.
+```
+Viewing artifacts created via the Analysis Tool web feature preview isn’t yet supported on mobile.
+```</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">When triggering actions using the API. Does the action have to be within the same &quot;step&quot;?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user is asking a follow-up question about workflow transitions in Cascade CMS. Specifically, they want to know if the action referenced in `actionIdentifier` must belong to the asset&#x27;s current workflow step, or if you can transition to actions in other steps.
+
+This is an important clarification because it affects how you construct workflow transitions and what validation you need to do on the client side.
+
+From the artifact I just created, I included this note:
+&quot;Validate `actionIdentifier` against the current step&#x27;s actions returned by `readWorkflowInformation` before posting; an action that isn&#x27;t available on the current step will fail.&quot;
+
+And also: &quot;Per the KB, &#x27;While system and edit steps will each only have one action, transition steps require user intervention and will typically have multiple actions to choose from such as approve, reject, or edit.&#x27;&quot;
+
+This strongly suggests that yes, the action must belong to the current step. The `actionIdentifier` you pass is one of the available actions on the *current* step. Each step has its own set of actions. When you transition via an action, that action determines where you move next in the workflow (based on the workflow definition&#x27;s `next-id` attribute on the action).
+
+So the answer is: **Yes, the action must be within the current step.** You cannot directly jump to an action in a future step; you must take the available actions on the current step, which will move you to the next step.
+
+This is a critical constraint for the implementation. I should highlight this clearly and explain the workflow progression model.Great follow-up. **Yes—the `actionIdentifier` must be one of the actions available on the asset&#x27;s *current* workflow step.** You cannot skip ahead to actions in future steps.
+
+Here&#x27;s the progression model:
+
+```
+Step 1 (e.g., &quot;review&quot;)
+  ├─ action &quot;approve&quot;     → advances to Step 2
+  └─ action &quot;reject&quot;      → bounces back to draft
+
+Step 2 (e.g., &quot;publish&quot;)
+  └─ action &quot;publish&quot;     → advances to Step 3 (terminal)
+```
+
+If the asset is currently on **Step 1**, you can only call `performWorkflowTransition` with `actionIdentifier` = `&quot;approve&quot;` or `&quot;reject&quot;`. Trying to pass `&quot;publish&quot;` will fail because that action doesn&#x27;t exist on Step 1—it belongs to Step 2.
+
+---
+
+**Why this matters for your implementation:**
+
+1. **You must call `readWorkflowInformation` first** to discover which step the asset is on and what actions are available on that step. This returns:
+   - The running `workflowId` (needed for the transition request)
+   - The `currentStep` identifier
+   - The list of `&lt;action&gt;` elements (with their `identifier` attributes) valid for that step
+
+2. **Client-side validation** should check that the user-provided `actionIdentifier` exists in `currentStep.actions` before posting. Otherwise Cascade will reject it server-side.
+
+3. **The workflow definition controls the path.** Each `&lt;action&gt;` has a `next-id` attribute (in the workflow XML schema) that determines which step you move to. You don&#x27;t specify the destination step in the transition request—the action&#x27;s definition does.
+
+---
+
+**Quick question back:** In your `performWorkflowTransition` implementation in `operations.py`, are you planning to auto-fetch the current workflow info (to validate and extract `workflowId`), or will that be the caller&#x27;s responsibility? That would shape whether you need a helper that wraps the read + transition flow.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I&#x27;ll sit on that question for now. I would like to understand the flow and process of how `performWorkflowTransition` is processed before implementing anything.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user wants to understand the flow and process of how `performWorkflowTransition` is processed before implementing anything. This is a good approach - understanding the complete workflow will help them design the implementation better.
+
+Let me think about what they need to understand:
+
+1. The client-side flow (in their Python library)
+2. How the request is constructed and sent
+3. What happens server-side in Cascade CMS
+4. What the response looks like
+5. Any side effects or cascading operations
+
+I should create a flow diagram showing:
+- User calls performWorkflowTransition with parameters
+- Library validates/constructs request
+- HTTP POST to Cascade
+- Cascade processes the transition
+- Response comes back
+- Callback execution in their architecture
+- State changes on the asset
+
+This ties into their architecture with RequestExecutor, Operations, callbacks, etc.
+
+I should ask clarifying questions about what aspects they want to understand:
+- Just the Cascade-side workflow engine logic?
+- How it integrates with their current request/response pipeline?
+- State transitions and side effects?
+- Error handling and validation?
+- All of the above?
+
+Let me create a visual flow and then ask what level of detail they want to dive into.
+```
+This block is not supported on your current device yet.
+```
+
+The user wants to understand the flow and process of how `performWorkflowTransition` is processed. They want to know this before implementing anything. This is a good understanding-first approach.
+
+I should create a visual flow diagram showing:
+1. User initiates a workflow transition via their library
+2. Client-side construction and validation
+3. HTTP request sent to Cascade
+4. Server-side processing in Cascade
+5. Response handling
+6. Any side effects (callbacks, state changes, etc.)
+
+Let me think about the scope:
+- Client-side: calling performWorkflowTransition method, constructing payload, validation
+- Network: HTTP POST request
+- Server-side Cascade: workflow engine processes the transition, validates state, updates asset status, potentially triggers side effects (publishing, notifications, etc.)
+- Response: operationResult (success/message)
+- Client callback handling: their callback architecture
+
+I should ask clarifying questions about what level of detail they want to understand:
+- Just the Cascade-side workflow logic?
+- How it fits into their request/response architecture?
+- Side effects and state transitions?
+- Error scenarios?
+
+Let me create a flow diagram and then ask what areas they want to drill into.
+```
+This block is not supported on your current device yet.
+```
+
+Good, the diagram is rendered. Now I should ask clarifying questions about what areas they want to understand in more depth. The diagram gives an overview, but there are several important areas to drill into:
+
+1. Error scenarios - what goes wrong?
+2. State machine logic - how does the asset&#x27;s workflow state actually change?
+3. Side effects - what else happens when a transition occurs?
+4. The role of callbacks in their architecture
+5. How this fits into their Operations/RequestExecutor pattern
+
+Let me ask these as follow-up questions to guide them toward the areas that matter most for their implementation.The flow above shows the overall journey, but there are several **branches and gotchas** worth exploring before you code. Here are the key questions to guide what you dig into:
+
+1. **Error handling &amp; validation:** What happens if the transition fails server-side (invalid action, workflow already completed, permission denied)? How should your client handle the `operationResult` with `success=false`?
+
+2. **State machine semantics:** When a transition *succeeds*, the asset moves to a new workflow step. Do you need to:
+   - Re-fetch the asset to see its new state?
+   - Assume the response tells you what step you&#x27;re on now?
+   - Track step progression on the client side?
+
+3. **Side effects that matter for concurrency:** Workflow transitions can trigger:
+   - Asset publishing (if the final step is &quot;publish&quot;)
+   - Email notifications (to step owners, subscribers)
+   - Version snapshots or archiving
+   - Do any of these block or change the response timing?
+
+4. **Integration with your callback architecture:** Where in your `Operations` → `RequestExecutor` → callback pipeline does a transition live?
+   - Is it a standalone operation like `.read()` or `.edit()`?
+   - Or does it need orchestration (read workflow → perform transition → read updated workflow)?
+
+5. **The `workflowId` lifecycle:** You know it comes from `readWorkflowInformation`, but:
+   - Does it stay the same across multiple transitions on the same asset?
+   - What happens if the workflow resets or a new one starts — is it a new `workflowId`?
+
+**Which of these do you want to understand first?** Or should I walk through a complete scenario (e.g., &quot;asset starts in Review → user clicks approve → moves to Publish → what exactly changed and how do we know&quot;)?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I think this should be the user&#x27;s responsibility. Could you save this into memory? I think it&#x27;s worth documenting and letting the end user know.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user wants me to save the research/documentation about performWorkflowTransition into memory. They&#x27;re saying that the complexity of understanding the flow, validation, side effects, and state management should be the user&#x27;s (the end-user of the library) responsibility to understand and handle themselves, rather than the library trying to abstract it away.
+
+This is a good design decision - the library should expose the operation, but the user needs to understand the workflow semantics and handle the orchestration.
+
+I should use the memory_user_edits tool to save this information.
+```
+This block is not supported on your current device yet.
+```
+
+Good, I&#x27;ve saved that to memory. Now I should acknowledge this decision and explain why it&#x27;s the right call for the library design.Saved. This is a solid design decision — keeps the library lean and explicit. 
+
+The upside: users see exactly what the REST API does (transition a workflow step), not a wrapper that pretends workflows are simpler than they are. A transition is a state machine move, not a &quot;publish the asset&quot; or &quot;notify subscribers&quot; operation — those are separate concerns that your library surfaces as individual operations.
+
+The downside users will face: they need to read Cascade&#x27;s workflow docs and understand their own workflow definitions to use transitions correctly. But that&#x27;s unavoidable complexity; you can&#x27;t hide it without making the library opinionated about workflows it doesn&#x27;t own.
+
+**For your library docs**, I&#x27;d add a section like:
+
+&gt; **Workflow Transitions**  
+&gt; Performing a workflow transition requires understanding your Cascade workflow definition. Before calling `performWorkflowTransition`:
+&gt; 1. Call `readWorkflowInformation(asset_id)` to fetch the running workflow and its current step
+&gt; 2. Extract `workflowId` from the response
+&gt; 3. Validate your desired `actionIdentifier` exists on `currentStep.actions`
+&gt; 4. Call `performWorkflowTransition(workflowId, actionIdentifier, optional_comment)`
+&gt; 5. Call `readWorkflowInformation` again to confirm the new step
+&gt;
+&gt; Side effects (publishing, emails, versioning) are determined by your workflow definition, not by this operation. The transition only moves the step; it does not auto-publish or notify.
+
+Then the question shifts from &quot;should the library handle this?&quot; to &quot;how should `performWorkflowTransition` fit into `Operations`?&quot; Should it mirror `.read()`, `.edit()`, `.create()`—just a standalone method—or does it need special handling?</div></div></div></article></div></main></body></html>

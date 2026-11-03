@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NewAsset serialization override not working</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>NewAsset serialization override not working</h1>
+<p class="meta">2026-07-16 &middot; py-cascade-cms &middot; claude.ai &middot; 10 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude.ai</span></span></div><div class="item"><b>Last updated</b><span>2026-07-16</span></div></div><details class="sum"><summary>Summary</summary><div class="part">Conversation Overview
+
+The person is debugging a serialization issue in a Python codebase using Pydantic, specifically involving a `NewAsset` dataclass in `cmstypes.py` that inherits from `SimplePayload`. The core problem was that `NewAsset` was not using its overridden `@model_serializer` method and instead producing output in the parent class&#x27;s format. Through the conversation, three distinct bugs were identified and resolved sequentially.
+
+The first issue was a method name collision: both `SimplePayload` and `NewAsset` defined a `@model_serializer` method named `format_builder`, causing Pydantic to use the parent&#x27;s serializer. Renaming the child&#x27;s method was explored but did not fully resolve the issue. The second and root cause was in `serialize_payload()` in `cmstypes.py`, where `NewAsset` was falling through to `simple_payload_adapter.dump_json()` because it wasn&#x27;t an instance of `Asset`. The person identified this themselves. The fix involved creating a dedicated `TypeAdapter(NewAsset)` called `new_asset_payload_adapter` and adding an explicit `isinstance(payload, NewAsset)` check before the fallback in `serialize_payload()`. The field key error (`&#x27;type&#x27;` vs `&#x27;asset_type&#x27;`) in the serializer was also corrected.
+
+The third issue concerned alias handling: `site` and `parent_folder` fields use `validation_alias` with `AliasChoices` for deserialization but have no `serialization_alias`, so `handler(self)` in `mode=&quot;wrap&quot;` outputs raw Python field names. The person clarified that alias selection must be dynamic based on runtime type — `str` maps to `siteName`/`parentFolderPath` and `uuid.UUID` maps to `siteId`/`parentFolderId`. Since `serialization_alias` is static, the agreed solution was to add explicit type-checking logic inside the `mode=&quot;wrap&quot;` serializer to pop and re-insert keys with the correct alias name before restructuring the payload into the `{&quot;asset&quot;: {&quot;&lt;type&gt;&quot;: {...}}}` format Cascade CMS expects.</div></details><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I&#x27;m having a bug where the `NewAsset` dataclass doesn&#x27;t use the override function when serializing. Can you help me locate the error and explain what might potentially be the issue? The payload object when inspecting before being sent shows the format from `SimplePayload` rather than the override serialize function.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user is reporting a bug where the `NewAsset` dataclass&#x27;s `@model_serializer` override isn&#x27;t working - it&#x27;s using the parent `SimplePayload`&#x27;s serialization format instead.
+
+Let me examine the code in `cmstypes.py`:
+
+```python
+@dataclass(config=ConfigDict(extra=&quot;allow&quot;))
+class NewAsset(SimplePayload):
+    name: str
+    asset_type: AssetTypes
+    site: Annotated[
+        str | uuid.UUID,
+        Field(
+            default=...,
+            validation_alias=AliasChoices(&#x27;siteName&#x27;, &#x27;siteId&#x27;)
+        )
+    ]
+    parent_folder: Annotated[
+        str | uuid.UUID,
+        Field(
+            default=...,
+            validation_alias=AliasChoices(&#x27;parentFolderId&#x27;, &#x27;parentFolderPath&#x27;)
+        )
+    ]
+    @model_serializer(mode=&quot;wrap&quot;)
+    def format_builder(self, handler: SerializerFunctionWrapHandler) -&gt; dict:
+        &quot;&quot;&quot;Cascade expects {&quot;asset&quot;: {&quot;&lt;type&gt;&quot;: {...}}}&quot;&quot;&quot;
+        payload_dict = handler(self)
+        asset_type = payload_dict.pop(&#x27;type&#x27;)  # Extract the asset type
+        return {&quot;asset&quot;: {asset_type: payload_dict}}
+```
+
+And the parent class:
+
+```python
+@dataclass(
+    config=ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+        validate_assignment=True,
+        serialize_by_alias=True,
+    )
+)
+class SimplePayload:
+    &quot;&quot;&quot;
+    Base class for Cascade CMS Payloads:
+    ...
+    &quot;&quot;&quot;
+
+    @model_serializer  # or @classmethod
+    def format_builder(self) -&gt; dict:
+        &quot;&quot;&quot;Wraps proper headers around payload data.
+        ...
+        &quot;&quot;&quot;
+        subclass_name = self.__class__.__name__
+        return {reformat_name(subclass_name): self.__dict__}
+```
+
+Both classes define a `format_builder` method with `@model_serializer`, but they have different signatures and modes. The parent uses the default mode (which is &quot;wrap&quot;), while the child explicitly specifies `mode=&quot;wrap&quot;` with a handler parameter. This mismatch in method signatures might be preventing proper method override behavior in Pydantic&#x27;s serialization system. The real problem is that both classes use the same method name `format_builder` for their serializers. When Pydantic registers decorators, having duplicate method names creates a conflict—the parent&#x27;s serializer might take precedence or they interfere with each other. Renaming the child&#x27;s method would resolve this naming collision and allow the child&#x27;s serializer to properly override the parent&#x27;s.Looking at the code, I can spot the likely culprit. Let me walk you through it:
+
+## The Problem: Method Name Collision
+
+Both `SimplePayload` and `NewAsset` define a method called `format_builder`:
+
+**Parent (`SimplePayload`):**
+```python
+@model_serializer  # No mode specified
+def format_builder(self) -&gt; dict:
+    subclass_name = self.__class__.__name__
+    return {reformat_name(subclass_name): self.__dict__}
+```
+
+**Child (`NewAsset`):**
+```python
+@model_serializer(mode=&quot;wrap&quot;)
+def format_builder(self, handler: SerializerFunctionWrapHandler) -&gt; dict:
+    payload_dict = handler(self)
+    asset_type = payload_dict.pop(&#x27;type&#x27;)
+    return {&quot;asset&quot;: {asset_type: payload_dict}}
+```
+
+When Pydantic processes the child class, having identically-named methods creates ambiguity. The parent&#x27;s `@model_serializer` decorator may still be registered, causing the parent&#x27;s logic to execute instead of the child&#x27;s override.
+
+## A Quick Diagnostic Question
+
+Before I suggest a fix: **Can you tell me whether the output you&#x27;re seeing is specifically the format `{&quot;newAsset&quot;: {...}}` from the parent, or something else?** This will confirm whether `SimplePayload`&#x27;s serializer is indeed winning.
+
+## The Likely Fix
+
+Rename the child&#x27;s method to avoid the collision:
+
+```python
+@model_serializer(mode=&quot;wrap&quot;)
+def serialize_as_asset(self, handler: SerializerFunctionWrapHandler) -&gt; dict:
+    payload_dict = handler(self)
+    asset_type = payload_dict.pop(&#x27;asset_type&#x27;)  # or &#x27;type&#x27; - which is it?
+    return {&quot;asset&quot;: {asset_type: payload_dict}}
+```
+
+Does that direction make sense? And would you like me to help trace through where this payload is being used to confirm the fix works end-to-end?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">**Answer to your question:** yes here&#x27;s the output from debugger:
+
+```python
+payload_bytes = b&#x27;{&quot;newAsset&quot;:{&quot;name&quot;:&quot;cool_new_asset&quot;,&quot;asset_type&quot;:&quot;folder&quot;,&quot;site&quot;:&quot;<span class="red">[redacted: internal-host]</span>&quot;,&quot;parent_folder&quot;:&quot;4aa4251dac10010f1c30bf189a1e5619&quot;}}&#x27;
+```
+
+## follow-up fix
+Doesn&#x27;t look like it works. I might have found the location of the bug. `serialize_payload` from `cmstypes.py` when called in `driver.py`. because It&#x27;s using the `simple_payload_adapter` would the fix be to create a new `TypeAdapter`?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user is right! Let me trace through the flow:
+
+1. In `driver.py`, the `RequestExecutor.fetch()` method calls:
+```python
+if self.payload:
+    payload_bytes: bytes | None = serialize_payload(self.payload)
+```
+
+2. Looking at `serialize_payload` in `cmstypes.py`:
+```python
+def serialize_payload(payload: Payloads) -&gt; bytes:
+    if isinstance(payload, Asset):
+        return asset_adapter.dump_json(payload)
+    return simple_payload_adapter.dump_json(payload)
+```
+
+The problem is that `NewAsset` is NOT an `Asset`, so it falls through to `simple_payload_adapter.dump_json(payload)`.
+
+The type union `Payloads = SimplePayload | Asset` includes `NewAsset` (since `NewAsset` extends `SimplePayload`), but the logic in `serialize_payload` doesn&#x27;t distinguish between:
+- A plain `SimplePayload` 
+- A `NewAsset` (which should use its own override serializer)
+
+So yes! The user found it. The fix would be to either:
+1. Create a `new_asset_adapter = TypeAdapter(NewAsset)` and add a check in `serialize_payload`
+2. Or add explicit isinstance checks for `NewAsset`
+
+Looking at the code, I see there&#x27;s already:
+```python
+new_asset_adapter = TypeAdapter(CreatedAsset)
+```
+
+But there&#x27;s no adapter for `NewAsset` being serialized (only for deserialized `CreatedAsset`).
+
+So the fix is indeed to create a `TypeAdapter(NewAsset)` and then check for it in `serialize_payload`.Excellent catch! You&#x27;ve nailed it. Let me trace the flow:
+```
+This block is not supported on your current device yet.
+```
+
+Let me find the right line numbers
+```
+This block is not supported on your current device yet.
+```
+
+Good, now let me view that function.
+```
+This block is not supported on your current device yet.
+```
+
+Perfect. Now let me check where the adapters are defined.
+```
+This block is not supported on your current device yet.
+```
+
+So there IS a `new_asset_adapter` but it&#x27;s for `CreatedAsset` (the response), not `NewAsset` (the request payload). The problem is:
+
+1. `NewAsset` has a custom `@model_serializer(mode=&quot;wrap&quot;)` override
+2. But `serialize_payload()` doesn&#x27;t check for `NewAsset` specifically
+3. It just falls through to `simple_payload_adapter.dump_json()` which uses the parent `SimplePayload`&#x27;s serializer
+
+The fix is to:
+1. Create a `TypeAdapter(NewAsset)` 
+2. Add an isinstance check in `serialize_payload()` to use it
+
+Let me show this to the user.## Exact Problem Location
+
+You found it perfectly! Here&#x27;s the issue:
+
+```python
+def serialize_payload(payload: Payloads) -&gt; bytes:
+    if isinstance(payload, Asset):
+        return asset_adapter.dump_json(payload)
+    return simple_payload_adapter.dump_json(payload)  # ← NewAsset falls through here!
+```
+
+Since `NewAsset` extends `SimplePayload`, the type-check doesn&#x27;t catch it. It uses the parent&#x27;s serializer, completely bypassing your `NewAsset` override.
+
+## The Fix: Create &amp; Check for NewAsset Adapter
+
+**Step 1:** Add the adapter (around line 774):
+```python
+simple_payload_adapter = TypeAdapter(SimplePayload)
+list_element_adapter = TypeAdapter(ListElements)
+asset_adapter = AssetAdapter()
+new_asset_adapter = TypeAdapter(CreatedAsset)
+new_asset_payload_adapter = TypeAdapter(NewAsset)  # ← ADD THIS
+```
+
+**Step 2:** Update `serialize_payload`:
+```python
+def serialize_payload(payload: Payloads) -&gt; bytes:
+    if isinstance(payload, Asset):
+        return asset_adapter.dump_json(payload)
+    if isinstance(payload, NewAsset):  # ← ADD THIS CHECK
+        return new_asset_payload_adapter.dump_json(payload)
+    return simple_payload_adapter.dump_json(payload)
+```
+
+---
+
+**Quick follow-up:** Once you add that `NewAsset` check, will you get `{&quot;asset&quot;: {&quot;folder&quot;: {...}}}` output, or will Pydantic still use `SimplePayload`&#x27;s parent serializer?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Heading in the right direction. it calls the correct function this time I&#x27;m getting an error on the `asset_type` assignment within the serializer function. I can change it to &quot;asset_type&quot;, though is it worth having the serializer on mode &#x27;wrap&#x27; or would &#x27;plain&#x27; make more sense?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user is getting an error in the NewAsset serializer function when trying to access `asset_type`. Let me look at what&#x27;s happening:
+
+```python
+@model_serializer(mode=&quot;wrap&quot;)
+def format_builder(self, handler: SerializerFunctionWrapHandler) -&gt; dict:
+    payload_dict = handler(self)
+    asset_type = payload_dict.pop(&#x27;type&#x27;)  # ← This is failing
+    return {&quot;asset&quot;: {asset_type: payload_dict}}
+```
+
+The user says they can change it to `&#x27;asset_type&#x27;` to fix it. Let me think about what&#x27;s happening:
+
+1. In `NewAsset`, the field is defined as:
+```python
+@dataclass(config=ConfigDict(extra=&quot;allow&quot;))
+class NewAsset(SimplePayload):
+    name: str
+    asset_type: AssetTypes
+    site: ...
+    parent_folder: ...
+```
+
+2. The field is `asset_type`, not `type`. So when `handler(self)` is called, the serialized output will have `&quot;asset_type&quot;` key, not `&quot;type&quot;`.
+
+Now, regarding `mode=&quot;wrap&quot;` vs `mode=&quot;plain&quot;`:
+
+- `mode=&quot;wrap&quot;` receives the handler which allows you to call the default serialization and then transform it. This is useful when you want to augment or modify the default behavior.
+- `mode=&quot;plain&quot;` means you&#x27;re replacing the entire serialization logic - you don&#x27;t get a handler, you just get self and return the full dict.
+
+For `NewAsset`, let me think about what we&#x27;re trying to do:
+1. We want to serialize all the fields normally (name, asset_type, site, parent_folder)
+2. Then wrap them in a special structure: `{&quot;asset&quot;: {asset_type_value: {all_fields}}}`
+
+With `mode=&quot;wrap&quot;`:
+- `handler(self)` gives us the default serialization: `{&quot;newAsset&quot;: {&quot;name&quot;: &quot;...&quot;, &quot;asset_type&quot;: &quot;folder&quot;, ...}}`
+- Then we extract the asset_type, remove it from the dict, and restructure
+
+With `mode=&quot;plain&quot;`:
+- We&#x27;d need to manually serialize all fields ourselves
+- But we&#x27;d have full control and don&#x27;t call the parent serializer
+
+Actually, wait. Let me reconsider. The current wrap approach:
+```python
+payload_dict = handler(self)
+# payload_dict is something like: {&quot;newAsset&quot;: {&quot;name&quot;: &quot;cool_new_asset&quot;, &quot;asset_type&quot;: &quot;folder&quot;, ...}}
+asset_type = payload_dict.pop(&#x27;type&#x27;)
+```
+
+The problem is that `handler(self)` probably returns the wrapped dict from SimplePayload&#x27;s serializer, which would be `{&quot;newAsset&quot;: {...}}`. So we&#x27;re getting the wrong structure.
+
+Actually, I need to think about this more carefully. When `mode=&quot;wrap&quot;`, the handler calls the *default* Pydantic serialization, not the parent class&#x27;s serializer. So it should return something flat, not wrapped yet.
+
+Let me reconsider: if we use `mode=&quot;wrap&quot;`, the handler will serialize the fields to their default form. For a dataclass with fields `name`, `asset_type`, `site`, `parent_folder`, it would return something like:
+```python
+{
+    &quot;name&quot;: &quot;cool_new_asset&quot;,
+    &quot;asset_type&quot;: &quot;folder&quot;,
+    &quot;site&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;,
+    &quot;parent_folder&quot;: &quot;4aa4251dac10010f1c30bf189a1e5619&quot;
+}
+```
+
+Then we can pop the asset_type and wrap it. The issue is that the code is looking for `&#x27;type&#x27;` when the field is actually `&#x27;asset_type&#x27;`. Changing to `&#x27;asset_type&#x27;` fixes that. `mode=&quot;wrap&quot;` is cleaner here since it lets Pydantic handle field serialization while we just restructure the output, rather than manually building the dict with `mode=&quot;plain&quot;`.Good question! Let me contrast the two approaches and what the handler is actually giving you.
+```
+This block is not supported on your current device yet.
+```
+
+Perfect, so I can see that the field is indeed `asset_type`. Now let me think about wrap vs plain:
+
+With `mode=&quot;wrap&quot;`:
+- When you call `handler(self)`, it calls the *default* Pydantic serialization (not the parent&#x27;s serializer)
+- You get back the fields as a flat dict: `{&quot;name&quot;: &quot;...&quot;, &quot;asset_type&quot;: &quot;folder&quot;, ...}`
+- You can then restructure it
+
+With `mode=&quot;plain&quot;`:
+- You completely replace serialization
+- You manually build the dict
+- No handler involved
+
+For this case, `mode=&quot;wrap&quot;` is actually better because:
+1. It respects field aliases and validation settings
+2. It&#x27;s cleaner - less manual work
+3. It&#x27;s less error-prone
+
+The key insight is: `handler(self)` with `mode=&quot;wrap&quot;` gives you Pydantic&#x27;s default serialization, which is what you want to then wrap/restructure.
+
+Let me explain this clearly to the user.## Analysis: `wrap` vs `plain`
+
+**With `mode=&quot;wrap&quot;` (what you have):**
+```python
+@model_serializer(mode=&quot;wrap&quot;)
+def format_builder(self, handler: SerializerFunctionWrapHandler) -&gt; dict:
+    payload_dict = handler(self)  # ← Pydantic&#x27;s default serialization
+    # Result: {&quot;name&quot;: &quot;cool_new_asset&quot;, &quot;asset_type&quot;: &quot;folder&quot;, ...}
+    asset_type = payload_dict.pop(&#x27;asset_type&#x27;)  # ← Extract it
+    return {&quot;asset&quot;: {asset_type: payload_dict}}
+```
+
+**With `mode=&quot;plain&quot;` (alternative):**
+```python
+@model_serializer(mode=&quot;plain&quot;)
+def format_builder(self) -&gt; dict:
+    # You manually build everything - no handler
+    return {
+        &quot;asset&quot;: {
+            self.asset_type: {
+                &quot;name&quot;: self.name,
+                &quot;site&quot;: self.site,
+                &quot;parent_folder&quot;: self.parent_folder
+            }
+        }
+    }
+```
+
+---
+
+## Recommendation: Stick with `mode=&quot;wrap&quot;`
+
+**Why `wrap` is better here:**
+
+1. **Respects field aliases** — Your `site` and `parent_folder` fields have `validation_alias` annotations. `wrap` preserves those transformations automatically; `plain` requires manual handling.
+
+2. **Less brittle** — If you add new fields to `NewAsset` later, they serialize automatically. With `plain`, you have to manually add them.
+
+3. **Cleaner** — You&#x27;re just restructuring, not re-serializing from scratch.
+
+---
+
+**Quick check:** When you changed it to `&#x27;asset_type&#x27;`, does the serializer now produce the correct output format?
+
+```python
+# Expected:
+{&quot;asset&quot;: {&quot;folder&quot;: {&quot;name&quot;: &quot;cool_new_asset&quot;, &quot;site&quot;: &quot;...&quot;, ...}}}
+```</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Yeah, it works. However, there is another issue it does not preserve aliasing output should not be `site`or `parent_folder` it should be `siteName`/`siteId` and `parentFolderId`/`parentFolderPath`.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user is saying that the `wrap` mode serializer isn&#x27;t respecting the field aliases. Looking at the `NewAsset` dataclass:
+
+```python
+site: Annotated[
+    str | uuid.UUID,
+    Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;siteName&#x27;, &#x27;siteId&#x27;)
+    )
+]
+parent_folder: Annotated[
+    str | uuid.UUID,
+    Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;parentFolderId&#x27;, &#x27;parentFolderPath&#x27;)
+    )
+]
+```
+
+They&#x27;re using `validation_alias` (for deserialization) but they&#x27;re not setting `serialization_alias` (for serialization). That&#x27;s the issue!
+
+When using `mode=&quot;wrap&quot;`, the `handler(self)` will serialize using the field names as defined (`site`, `parent_folder`), not the aliases, because the `validation_alias` only applies to deserialization/validation.
+
+To fix this, they need to use `serialization_alias` in addition to or instead of `validation_alias`. Let me check if they&#x27;re using `AliasChoices` correctly.
+
+Actually, looking at the Pydantic docs, `AliasChoices` is for validation - it lets you accept multiple aliases during deserialization. For serialization, you need to specify `serialization_alias` or use `alias` which works for both directions (though `AliasChoices` only works for validation).
+
+The solution is to:
+1. Either add `serialization_alias` to those fields
+2. Or use the `by_alias=True` parameter when dumping, but that requires knowing which alias to use when there are multiple choices
+
+Actually, wait - with `AliasChoices` there are multiple valid input aliases. But when serializing, which one should it use? The first one? The last one? This is ambiguous.
+
+The best solution is probably to explicitly define which alias to use for serialization using `serialization_alias`, or use a single `alias` instead of `AliasChoices` if only one is needed.
+Looking at the API expectations, the fields accept `siteName` or `siteId` for the site field, and `parentFolderId` or `parentFolderPath` for the parent folder field. Since there are multiple valid input aliases but the serialization needs to pick one, I should determine which alias makes sense for output based on the field type (`str | uuid.UUID`). The cleanest approach would be to set an explicit `serialization_alias` that corresponds to what the API expects in responses, or use conditional logic in the serializer to choose the right alias based on the actual value type.Ah! You&#x27;re using `validation_alias` (for deserialization only), not `serialization_alias`. That&#x27;s why `wrap` preserves the *field names* but not the output aliases.
+```
+This block is not supported on your current device yet.
+```
+
+So they have `validation_alias` but not `serialization_alias`. The problem is:
+- `validation_alias=AliasChoices(&#x27;siteName&#x27;, &#x27;siteId&#x27;)` means &quot;accept either of these on input&quot;
+- But it doesn&#x27;t tell Pydantic what to output on serialization
+
+They need to add `serialization_alias` for the output format. But since they&#x27;re using `AliasChoices` (multiple options), they need to pick which ONE to use for output.
+
+My question should be: which alias should be the canonical output? Is it always `siteName` and `parentFolderId`? Or does it depend on the value type?## The Root Cause
+
+`validation_alias` only affects **deserialization** (input). For **serialization** (output), you need `serialization_alias`.
+
+With `mode=&quot;wrap&quot;`, the `handler(self)` still uses the Python field names (`site`, `parent_folder`) because Pydantic doesn&#x27;t have serialization aliases defined.
+
+## Quick Diagnostic Question
+
+**Which alias should the API receive?** Since you&#x27;re using `AliasChoices` (multiple options), I need to know:
+
+- For `site` field: should output always be `siteName` OR could it be `siteId` depending on the value type?
+- For `parent_folder`: should output always be `parentFolderId` OR could it be `parentFolderPath` depending on the value type?
+
+Are these value-dependent (e.g., `str` → `siteName`, `UUID` → `siteId`), or is there a single canonical form?
+
+---
+
+## Likely Fix (if one alias per field)
+
+Once you identify which alias to use, add `serialization_alias`:
+
+```python
+site: Annotated[
+    str | uuid.UUID,
+    Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;siteName&#x27;, &#x27;siteId&#x27;),
+        serialization_alias=&#x27;siteName&#x27;  # ← ADD THIS (or &#x27;siteId&#x27;)
+    )
+]
+parent_folder: Annotated[
+    str | uuid.UUID,
+    Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;parentFolderId&#x27;, &#x27;parentFolderPath&#x27;),
+        serialization_alias=&#x27;parentFolderId&#x27;  # ← ADD THIS (or &#x27;parentFolderPath&#x27;)
+    )
+]
+```
+
+Then the `wrap` serializer will respect it automatically. Does that direction look right?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">For `site` field should always be one or the other. siteName is string and siteId is UUID same logic with `parent_folder`. `serialization_alias` makes sense, I want it to select on its own based on the user&#x27;s input.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Ah, so the user wants dynamic serialization aliases based on the runtime type of the value. If they pass a string, serialize as `siteName`; if UUID, serialize as `siteId`. Same for `parent_folder` (string → `parentFolderPath`, UUID → `parentFolderId`).
+
+This requires custom logic in the serializer because Pydantic&#x27;s `serialization_alias` is static—it can&#x27;t conditionally switch based on value type.
+
+So `mode=&quot;wrap&quot;` is actually the right choice here, but they need to add custom logic to rename fields based on their types before returning.
+
+Let me think through the logic:
+1. Call `handler(self)` to get the default serialization
+2. Check the type of `self.site` and rename the key accordingly
+3. Check the type of `self.parent_folder` and rename the key accordingly
+4. Extract `asset_type`, restructure into `{&quot;asset&quot;: {asset_type: {...}}}`
+
+This is more complex than static aliases, so `mode=&quot;wrap&quot;` with custom type-checking logic is the right approach.Perfect! That&#x27;s dynamic serialization based on runtime type. `serialization_alias` won&#x27;t work for this—you need custom logic in the serializer.
+
+**Stick with `mode=&quot;wrap&quot;` and add type-checking logic:**
+
+```python
+@model_serializer(mode=&quot;wrap&quot;)
+def format_builder(self, handler: SerializerFunctionWrapHandler) -&gt; dict:
+    &quot;&quot;&quot;Cascade expects {&quot;asset&quot;: {&quot;&lt;type&gt;&quot;: {...}}}&quot;&quot;&quot;
+    payload_dict = handler(self)
+    
+    # Rename &#x27;site&#x27; based on its type
+    if &#x27;site&#x27; in payload_dict:
+        site_value = payload_dict.pop(&#x27;site&#x27;)
+        if isinstance(site_value, str):
+            payload_dict[&#x27;siteName&#x27;] = site_value
+        else:  # UUID
+            payload_dict[&#x27;siteId&#x27;] = site_value
+    
+    # Rename &#x27;parent_folder&#x27; based on its type
+    if &#x27;parent_folder&#x27; in payload_dict:
+        folder_value = payload_dict.pop(&#x27;parent_folder&#x27;)
+        if isinstance(folder_value, str):
+            payload_dict[&#x27;parentFolderPath&#x27;] = folder_value
+        else:  # UUID
+            payload_dict[&#x27;parentFolderId&#x27;] = folder_value
+    
+    # Extract and restructure
+    asset_type = payload_dict.pop(&#x27;asset_type&#x27;)
+    return {&quot;asset&quot;: {asset_type: payload_dict}}
+```
+
+---
+
+**Does this produce the expected output now?** Try inspecting `payload_bytes` again—it should show:
+```json
+{
+  &quot;asset&quot;: {
+    &quot;folder&quot;: {
+      &quot;name&quot;: &quot;cool_new_asset&quot;,
+      &quot;siteName&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;,
+      &quot;parentFolderPath&quot;: &quot;...&quot;
+    }
+  }
+}
+```</div></div></div></article></div></main></body></html>

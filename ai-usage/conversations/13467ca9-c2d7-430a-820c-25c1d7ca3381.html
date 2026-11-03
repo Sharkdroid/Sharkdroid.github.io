@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pydantic dataclass with conditional alias serialization</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>Pydantic dataclass with conditional alias serialization</h1>
+<p class="meta">2026-07-15 &middot; py-cascade-cms &middot; claude.ai &middot; 8 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude.ai</span></span></div><div class="item"><b>Last updated</b><span>2026-07-15</span></div></div><details class="sum"><summary>Summary</summary><div class="part">Conversation Overview
+
+The person is building a Python library that interfaces with the Cascade CMS API, working on a `NewAsset` Pydantic dataclass designed specifically for Cascade&#x27;s asset creation endpoint. The conversation focused on three interconnected design problems: whether `NewAsset` should inherit from the existing `SimplePayload` base class, how to preserve alias field names (like `siteName` and `parentFolderPath`) through serialization rather than normalizing to internal field names, and how to produce the exact JSON structure Cascade requires: `{&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...}}}`.
+
+The person clarified that `NewAsset` differs from other `SimplePayload` subclasses in one key way: it must accept arbitrary extra fields without validation errors, because Cascade&#x27;s API silently ignores unrecognized fields rather than rejecting them. The decision reached was to inherit from `SimplePayload` but override only `extra=&quot;allow&quot;` in the `ConfigDict`, since all other config settings (`populate_by_name=True`, `serialize_by_alias=True`, `validate_assignment=True`, `from_attributes=True`) are inherited by Pydantic dataclass children without re-specification — confirmed through live testing. The `@model_serializer` override uses Pydantic&#x27;s `SerializerFunctionWrapHandler` pattern (`handler(self)`) rather than `model_dump()`, because Pydantic dataclasses do not expose `model_dump()` on the instance directly (that method belongs to `BaseModel`). The `asset_type` field is aliased as `&quot;type&quot;`, extracted via `payload_dict.pop(&#x27;type&#x27;)` after serialization, and used as the inner dictionary key in the final output structure.
+
+A Pylance error (`Cannot access attribute &quot;model_dump&quot; for class &quot;NewAsset*&quot;`) surfaced when attempting to call `self.model_dump()` inside the serializer, which confirmed the dataclass/BaseModel distinction and led to the `SerializerFunctionWrapHandler` solution as the correct Pydantic pattern for this context.</div></details><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Trying to create a new Pydantic dataclass called `NewAsset` inheriting from `SimplePayload`. Currently overriding the `model_serializer` function. Here are my questions:
+**Objective:** Create a new validation class for create assets ensuring these fields are passed `name`, `siteId` or `siteName`, and `parentFolderPath` or `parentFolderId`.
+**Current Sample**
+
+```python
+class NewAsset(SimplePayload):
+    name: str
+    asset_type: AssetTypes
+    site: str = Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;siteName&#x27;, &#x27;siteId&#x27;)
+    )
+    parent_folder: str = Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;parentFolderId&#x27;, &#x27;parentFolderPath&#x27;)
+    )
+
+
+    @model_serializer
+    def asset_ouput_format(self):
+        pass
+```
+
+1. Should I inherit from SimplePayload? This specific class should allow extra fields.
+2. I want to select `serialize_by_alias` on selection. 
+         `new_asset = NewAsset(name=&#x27;foo&#x27;, siteName=&#x27;<span class="red">[redacted: internal-host]</span>&#x27;, parentFolderPath=&#x27;/path/to/parent&#x27;)`
+         This line should use siteName and parentFolderPath as the field name
+
+3. The serialized output should be modified to this
+          ```json
+          {
+             &quot;asset&quot;:{
+                 &quot;&lt;asset_type&gt;&quot;:{...everything except asset_type}
+}
+}
+           ```</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user is asking three specific questions about creating a new Pydantic dataclass `NewAsset` that inherits from `SimplePayload`. Let me understand what they&#x27;re trying to do:
+
+1. They want to create a validation class for creating assets
+2. It needs to ensure certain fields are passed: `name`, either `siteId` or `siteName`, and either `parentFolderPath` or `parentFolderId`
+3. They&#x27;re currently overriding `model_serializer`
+
+Their three questions:
+1. Should they inherit from SimplePayload? They note this specific class should allow extra fields.
+2. They want to use `serialize_by_alias` selectively - so when they pass `siteName`, it should serialize as `siteName`, not as `site`
+3. The serialized output should wrap everything in `{&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...}}}`
+
+Let me look at the current code:
+
+From `cmstypes.py`, I can see:
+- `SimplePayload` has a `@model_serializer` that wraps the output in the class name
+- `Asset` class has a custom `__init__` that expects `{&quot;asset&quot;: {asset_type: ...}}`
+- There&#x27;s an `asset_adapter` that knows how to serialize/deserialize Asset objects
+
+Now looking at their questions:
+
+**Question 1: Should they inherit from SimplePayload?**
+The issue here is that `SimplePayload` has `extra=&quot;forbid&quot;` in some contexts, but they want to allow extra fields. Let me check... looking at the dataclass decorator on SimplePayload, I don&#x27;t see an explicit `extra=&quot;forbid&quot;`. Actually, looking more carefully at the config, it doesn&#x27;t seem to forbid extras by default. So inheritance from SimplePayload could work, but they might need to adjust the config.
+
+**Question 2: serialize_by_alias**
+The way Pydantic works, if you set `populate_by_name=True`, it will accept both the field name and the alias. 
+
+For serialization, `serialize_by_alias=True` uses aliases in the output. They could set this globally in the model config, use field-level serialization control, or manually handle it in the `model_serializer`. The key is that when they pass `siteName`, they want it to stay as `siteName` in the serialized output rather than converting to the alias `site`.
+
+**Question 3: Output format**
+They need the output wrapped as `{&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...everything except asset_type}}}`, which differs from SimplePayload&#x27;s class-name-based wrapping. The custom serializer would need to extract the asset_type, remove it from the payload, and apply the correct nesting structure.
+
+Before diving into implementation, I should clarify a few things: Is this serialization format unique to `NewAsset` or does it apply across different asset types? Should `asset_type` be mandatory or optional with a default value? For validation, do they prefer model-level constraints or custom validators? And when using aliases, should the serialized output always reflect the alias, or should it preserve whatever format the user provided?Looking at your `NewAsset` design, I can see you&#x27;re trying to solve three distinct problems simultaneously. Let me ask some clarifying questions before we untangle this:
+```
+This block is not supported on your current device yet.
+```
+
+Good, I can see that SimplePayload&#x27;s model_serializer just wraps by class name. Now let me think about the user&#x27;s three questions and how they relate to each other.
+
+The current flow:
+- `SimplePayload.format_builder()` returns `{reformat_name(classname): self.__dict__}`
+- This means for `NewAsset`, it would return `{&quot;newAsset&quot;: {...all fields...}}`
+
+But they want: `{&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...everything except asset_type}}}`
+
+These are fundamentally different output formats. That&#x27;s a key insight.**Question 1 (Inheritance):** Looking at SimplePayload, it wraps output like `{&quot;newAsset&quot;: {...}}`. But you want `{&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...}}}`. 
+
+Does inheriting from `SimplePayload` actually help here, or should `NewAsset` be its own standalone class that *doesn&#x27;t* use `SimplePayload`&#x27;s serializer at all?
+
+**Question 2 (Alias behavior):** When you pass:
+```python
+NewAsset(name=&#x27;foo&#x27;, siteName=&#x27;<span class="red">[redacted: internal-host]</span>&#x27;, parentFolderPath=&#x27;/path/to/parent&#x27;)
+```
+
+Do you want the *serialized JSON* to literally say `siteName` and `parentFolderPath`? Or do you want it normalized to internal field names like `site` and `parent_folder`?
+
+**Question 3 (Output structure):** The `{&quot;asset&quot;: {...}}` wrapper—is that:
+- A REST API requirement (certain endpoints expect this format)?
+- Or specific to how `Asset` objects work internally?
+- Could `NewAsset` use a different output format?
+
+---
+
+**Quick workflow diagram** to clarify the flow:
+
+```
+User Input                Validation              Serialization
+newAsset = NewAsset(      → Pydantic checks      → Becomes JSON payload
+  name=&#x27;foo&#x27;,               alias/required fields   for API call
+  siteName=&#x27;<span class="red">[redacted: internal-host]</span>&#x27;,
+  parentFolderPath=&#x27;...&#x27;
+)
+```
+
+Once you clarify these, we can figure out whether you need:
+- A separate serializer override
+- Config tweaks to `SimplePayload`
+- A completely independent `NewAsset` class
+- Custom field validators
+
+What&#x27;s your thinking on each of these?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">**Question1:** Not sure what to do here. The main distinction between most `SimplePayload` that inherit it is that they are structured to validate input for rigid parameters that don&#x27;t change. Primarily the function of this `dataclass` is to validate bare minimum fields needed to create an asset. However, the user may specify additional fields that may or may not be valid in Cascade. I&#x27;ve tested creating a new asset using the API including a non-existent field which Cascade accepts without error. This field though does not transfer over to Cascade, meaning Cascade has internal logic that handles this validation (of sorts). No need for my library to validate additional fields.
+**Question2:** Yes, the serialized JSON must use the literal from `AliasChoice` like siteName, parentFolderId. 
+**Question3:** No, Cascade expect the JSON body to be extactly starting with `{&quot;asset&quot;:{&quot;&lt;asset_type&gt;&quot;:{...}}}` This specific class is designed for the `create` endpoint.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Now I have clarity on all three questions:
+
+1. **Inheritance**: They want to allow extra fields (unlike SimplePayload&#x27;s strict &quot;forbid&quot;), but they don&#x27;t want SimplePayload&#x27;s wrapping format. So they should NOT inherit from SimplePayload OR they need to completely override the config and serializer.
+
+2. **Aliasing**: The JSON output must use the literal alias names (siteName, parentFolderId, etc.) as they appear in the input.
+
+3. **Output structure**: Must be `{&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...}}}` - which is different from SimplePayload&#x27;s format which wraps it as `{&quot;newAsset&quot;: {...}}`.
+
+So the core issues are:
+- SimplePayload uses `format_builder()` to wrap with class name
+- They need to wrap with `&quot;asset&quot;` instead
+- They need `extra=&quot;allow&quot;` instead of `extra=&quot;forbid&quot;`
+- They need `serialize_by_alias=True` so aliases are used in output
+- The `asset_type` field should be excluded from the inner dict
+
+Let me help them think through this step by step.
+```
+This block is not supported on your current device yet.
+```
+
+Perfect. So the issue is clear:
+
+SimplePayload&#x27;s `format_builder()` does:
+```python
+return {reformat_name(subclass_name): self.__dict__}
+```
+
+This would make `NewAsset` become `{&quot;newAsset&quot;: {...}}`.
+
+But they need `{&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...}}}`.
+
+So they need to:
+1. Inherit from SimplePayload (or dataclass with same config)
+2. Override the config to allow `extra=&quot;allow&quot;`
+3. Override the `@model_serializer` to produce the correct structure
+4. Exclude `asset_type` from the inner payload but use it as the key
+
+Let me think about the serializer logic:
+- Get the `asset_type` value
+- Build a dict with all fields EXCEPT asset_type
+- Use aliases (serialize_by_alias is already True in SimplePayload)
+- Wrap it as `{&quot;asset&quot;: {asset_type: {...}}}`
+
+The tricky part is getting the serialized dict with aliases. They might need to use `model_dump(by_alias=True, exclude={&#x27;asset_type&#x27;})` instead of just `self.__dict__`.Perfect. Now the picture is clear. Here&#x27;s the issue with your current approach:
+
+**The Problem:**
+
+```python
+SimplePayload.format_builder()  # returns {&quot;newAsset&quot;: {...}}
+# But you need:               {&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...}}}
+```
+
+**Decision Point:** Should `NewAsset` inherit from `SimplePayload`?
+
+**My recommendation: YES, but with full config/serializer override.**
+
+Here&#x27;s why: You get `populate_by_name=True` and `serialize_by_alias=True` for free, plus the dataclass machinery. The *only* things you change are:
+- `extra=&quot;allow&quot;` (instead of `forbid`)
+- The serializer output format
+
+---
+
+Let me show you the architecture:
+```
+This block is not supported on your current device yet.
+```
+
+Good, I have the design system loaded. Now let me create a diagram showing the serialization flow for their NewAsset class. This should clarify the difference between what SimplePayload does vs what they need.
+```
+This block is not supported on your current device yet.
+```
+
+Good. Now I have the flow visualized. Let me walk them through the actual implementation. They need to:
+
+1. Inherit from SimplePayload (or dataclass with similar config but with extra=&quot;allow&quot;)
+2. Override the config to allow extra fields
+3. Override the @model_serializer to produce the Cascade API format
+4. Use model_dump(by_alias=True) to get aliases in the output
+5. Exclude asset_type from the inner payload and use it as the key
+
+Let me show them a concrete implementation.Now here&#x27;s the implementation strategy. You want to:
+
+**1. Inherit from `SimplePayload`** ✓  
+   But override the `ConfigDict` to allow extra fields
+
+**2. Override the serializer** ✓  
+   To produce `{&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...}}}`
+
+**3. Use Pydantic&#x27;s `model_dump(by_alias=True)`** ✓  
+   This ensures `siteName` and `parentFolderPath` appear in the JSON, not the internal field names
+
+Here&#x27;s the pattern:
+
+```python
+@dataclass(
+    config=ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+        validate_assignment=True,
+        serialize_by_alias=True,
+        extra=&quot;allow&quot;,  # ← Allow extra fields (unlike SimplePayload)
+    )
+)
+class NewAsset(SimplePayload):
+    name: str
+    asset_type: Annotated[AssetTypes, Field(alias=&quot;type&quot;)]
+    site: str = Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;siteName&#x27;, &#x27;siteId&#x27;)
+    )
+    parent_folder: str = Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;parentFolderId&#x27;, &#x27;parentFolderPath&#x27;)
+    )
+
+    @model_serializer
+    def format_builder(self) -&gt; dict:
+        &quot;&quot;&quot;
+        Override SimplePayload&#x27;s wrapping.
+        Produces: {&quot;asset&quot;: {&quot;&lt;asset_type&gt;&quot;: {...}}}
+        
+        - Uses model_dump(by_alias=True) to serialize with alias names
+        - Removes asset_type from inner dict (used as key instead)
+        - Keeps all extra fields user provided
+        &quot;&quot;&quot;
+        # Get serialized dict with aliases
+        payload_dict = self.model_dump(by_alias=True, exclude={&#x27;asset_type&#x27;})
+        
+        # Use asset_type as the inner key
+        return {
+            &quot;asset&quot;: {
+                self.asset_type: payload_dict
+            }
+        }
+```
+
+---
+
+**Why this works:**
+
+| Question | Answer |
+|----------|--------|
+| Inherit from `SimplePayload`? | YES — but you override both config AND serializer. The inheritance gives you the dataclass machinery; you own the output. |
+| `serialize_by_alias=True`? | Already inherited. Input `siteName` → output `siteName`. No translation to internal field names. |
+| Extra fields? | `extra=&quot;allow&quot;` means `NewAsset(name=&#x27;foo&#x27;, siteName=&#x27;...&#x27;, myCustomField=&#x27;...&#x27;)` succeeds. The custom field flows through `model_dump()`. |
+| Output format? | `model_dump(by_alias=True, exclude={&#x27;asset_type&#x27;})` gives you the inner dict with aliases, then you wrap it manually. |
+
+---
+
+**Testing it:**
+
+```python
+# User input (with aliases, no internal field names)
+new = NewAsset(
+    name=&#x27;test.txt&#x27;,
+    type=&#x27;file&#x27;,  # or asset_type=&#x27;file&#x27;
+    siteName=&#x27;<span class="red">[redacted: internal-host]</span>&#x27;,
+    parentFolderPath=&#x27;/path/to/parent&#x27;,
+    customField=&#x27;anything&#x27;  # extra field — Cascade ignores it safely
+)
+
+# Call model_dump_json() (uses your @model_serializer)
+import json
+output = json.loads(new.model_dump_json())
+
+# Result:
+# {
+#   &quot;asset&quot;: {
+#     &quot;file&quot;: {
+#       &quot;name&quot;: &quot;test.txt&quot;,
+#       &quot;siteName&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;,
+#       &quot;parentFolderPath&quot;: &quot;/path/to/parent&quot;,
+#       &quot;customField&quot;: &quot;anything&quot;
+#     }
+#   }
+# }
+```
+
+---
+
+**One more thing** — should you need to serialize the entire `NewAsset` tree (not just call `model_dump()`), use Pydantic&#x27;s TypeAdapter in your wrapper code:
+
+```python
+from pydantic import TypeAdapter
+
+adapter = TypeAdapter(NewAsset)
+json_bytes = adapter.dump_json(new_asset_instance)  # Calls your serializer
+```
+
+Does this clarify the path forward? Any questions on the `model_dump(by_alias=True)` step or the override itself?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I have a question regarding inheritance of Pydantic dataclass configs. Since `NewAsset` inherits from `SimplePayload` Does that mean that these configs:
+
+```python
+populate_by_name=True,
+        from_attributes=True,
+        validate_assignment=True,
+        serialize_by_alias=True,
+```
+
+are inherited and therefore don&#x27;t need to be specified in `NewAsset`. Or is that an incorrect assumption?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Great question — let me check how Pydantic handles config inheritance:
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+Perfect. The test answers your question definitively:
+
+## Config Inheritance: Your assumption is CORRECT ✓
+
+**All four settings ARE inherited:**
+- `populate_by_name=True` — aliases work on input ✓
+- `serialize_by_alias=True` — aliases appear on output ✓
+- `validate_assignment=True` — inherited ✓
+- `from_attributes=True` — inherited ✓
+
+**Evidence from the test:**
+- `ChildNoConfig` has **no** explicit `config=` parameter
+- Yet `ChildNoConfig(userName=&quot;Bob&quot;, age=30)` works (inherits `populate_by_name`)
+- Serializing with `by_alias=True` produces `{&#x27;userName&#x27;: &#x27;Bob&#x27;, &#x27;age&#x27;: 30}` — the alias is used (inherits `serialize_by_alias=True`)
+- Extra fields are still rejected (inherits `extra=&quot;forbid&quot;`)
+
+---
+
+## So for your `NewAsset`:
+
+```python
+@dataclass(
+    config=ConfigDict(
+        extra=&quot;allow&quot;,  # ← ONLY override what differs from SimplePayload
+    )
+)
+class NewAsset(SimplePayload):
+    name: str
+    asset_type: Annotated[AssetTypes, Field(alias=&quot;type&quot;)]
+    site: str = Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;siteName&#x27;, &#x27;siteId&#x27;)
+    )
+    parent_folder: str = Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;parentFolderId&#x27;, &#x27;parentFolderPath&#x27;)
+    )
+
+    @model_serializer
+    def format_builder(self) -&gt; dict:
+        &quot;&quot;&quot;Cascade expects {&quot;asset&quot;: {&quot;&lt;type&gt;&quot;: {...}}}&quot;&quot;&quot;
+        payload_dict = self.model_dump(by_alias=True, exclude={&#x27;asset_type&#x27;})
+        return {&quot;asset&quot;: {self.asset_type: payload_dict}}
+```
+
+You **only** need to specify `extra=&quot;allow&quot;` because that&#x27;s the one thing that differs from `SimplePayload`. Everything else cascades down.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I&#x27;m getting a pylance issue:
+
+```
+Cannot access attribute &quot;model_dump&quot; for class &quot;NewAsset*&quot;
+  Attribute &quot;model_dump&quot; is unknown
+
+```
+
+Can you help me solve this?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">The user is getting a Pylance error that `model_dump` is not accessible on `NewAsset`. This is likely because Pydantic dataclasses have a different API than BaseModel classes.
+
+Let me check the difference:
+- Pydantic `BaseModel` has `model_dump()` method
+- Pydantic `dataclass` doesn&#x27;t have `model_dump()` directly on the instance - you need to use `TypeAdapter`
+
+Since `SimplePayload` is a `@dataclass`, it&#x27;s a Pydantic dataclass, not a BaseModel. So the `model_dump()` method doesn&#x27;t exist on the instance itself.
+
+The solution is to use `TypeAdapter` to get access to `model_dump()`, or use the `__pydantic_serializer__` attribute if available.
+
+Actually, looking at the code more carefully, the `@model_serializer` decorator is what&#x27;s being used in `SimplePayload`. When you use `@model_serializer`, you&#x27;re overriding the serialization behavior. Inside the serializer, you should be able to access the instance&#x27;s fields directly via `self.__dict__` or use Pydantic&#x27;s serialization utilities.
+
+The issue is that inside a `@model_serializer` method on a Pydantic dataclass, you can&#x27;t call `model_dump()` because the dataclass itself doesn&#x27;t have that method. You need to either:
+
+1. Access `self.__dict__` directly and handle the aliasing yourself
+2. Use Pydantic&#x27;s internal serialization machinery
+3. Convert to TypeAdapter and serialize that way
+
+Looking at the `SimplePayload` example, it uses `self.__dict__` directly in the serializer. But the user wants to use `by_alias=True` which respects the Field aliases.
+
+Let me think about this more carefully. In a `@model_serializer`, you have access to the Pydantic model&#x27;s internal state. For a dataclass, you might need to use `__pydantic_serializer__` or access the fields differently.
+The cleanest approach is to leverage Pydantic&#x27;s internal serialization API directly through `__pydantic_serializer__`, or manually construct the dictionary while respecting field aliases. Since dataclasses don&#x27;t expose `model_dump()` like BaseModel does, I need to either use TypeAdapter to wrap the dataclass or access the serialization machinery through Pydantic&#x27;s internal utilities.
+```
+This block is not supported on your current device yet.
+```
+
+Ah, I see! `SimplePayload` uses `self.__dict__` directly. The issue is that when using `@model_serializer` on a Pydantic dataclass, you&#x27;re in the serialization handler and `self.__dict__` gives you the raw field data, but it doesn&#x27;t automatically apply the aliases.
+
+To handle aliases in a `@model_serializer`, you need to either:
+1. Use Pydantic&#x27;s `SerializerFunctionWrapHandler` to get the default serialization, then modify it
+2. Manually map field names to their aliases
+3. Use `TypeAdapter` inside the serializer
+
+Let me check if there&#x27;s a handler parameter in the decorator that allows access to the serialization.Ah, I see the issue. **Pydantic dataclasses don&#x27;t have `model_dump()` on the instance** — that&#x27;s only for `BaseModel`. 
+
+Inside `@model_serializer`, you&#x27;re working with the raw `self.__dict__`, but `self.__dict__` doesn&#x27;t automatically apply aliases. You need to use Pydantic&#x27;s `SerializerFunctionWrapHandler` to get the serialization with aliases applied.
+
+Here&#x27;s the fix:
+
+```python
+from pydantic import SerializerFunctionWrapHandler
+
+@model_serializer
+def format_builder(self, handler: SerializerFunctionWrapHandler) -&gt; dict:
+    &quot;&quot;&quot;
+    Cascade expects {&quot;asset&quot;: {&quot;&lt;type&gt;&quot;: {...}}}
+    
+    handler: Pydantic&#x27;s serialization function that respects by_alias, exclude, etc.
+    &quot;&quot;&quot;
+    # Use handler to get default serialization with aliases
+    payload_dict = handler(self)
+    
+    # Remove asset_type from inner dict (it becomes the key)
+    asset_type = payload_dict.pop(&#x27;type&#x27;)  # &#x27;type&#x27; is the alias for asset_type
+    
+    return {
+        &quot;asset&quot;: {
+            asset_type: payload_dict
+        }
+    }
+```
+
+**Why this works:**
+- `handler(self)` calls Pydantic&#x27;s default serializer, which respects `serialize_by_alias=True` from the inherited config
+- `siteName` and `parentFolderPath` appear in the output (via aliases)
+- `type` is the aliased name for `asset_type`, so you pop it and use it as the inner key
+- All extra fields flow through `handler()` unchanged
+
+**Full updated class:**
+
+```python
+@dataclass(config=ConfigDict(extra=&quot;allow&quot;))
+class NewAsset(SimplePayload):
+    name: str
+    asset_type: Annotated[AssetTypes, Field(alias=&quot;type&quot;)]
+    site: str = Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;siteName&#x27;, &#x27;siteId&#x27;)
+    )
+    parent_folder: str = Field(
+        default=...,
+        validation_alias=AliasChoices(&#x27;parentFolderId&#x27;, &#x27;parentFolderPath&#x27;)
+    )
+
+    @model_serializer
+    def format_builder(self, handler: SerializerFunctionWrapHandler) -&gt; dict:
+        &quot;&quot;&quot;Cascade expects {&quot;asset&quot;: {&quot;&lt;type&gt;&quot;: {...}}}&quot;&quot;&quot;
+        payload_dict = handler(self)
+        asset_type = payload_dict.pop(&#x27;type&#x27;)  # Extract the asset type
+        return {&quot;asset&quot;: {asset_type: payload_dict}}
+```
+
+The `SerializerFunctionWrapHandler` is Pydantic&#x27;s way of saying &quot;serialize this using all my config rules (aliases, exclude, etc.) and give me the result.&quot; Pylance will recognize it because it&#x27;s the standard Pydantic pattern.</div></div></div></article></div></main></body></html>

@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>[Documentation MCP] Blog MCP process</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>[Documentation MCP] Blog MCP process</h1>
+<p class="meta">2026-10-13 &middot; cascade-cms-tools &middot; claude.ai &middot; 22 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude.ai</span></span></div><div class="item"><b>Last updated</b><span>2026-10-13</span></div></div><details class="sum"><summary>Summary</summary><div class="part">Conversation overview
+
+The person requested help creating a self-reflection journal entry documenting their experience building an MCP (Model Context Protocol) server for Cascade CMS, specifically the read-only MCP portion of their work at CSI. Following a structured interview format used in a prior &quot;Historic blog&quot; conversation, Claude guided the person through three rounds of probing questions covering the problem the MCP solved, the security decisions involved, and final reflections.
+
+The person explained they were tasked with editing data structure nodes in Cascade CMS and initially relied on a manual workflow: running raw reads through Postman, copying output into JSON and XML files, then providing those as context to a code agent. This became unsustainable as script requirements expanded to cover many element types (radio buttons, text fields, WYSIWYG, dropdowns, multi-select). The MCP was built to let agents verify live Cascade structures directly rather than reasoning from manually assembled files. The person chose read-only access deliberately, citing general unease about giving agents write access to any server, keeping actual write operations in a separate skill package that they test manually. During the interview, the person discovered through live testing that the `users` asset type exposed personal information (names, emails) via metadata fields like `createdBy`, even though sensitive credentials were already masked. They had Claude Code implement fixes and generate adversarial test prompts to find edge cases, resulting in a `[REDACTED]` placeholder approach that preserves response structure while hiding personal data. The person reflected that early development prioritized simplicity and full context for the agent over security, with security becoming a necessity once the MCP moved from prototype to functional tool. They also noted blind spots in using AI to test AI, favoring a risk-management approach focused on common failure patterns over exhaustive edge-case coverage.
+
+Claude created `mcp-journal-entry.md` following an approved six-section outline (Problem, Idea, Decision, Gap, Fix, Reflection), written in first person per the person&#x27;s instruction, and offered to send the file for review.</div></details><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">[Documentation MCP] The goal of this discussion is similar to the &quot;[Documentation] Historic blog&quot; conversation. I want the similar style of interview questions to probe my thought process and create a self-reflection journal for personal blog.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Let&#x27;s shape this like the Historic blog interview, one question at a time, so your answers build the journal.
+
+**How I&#x27;d run it**
+
+```
+ ┌──────────────┐    ┌───────────────┐    ┌──────────────┐    ┌──────────────┐
+ │ 1. Context   │ →  │ 2. Probe your │ →  │ 3. Reflect &amp; │ →  │ 4. Confirm   │
+ │ (you answer) │    │ thinking      │    │ connect      │    │ before files │
+ └──────────────┘    └───────────────┘    └──────────────┘    └──────────────┘
+                              ↺ loop until you say &quot;enough&quot;
+```
+
+**Round 1: Context**
+
+1. What&#x27;s the purpose of this journal? Is it mainly for you to look back on, for readers of your blog, or for prospective employers?
+2. What period or project should the first entry cover? For example, your CSI internship, your SNHU coursework, or the cascade-cms-rest work.
+3. How personal do you want it? Are you comfortable writing about frustrations and doubts, or should it stay focused on process and learning?
+
+**Round 2: Probing your thinking** (I&#x27;ll ask follow-ups based on your answers)
+
+4. Think of a recent decision that didn&#x27;t go the way you expected. What did you know at the time, and what were you assuming?
+5. When you&#x27;re stuck on a technical problem, what&#x27;s the first thing you try, and what made you choose it?
+6. What&#x27;s something you learned recently that changed how you approach your work?
+
+**Round 3: Reflection**
+
+7. Looking at your answers so far, what pattern do you notice in how you make decisions?
+8. What would you tell an earlier version of yourself about the way you handled that situation?
+
+Answer as many or as few as you like, and tell me if you&#x27;d rather I ask questions one at a time. When we have enough material, I&#x27;ll propose an outline and ask you to confirm before I create any file.
+
+Which of the three questions in Round 1 do you want to start with?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">This should focus only on the CSI cascade CMS work, but only the MCP portion.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Got it. We&#x27;ll focus on your CSI Cascade CMS work, limited to the MCP portion. Before I ask the next questions, I&#x27;m checking your project files for that work so I don&#x27;t have to ask you things you&#x27;ve already written down.
+```
+This block is not supported on your current device yet.
+```
+
+Good, I&#x27;ll keep this to the MCP server. Here&#x27;s the part of the workflow we&#x27;re covering:
+
+```
+ ┌────────────────┐    ┌──────────────────┐    ┌───────────────────┐    ┌──────────────┐
+ │ Colleague asks │ →  │ cascade-cms-mcp  │ →  │ cascade-cms-rest  │ →  │ Cascade CMS  │
+ │ Claude Desktop │    │ 7 read-only tools│    │ typed async client│    │ REST API     │
+ └────────────────┘    └──────────────────┘    └───────────────────┘    └──────────────┘
+          ↑                                                                    │
+          └──────────────── readable answer, no writes ←───────────────────────┘
+```
+
+**Round 1: Why the MCP exists**
+
+1. What problem did the MCP solve for you or your colleagues that the library alone didn&#x27;t? Was it answering questions about content, or something else?
+2. You chose read-only on purpose. What made you draw that line, and has it ever felt limiting?
+
+**Round 2: Your decisions and their costs**
+
+3. The tool names changed between versions, and there&#x27;s a known naming clash with the library&#x27;s `get_data_structure`. When you noticed that clash, what was your first reaction, and why did you defer it instead of fixing it right away?
+4. You&#x27;re moving the MCP into Claude Desktop for colleagues. What did you expect to be hardest about that handoff, and what do you think is still unresolved?
+
+**Round 3: Reflection**
+
+5. Looking back at building this MCP, which decision would you make differently now, and what made the original choice seem right at the time?
+
+Answer whichever ones you want, in any order. Tell me if you&#x27;d prefer one question at a time. Once we have enough material, I&#x27;ll propose an outline and ask you to confirm before creating any file.
+
+Which question should we start with?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Round 1 first.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Let&#x27;s take Round 1 one question at a time.
+
+**Question 1 of 2**
+
+What problem did the MCP solve that the library alone didn&#x27;t? When you picture a typical moment where it helped, what was the question someone was trying to answer, and what would they have had to do without it?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I was tasked with creating a script that could edit the data structure nodes (this was the JSON REST response derived from Cascade&#x27;s data definitions). My first approach was straightforward. I created a simple helper function in my library capable of traversing data structure nodes to find the matching node/element narrowed down by group node and the corresponding identifier for the actual node itself. However, this required manual referencing the data definition mapping side-by-side. Which was possible for a human user like me but not for code agents. In order to make the script writing skill usable, it needed the capability of reading and understanding which assets it&#x27;s editing. This is especially true for a separate script I was working on later on. Which needed to update multiple element types like radio buttons, text fields, WYSIWYG, dropdown, multi-select, etc. This expanded far beyond the widget editing in the previous &quot;XML edit&quot; script. All this work required me to run raw reads through a program like Postman, then copy the response output into a JSON file and create an XML file for raw data definitions. I had to provide these files as context for the code agent. This step was quite cumbersome and yielded decent results but at the cost of more &quot;thinking&quot; power from the agent and burning tokens. The idea for an MCP bloomed at this point; initially, when I created the skill file, I considered making an MCP but couldn&#x27;t find a use, so I didn&#x27;t create it until these scenarios required it. So when the idea occurred to me, I thought creating a read-only would be a good fit. Handing access to Cascade to the code agent to read and understand data structures can greatly improve the quality of future scripts. That a skill file alone cannot verify.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">That&#x27;s a clear picture. The manual loop was: run raw reads in Postman, paste the output into JSON and XML files, then hand those to the agent. The MCP removes that step, and the agent can check the live structure itself instead of reasoning from files you assembled.
+
+```
+ BEFORE                                   AFTER
+ Postman → copy JSON/XML → files          Agent → MCP → live Cascade structure
+          → agent reasons from files               → agent verifies, then writes script
+```
+
+**Question 2 of 2**
+
+You chose read-only as the natural fit. Looking back, what made you confident that read-only was enough? Was there a moment when you wished the agent could also perform a write, or did reads cover what your scripts needed?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">The read-only was intentional. As I was browsing MCPs for Cascade on the internet, I found one that gave agents full access to perform operations. Theoretically, you can tell an agent to move files and create formats on your behave. However, my intuition is that this is extremely risky. What if on the off chance the agent hallucinates or you accidentally give it your production server URL? Keeping it read-only means the agent only has access to what it needs to verify the script. Verifying whether it hypothetically works structurally speaking. The actual writing operations are still possible through the skill package for `edit` and `create` operations. But those actual tests fall back on the user to test themselves. This is also good security practice against AI agent attacks like prompt injections and other malicious attacks. I&#x27;ve also added guard rules for additional security, ensuring that agents don&#x27;t read sensitive data like roles, groups, etc. That might give away sensitive information tied to an organization. Also, in case the credentials supplied don&#x27;t have proper scoping (least privilege).</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Round 1 is complete. You&#x27;ve described a clear reasoning chain: the reads were the bottleneck, writes carried the most risk, and the skill package already handles write scripts, so the MCP only needed to verify structure. You also built defenses around that choice: the guard rules, and the assumption that credentials might be over-scoped.
+
+Two things I noticed from your answers:
+
+```
+ Risk surface you chose to keep out of the agent&#x27;s reach
+ ┌─────────────────────┬─────────────────────────────┐
+ │ Write operations    │ → skill scripts, run by you │
+ │ Sensitive asset     │ → guard rules block reads   │
+ │ types (roles, etc.) │                             │
+ │ Over-scoped keys    │ → least-privilege assumption│
+ └─────────────────────┴─────────────────────────────┘
+```
+
+1. You said your intuition came first, then you found a write-capable MCP and rejected it. Was there a specific moment when the risk became concrete for you, or was it more a general unease about giving an agent a production URL?
+2. The guard rules block sensitive types. How did you decide which types count as sensitive, and did you test whether an agent could still work around a guard by reading a related asset?
+
+Round 2 is next. Which of these would you like to start with?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. It was a general unease, giving an agent full access to any server not just production.
+2. This is something that hasn&#x27;t been fully tested. However, something that I thought early on when creating the MCP. Something I think worth explore more into at this stage (I&#x27;m currently in the final stages of the MCP). Although, the actual data is masked from the response perspective. So it&#x27;s not leaking any passwords or API keys. However, it does expose user email and name general information which I thought made it worth guarding against.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Your answer shows the instinct came first and the reasoning came after. That&#x27;s a common pattern, and it&#x27;s why the read-only line held up.
+
+On the second point, the guard works on asset types, but exposure may happen through fields rather than types. Some tools may return people&#x27;s names or emails even when the asset type itself is allowed:
+
+```
+ Request path                          Possible leak
+ ┌────────────────────────────┐
+ │ Blocked: user/role/group   │  ✓ type guard holds
+ │ Allowed: page, block, etc. │
+ │   └ metadata: createdBy,   │  ✗ may carry usernames or emails
+ │     lastModifiedBy,        │
+ │     search hits            │  ✗ may return matching assets
+ │                            │    that include those fields
+ │   └ query_asset path reads │  ✗ can reach any field by path
+ └────────────────────────────┘
+```
+
+1. Which fields do your tools return for allowed assets? Have you checked whether `createdBy`, `lastModifiedBy`, or similar metadata fields include a person&#x27;s name or email, and whether `query_asset` can reach them by path?
+2. Would you rather enforce the guard at the field level (masking name and email wherever they appear) instead of only at the asset-type level? What would that cost you in usefulness for the scripts you&#x27;re writing?
+
+Since you&#x27;re in final stages, testing these paths against a live read before release would give you a concrete answer. Which question would you like to explore first?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Okay, I&#x27;ve fixed these changes in my latest push.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Nice work closing that gap before release. You&#x27;ve now worked through Round 1 and Round 2 of the interview, and that gives us a good base for the journal.
+
+Before we move on, one question: when you found the field-level exposure, did you catch it by testing the live reads or by reviewing the code? The answer will show how you verify your own work, which matters for the self-reflection.
+
+If you&#x27;re ready, we can go to Round 3 (reflection) next. When we have enough material, I&#x27;ll propose an outline and wait for your confirmation before creating any file.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I did a couple of live search test on my own and noticed that the `users` gets exposed. I also `read` the actual user asset to confirm what sensitive data gets included. From there I had Claude Code implement the basic changes that you&#x27;ve just mentioned. Afterward, I had Claude Code generate test prompt to use against the MCP directly for validation. I told Claude to give me specifically &quot;rare edge cases&quot; to capture workarounds using different prompting techniques. There were some gaps that I had Claude fix immediately before pushing. Now any sensitive information isn&#x27;t just drop unless it begin searched. Fields like `createdBy` stay intact with a simple `[REDACTED]` as value instead of the actual value.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">That&#x27;s a strong verification loop: you tested live first, read the real asset to confirm what was exposed, then had an agent generate adversarial prompts to find workarounds. Moving from &quot;dropped unless searched&quot; to a `[REDACTED]` placeholder also shows you thought about what the agent needs to keep working, not just what to hide.
+
+We&#x27;re now in Round 3, the reflection stage.
+
+**Question 1 of 2**
+
+Looking at the gaps your adversarial prompts exposed, what did they teach you about how you&#x27;d approach a security check on your own work next time? Was the bigger lesson about the code, the guard rules, or about where you rely on an AI to test an AI?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">There are certainly blind spots using AI for testing. The one obvious one is that the model itself could be unreliable, leading to unreliable tests. Overall, I think generalizing and capturing the most prevalent problem is the best approach. It is more challenging to test every possible scenario reliably, and we cannot guarantee it. There is always going to be uncertainty and risk tolerance.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Your point about uncertainty is a useful reflection. You&#x27;re treating testing as risk management rather than proof, which is why you focused on the most prevalent failure patterns instead of trying to enumerate every edge case.
+
+**Question 2 of 2 (final)**
+
+Looking back at the whole MCP project, what would you tell an earlier version of yourself, the one who first saw the Postman-and-files workflow, about when to stop accepting &quot;good enough&quot; results and when to add a guardrail or a test?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">At first the rationale was simplicity. I&#x27;d rather give the agent the full context instead of small chunks. Even at the cost of more tokens, not so much security early on, the purpose was to use the response shape as a template for the agent to reference. Once the conception of the MCP came to light, the security measures were more of a necessity because authorship information isn&#x27;t essential to the agent&#x27;s work. The argument is that at the earlier stages, the hassle of filtering/redacting information does not out weighed the speed of prototyping which was needed for building the scripts that I needed. So the pivotal moment when it became an actual tool is where I draw the line on security as a necessity.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">You&#x27;ve now answered all three rounds, so I have enough material for a draft. Here&#x27;s a proposed outline based on your answers:
+
+```
+ Journal entry: MCP for Cascade CMS
+ ┌────────────────────────────────────────────────────────┐
+ │ 1. The problem: manual Postman → JSON/XML → agent loop │
+ │ 2. The idea: give agents verified, live structure      │
+ │ 3. The decision: read-only, writes stay with you       │
+ │ 4. The gap: user/author fields leaked through reads    │
+ │ 5. The fix: type guards + [REDACTED] fields + tests    │
+ │ 6. Reflection: prototype speed first, security at the  │
+ │    pivot to a real tool; AI testing has blind spots    │
+ └────────────────────────────────────────────────────────┘
+```
+
+Before I create anything, I need your confirmation:
+
+1. Does this outline match the story you want to tell, or should I reorder or cut anything?
+2. Should the entry stay in first person (your voice), or would you prefer a more neutral, process-focused tone?
+3. Should I save it as a plain `.txt` file, or would you prefer another format?
+
+I won&#x27;t create the file until you confirm the outline and format.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. Keep the outline as-is
+2. Keep it in the first person tone my voice
+3. have as a markdown</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">```
+This block is not supported on your current device yet.
+```
+
+I&#x27;ve created the journal entry as `mcp-journal-entry.md`, following the outline you approved and written in your first-person voice.
+
+Would you like me to send the file to you now so you can review it?</div></div></div></article></div></main></body></html>

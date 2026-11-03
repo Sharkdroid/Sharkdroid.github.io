@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Commit locally</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>Commit locally</h1>
+<p class="meta">2026-09-30 &middot; cascade-cms-tools &middot; claude-code &middot; 29 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude-code</span></span></div><div class="item"><b>Active time</b><span>42m</span></div><div class="item"><b>Date</b><span>2026-09-30</span></div><div class="item"><b>Tokens</b><span>In 3.8K · Out 22.8K · Cache read 3.2M · Cache write 160.6K</span></div></div><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:05 UTC</span></span></div><div class="body"><div class="part">Go ahead and commit locally, don&#x27;t push.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:05 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git status --short &amp;&amp; git diff --stat &amp;&amp; git log -3 --format=%s</span><span class="td">1.5s</span></summary><pre class="si">git status --short &amp;&amp; git diff --stat &amp;&amp; git log -3 --format=%s</pre></details><hr class="div"><div class="part">I&#x27;ll check the diff so the message matches the changes.</div><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git diff -- mcp/src skill</span><span class="td">1.1s</span></summary><pre class="si">git diff -- mcp/src skill</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git add -A mcp skill &amp;&amp; git commit -q -F - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">1.2s</span></summary><pre class="si">git add -A mcp skill &amp;&amp; git commit -q -F - &lt;&lt;&#x27;EOF&#x27;
+MCP: let get_data_structure resolve subgroups; document to_identifier(s)
+
+- find_node now matches nested groups as well as fields, so an
+  identifier taken from list_children can be looked up.
+- Add summarize_group; cascade_get_data_structure returns a
+  subgroup&#x27;s attributes plus a listing of its immediate children.
+- Tests for both, and smoke test adjusted.
+- asset_api.md: document cascade_cms.utils to_identifier/to_identifiers.
+
+Co-Authored-By: Claude Sonnet 5.5 &lt;<span class="red">[redacted: personal]</span>&gt;
+EOF
+git log -1 --stat --format=&#x27;%h %s&#x27; &amp;&amp; git status --short</pre></details><hr class="div"><div class="part">I committed all six modified files locally as `b98df94` and didn&#x27;t push. The working tree is clean.
+
+I didn&#x27;t run `pytest`, `ruff` or `mypy` before committing. AGENTS.md says CI runs all three, so they&#x27;re worth running before you push.
+
+The commit has two parts:
+- **`get_data_structure` subgroups:** `find_node` now matches nested groups as well as fields. `cascade_get_data_structure` returns a subgroup&#x27;s attributes and a listing of its immediate children. Tests cover both.
+- **`asset_api.md`:** it now documents `to_identifier` and `to_identifiers`.
+
+I made it a single commit, since the two parts don&#x27;t depend on each other and you didn&#x27;t ask for a split. I can split it if you&#x27;d rather have two.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:06 UTC</span></span></div><div class="body"><div class="part">run pytest, ruff and mypy</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:06 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="ts">B=./.conda/bin; [ -d $B ] || B=./.venv/bin; echo $B; $B/python -m pytest -q 2&gt;&amp;1 | tail -15; echo ---RUFF; $B/...</span><span class="td">2.7s</span></summary><pre class="si">B=./.conda/bin; [ -d $B ] || B=./.venv/bin; echo $B; $B/python -m pytest -q 2&gt;&amp;1 | tail -15; echo ---RUFF; $B/ruff check . 2&gt;&amp;1 | tail -20; echo ---MYPY; $B/python -m mypy mcp/src/ 2&gt;&amp;1 | tail -15</pre></details><hr class="div"><div class="part">All three pass on the committed tree:
+
+- **pytest:** 222 passed.
+- **ruff:** all checks passed.
+- **mypy:** no issues in 10 source files.
+
+I ran them with `./.conda/bin`.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:14 UTC</span></span></div><div class="body"><div class="part">Help me understand the purpose of `handoff_test.py`</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:14 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">find . -name &#x27;handoff_test*&#x27; -not -path &#x27;./.conda/*&#x27; -not -path &#x27;./.venv/*&#x27; -not -path &#x27;./.git/*&#x27;; git log --o...</span><span class="td">1.5s</span></summary><pre class="si">find . -name &#x27;handoff_test*&#x27; -not -path &#x27;./.conda/*&#x27; -not -path &#x27;./.venv/*&#x27; -not -path &#x27;./.git/*&#x27;; git log --oneline --all -- &#x27;*handoff_test*&#x27; | head; grep -rn &quot;handoff_test&quot; --include=&#x27;*&#x27; . -l 2&gt;/dev/null | grep -v -e &#x27;^./.conda&#x27; -e &#x27;^./.venv&#x27; -e &#x27;^./.git/&#x27; | head</pre></details><hr class="div"><div class="part">There&#x27;s no `handoff_test.py` in the repo. There are two similar files, `handoff_tests.py` and `handoff_test.txt`, so I&#x27;ll read both.</div><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git ls-files --error-unmatch handoff_tests.py handoff_test.txt; git log --oneline -3 -- handoff_tests.py hando...</span><span class="td">1.5s</span></summary><pre class="si">git ls-files --error-unmatch handoff_tests.py handoff_test.txt; git log --oneline -3 -- handoff_tests.py handoff_test.txt; wc -l handoff_tests.py handoff_test.txt; echo ----; cat handoff_tests.py; echo ----; cat handoff_test.txt</pre></details><hr class="div"><div class="part">There&#x27;s no `handoff_test.py`. The two files are `handoff_tests.py` and `handoff_test.txt`, and both are untracked. They are a pair: the `.txt` is a task brief and the `.py` is the probe script that brief tells you to run. The script&#x27;s docstring calls itself `nested_probe.py`, and so does the brief.
+
+**The question they answer:** on a real page, can the library&#x27;s `asset.get_data_structure(group, field)` return the field from a nested child group instead of from the parent group you named? That could happen when a group and one of its subgroups both contain a field with the same identifier. For example, `main-content` has `title` and its nested `column` also has `title`. If the library returns the wrong one, a script could read or write the wrong field, and Cascade ignores misplaced writes silently.
+
+**How it works:**
+- **Step 1, in `handoff_test.txt`:** use the MCP `find(&quot;&lt;field&gt;&quot;)` query, which is read-only, to find a page where the same identifier appears at two depths under one top-level group.
+- **Step 2, in `handoff_tests.py`:** the script reads that page once, with no edit or write. It prints two things:
+  - The path of every leaf with that field name.
+  - The path of each node `get_data_structure` returned.
+- **The report:** for each parent instance, was the returned node the parent&#x27;s own field or the nested group&#x27;s? It covers cases where the parent&#x27;s field comes before the nested group, comes after it, or is absent.
+- **Privacy:** it prints paths and counts only, never field values.
+
+**Why &quot;handoff&quot;:** it looks written to pass to another agent or machine that has live Cascade access. That fits the &quot;Live reads outrank the library and the docs&quot; rule in AGENTS.md.
+
+**Relation to today&#x27;s commit:** it&#x27;s related but separate. The commit changed the MCP&#x27;s `find_node`, which is a different code path from the library&#x27;s `Asset.get_data_structure` that this probe tests. It may be the same bug class, though.
+
+**Things to know:**
+- Neither file is committed, so they may be scratch work.
+- The script is 78 lines and has lines over 60 characters. It&#x27;s a one-off probe, not a skill script, so `validate_script.py` doesn&#x27;t apply.
+- The brief mentions an expected `UserWarning` about `get(&quot;structuredData&quot;)`.
+
+Do you want me to run it against a page, or clean up the names first?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:17 UTC</span></span></div><div class="body"><div class="part">The name is irrelevant its a simple test addressing this:
+
+
+&lt;pasted_content id=&quot;612f&quot;&gt;
+Wrong: &quot;a field name that also exists in a child group is unreachable through the parent&quot;
+
+Offline, on library 3.8.0, the lookup searches depth-first and returns the first match:
+
+Inside one main-content instance    get_data_structure(&quot;main-content&quot;, &quot;title&quot;)
+Its own title comes first    the parent&#x27;s title
+A child column comes first    the child&#x27;s title
+The parent has no title    the child&#x27;s title
+
+So a parent lookup can silently return the wrong node. EXPECTED_COUNT can&#x27;t catch it, because the count is still 1, and the script would edit the child&#x27;s field while reporting success.
+
+The doc should say: when a field name also appears in a nested group, a lookup through the parent can return the child&#x27;s node depending on order; look up the innermost group, or confirm the node&#x27;s path live first. A stricter library lookup, matching direct children only, would be a separate design item.
+&lt;/pasted_content id=&quot;612f&quot;&gt;
+
+Run this test I already have the other script running let me know what you need from me</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:17 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">ToolSearch</span><span class="ts">select:mcp__cascade-cms__cascade_search,mcp__cascade-cms__cascade_query_asset,mcp__cascade...</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;select:mcp__cascade-cms__cascade_search,mcp__cascade-cms__cascade_query_asset,mcp__cascade-cms__cascade_list_sites&quot;, &quot;max_results&quot;: 5}</pre></details><details class="step"><summary><span class="tn">Bash</span><span class="ts">for v in CASCADE_API_KEY CASCADE_URL SERVER; do [ -n &quot;${!v}&quot; ] &amp;&amp; echo &quot;$v set&quot; || echo &quot;$v unset&quot;; done; ls -...</span><span class="td">1.7s</span></summary><pre class="si">for v in CASCADE_API_KEY CASCADE_URL SERVER; do [ -n &quot;${!v}&quot; ] &amp;&amp; echo &quot;$v set&quot; || echo &quot;$v unset&quot;; done; ls -a | grep -i env</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_list_sites (MCP)</span><span class="ts"></span><span class="td">1.7s</span></summary><pre class="si">{&quot;limit&quot;: 50}</pre></details><hr class="div"><div class="part">I can&#x27;t run step 2 yet. Two things are missing.
+
+**1. Credentials for the script.** `handoff_tests.py` reads `CASCADE_API_KEY` and `CASCADE_URL` (`SERVER` is optional). None of them are set in my shell, and I found no env file in the repo. The MCP server has its own connection, but the script can&#x27;t use it. Either of these works:
+- Run `! export CASCADE_API_KEY=... CASCADE_URL=...` in this session. Shell state doesn&#x27;t persist between my Bash calls, so it&#x27;s simpler to give me a file to source. Something like `! echo &quot;export CASCADE_API_KEY=... CASCADE_URL=...&quot; &gt; /tmp/cascade.env` would do. I would only source it and never print it.
+- Run the script yourself and paste the output. I&#x27;d give you the exact command once I have a candidate.
+
+**2. A candidate page.** The MCP is connected and lists 26 sites. Step 1 needs a data-bound page where a group and its nested subgroup both have a field with the same identifier. Searching blindly across 26 sites would be slow and noisy. If you know any of these, send it and I&#x27;ll skip the search:
+- A page ID, plus the parent group and field name.
+- A site that uses nested groups, such as a column or repeater layout. From the names, `<span class="red">[redacted: internal-host]</span>` or `<span class="red">[redacted: internal-host]</span>` seem likely.
+
+If you&#x27;d rather I search, tell me which site and I&#x27;ll run step 1 with `find(&quot;title&quot;)` and the other field names across about 10 pages. That&#x27;s read-only.
+
+I&#x27;d also cover the &quot;parent has no `title`, but the nested group does&quot; case, since that&#x27;s the third row of your table.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:19 UTC</span></span></div><div class="body"><div class="part">Yes search for this on `<span class="red">[redacted: internal-host]</span>`.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 11:19 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">cascade_search (MCP)</span><span class="ts">*</span><span class="td">2.9s</span><span class="err">failed</span></summary><pre class="si">{&quot;query&quot;: &quot;*&quot;, &quot;site&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;, &quot;asset_types&quot;: [&quot;page&quot;], &quot;limit&quot;: 30}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_search (MCP)</span><span class="ts">accordion</span><span class="td">1.9s</span></summary><pre class="si">{&quot;query&quot;: &quot;accordion&quot;, &quot;site&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;, &quot;asset_types&quot;: [&quot;page&quot;], &quot;limit&quot;: 15}</pre></details><details class="step"><summary><span class="tn">cascade_search (MCP)</span><span class="ts">column</span><span class="td">2.2s</span></summary><pre class="si">{&quot;query&quot;: &quot;column&quot;, &quot;site&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;, &quot;asset_types&quot;: [&quot;page&quot;], &quot;limit&quot;: 15}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_query_asset (MCP)</span><span class="ts">find(&quot;identifier&quot;)</span><span class="td">1.9s</span></summary><pre class="si">{&quot;identifier&quot;: {&quot;id&quot;: &quot;970e61f0ac10010f0968323bd41aa749&quot;, &quot;type&quot;: &quot;page&quot;}, &quot;query&quot;: &quot;find(\&quot;identifier\&quot;)&quot;, &quot;limit&quot;: 200}</pre></details><details class="step"><summary><span class="tn">cascade_query_asset (MCP)</span><span class="ts">find(&quot;identifier&quot;)</span><span class="td">1.9s</span></summary><pre class="si">{&quot;identifier&quot;: {&quot;id&quot;: &quot;21fad193ac10010e7d20dd89e56b2424&quot;, &quot;type&quot;: &quot;page&quot;}, &quot;query&quot;: &quot;find(\&quot;identifier\&quot;)&quot;, &quot;limit&quot;: 200}</pre></details><hr class="div"><div class="part">Step 1 found a candidate. Step 2 still needs credentials, because `CASCADE_API_KEY` and `CASCADE_URL` aren&#x27;t set in my shell.
+
+**Candidate page:** `970e61f0ac10010f0968323bd41aa749` (`dev-misc/accordion-microdata-test`, `<span class="red">[redacted: internal-host]</span>`). `21fad193ac10010e7d20dd89e56b2424` (`programs/art-visual/what-its-like-timeline3`) has the same schema. I only read `identifier` values with `find(&quot;identifier&quot;)`, so no field values were read.
+
+Under `page-content[0]`, the `main-content` group is at `structuredDataNodes[9]`. It has three shapes for `title`:
+
+| Case | Group | Parent&#x27;s own `title` | Nested `title` | Expected without the fix |
+|---|---|---|---|---|
+| A: own comes first | `main-content` | `[9].[2]` | `accordion.row[*].title` at `[14]`, `column.title` at `[19]`, and others | Parent&#x27;s `title` (P) |
+| B: parent lacks it | `contactCards` (`[11]`) | none | `individual-contact.title` at `[11].[2].[1]` | Child&#x27;s `title` (N) |
+| C: parent lacks it, repeated | `accordion` (`[14]`) | none | `row[0..2].title`, one per row | Child&#x27;s `title`, probably the first row only |
+
+This page doesn&#x27;t have the &quot;child comes first&quot; case. In this data definition `main-content`&#x27;s own `title` (index 2) always precedes its nested groups (index 9 and later). That case needs a different data definition, or the offline 3.8.0 test you already have.
+
+**Command for each case:**
+```bash
+./.conda/bin/python handoff_tests.py 970e61f0ac10010f0968323bd41aa749 main-content title
+./.conda/bin/python handoff_tests.py 970e61f0ac10010f0968323bd41aa749 contactCards title
+./.conda/bin/python handoff_tests.py 970e61f0ac10010f0968323bd41aa749 accordion title
+```
+
+**What I need from you:** the credentials, by either route:
+- Write them to a file and I&#x27;ll source it without printing them: `! printf &#x27;export CASCADE_API_KEY=...\nexport CASCADE_URL=...\n&#x27; &gt; /tmp/cascade.env`. The URL is the Cascade base URL your other script uses.
+- Or run the three commands yourself and paste the output. It prints only paths and counts.
+
+Which do you prefer?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 17:44 UTC</span></span></div><div class="body"><div class="part">I&#x27;ll give you case C. As A and B are already good.
+for asset (970e61f0ac10010f0968323bd41aa749)
+
+
+&lt;pasted_content id=&quot;612f&quot;&gt;
+$[0](page-content)[9](main-content)[2](title)
+   $[0](page-content)[9](main-content)[8](videoFeature)[0](title)
+   $[0](page-content)[9](main-content)[11](contactCards)[2](individual-contact)[1](title)
+   $[0](page-content)[9](main-content)[12](posts)[0](title)
+   $[0](page-content)[9](main-content)[14](accordion)[2](row)[0](title)
+   $[0](page-content)[9](main-content)[14](accordion)[3](row)[0](title)
+   $[0](page-content)[9](main-content)[14](accordion)[4](row)[0](title)
+   $[0](page-content)[9](main-content)[15](tabs)[0](row)[0](title)
+   $[0](page-content)[9](main-content)[19](column)[0](title)
+   $[0](page-content)[9](main-content)[19](column)[5](video)[0](title)
+   $[0](page-content)[9](main-content)[20](column)[0](title)
+   $[0](page-content)[9](main-content)[20](column)[5](video)[0](title)
+get_data_structure(&#x27;accordion&#x27;, &#x27;title&#x27;) returned 1 node(s):
+   $[0](page-content)[9](main-content)[14](accordion)[2](row)[0](title)
+&lt;/pasted_content id=&quot;612f&quot;&gt;
+
+for asset (21fad193ac10010e7d20dd89e56b2424)
+
+
+&lt;pasted_content id=&quot;612f&quot;&gt;
+every &#x27;title&#x27; leaf in the tree:
+   $[0](page-content)[9](main-content)[2](title)
+   $[0](page-content)[9](main-content)[8](videoFeature)[0](title)
+   $[0](page-content)[9](main-content)[11](contactCards)[2](individual-contact)[1](title)
+   $[0](page-content)[9](main-content)[12](posts)[0](title)
+   $[0](page-content)[9](main-content)[14](accordion)[2](row)[0](title)
+   $[0](page-content)[9](main-content)[15](tabs)[0](row)[0](title)
+   $[0](page-content)[9](main-content)[19](column)[0](title)
+   $[0](page-content)[9](main-content)[19](column)[5](video)[0](title)
+   $[0](page-content)[9](main-content)[20](column)[0](title)
+   $[0](page-content)[9](main-content)[20](column)[5](video)[0](title)
+get_data_structure(&#x27;accordion&#x27;, &#x27;title&#x27;) returned 1 node(s):
+   $[0](page-content)[9](main-content)[14](accordion)[2](row)[0](title)
+&lt;/pasted_content id=&quot;612f&quot;&gt;
+
+Asset (21fad193ac10010e7d20dd89e56b2424) only works because it only has 1 row node.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 17:44 UTC</span></span></div><div class="body"><div class="part">Case C confirms it, and it shows a second problem beyond the wrong-node one.
+
+**What the output shows (`970e61f0…`):**
+- `accordion` has no `title` of its own, but it has three `row` instances, each with a `title`, at `[2]`, `[3]` and `[4]`.
+- `get_data_structure(&#x27;accordion&#x27;, &#x27;title&#x27;)` returned 1 node, the `row[2]` title. That is the first match in document order.
+- Rows `[3]` and `[4]` can&#x27;t be reached through the parent. A script can&#x27;t tell they were skipped.
+
+**Why that matters:**
+- **Count check:** `EXPECTED_COUNT = 1` passes here, but the page has three titles. A script could edit the first row&#x27;s title and report success, and rows 2 and 3 would never be touched.
+- **Two kinds of miss:** case B and A showed the lookup can return the wrong group&#x27;s node. Case C shows it also collapses repeated instances of a nested group into the first one.
+- **The one-row page:** `21fad193…` (`what-its-like-timeline3`) returns the same path, `accordion[2].row[0].title`. As you said, it only looks right because it has one `row`. The lookup didn&#x27;t do anything smarter there. It would fail the same way if a second row were added.
+
+**What this leaves unknown:**
+- **The innermost group:** I haven&#x27;t tested whether `get_data_structure(&#x27;row&#x27;, &#x27;title&#x27;)` returns all three rows or only the first. If it also returns only the first, the workaround in your draft (&quot;look up the innermost group&quot;) doesn&#x27;t solve repeated instances. It would only fix the wrong-node case. You can test it with the same probe: `handoff_tests.py 970e61f0ac10010f0968323bd41aa749 row title`. The script prints a count, so it will show 1 or 3.
+- **Child-first order:** your offline 3.8.0 test is still the only evidence for that case. This data definition doesn&#x27;t produce it.
+
+**Doc wording:** I&#x27;d add a line about repeated nested instances next to the wrong-node warning. For example: &quot;a lookup returns only the first match in document order, including repeated instances of a nested group, so `EXPECTED_COUNT` of 1 can hide skipped rows; read the tree and address each instance by path.&quot; I&#x27;d wait for the `row` result before recommending the innermost-group workaround.
+
+Want me to draft the `asset_api.md` change once you have the `row` result, or now, with that workaround marked as unverified?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 17:56 UTC</span></span></div><div class="body"><div class="part">It does return the somewhat right armount when running `get_data_structure(&#x27;row&#x27;, &#x27;title&#x27;)`. However, the issue is that its also including other `title` from other groups like `tabs`. So I think it would be worth looking into implementing on the library end to fix this.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 17:56 UTC</span></span></div><div class="body"><div class="part">That changes the workaround. Matching by group identifier, not by position, pulls in every group named `row`, including the one under `tabs`. The fix belongs in the library, which this repo doesn&#x27;t vendor. I&#x27;ll look at the installed implementation first, and check whether there&#x27;s a local checkout.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">F=$(find .conda/lib -path &#x27;*cascade_cms*&#x27; -name &#x27;*.py&#x27; | xargs grep -ln &quot;def get_data_structure&quot; | head); echo...</span><span class="td">3.4s</span></summary><pre class="si">F=$(find .conda/lib -path &#x27;*cascade_cms*&#x27; -name &#x27;*.py&#x27; | xargs grep -ln &quot;def get_data_structure&quot; | head); echo &quot;$F&quot;; for f in $F; do grep -n &quot;def get_data_structure\|def _find\|def _collect\|def _walk&quot; $f; done; ls -d /mnt/D/*/ 2&gt;/dev/null | head -20; find /mnt/D ~ -maxdepth 3 -name &#x27;py-cascade-cms*&#x27; -not -path &#x27;*/.conda/*&#x27; 2&gt;/dev/null | head</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; git status --short | head; git log --oneline -3; git branch --show-current; grep -...</span><span class="td">1.4s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; git status --short | head; git log --oneline -3; git branch --show-current; grep -n &quot;version&quot; pyproject.toml | head -3; grep -rn &quot;def get_data_structure&quot; --include=*.py . | grep -v conda; sed -n 780,860p cascade_cms/cmstypes.py 2&gt;/dev/null || true</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; sed -n 700,900p src/cascade_cms/cmstypes.py; echo ----; cat handoff_followup_live_...</span><span class="td">&lt;1s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; sed -n 700,900p src/cascade_cms/cmstypes.py; echo ----; cat handoff_followup_live_findings.txt; grep -rn &quot;get_data_structure&quot; --include=*.py --include=*.md . | grep -v &quot;cmstypes.py&quot; | head -20</pre></details><hr class="div"><div class="part">I read the library source at `/mnt/D/py-cascade-cms` (3.8.0, `src/cascade_cms/cmstypes.py:798`). That explains both results.
+
+**Why `row` also returns the `tabs` titles:**
+- `find_group` walks the whole tree and yields every `group` node whose identifier equals `&quot;row&quot;`, wherever it sits. That includes `accordion`&#x27;s rows and `tabs`&#x27; row.
+- The docstring says &quot;all instances of a group&quot;, so this is what it was built to do. The group argument has no way to say which `row`.
+
+**Why `accordion` returned one node:** `find_in_nodes` returns the first leaf it finds per matched group. It searches depth-first and goes into nested groups. That is also the cause of the wrong-node cases A and B.
+
+**Proposed fix, two additions and no change to existing behaviour:**
+1. **Path-qualified group.** `get_data_structure(&quot;accordion.row&quot;, &quot;title&quot;)` matches only `row` groups whose parent chain ends in `accordion`. A bare `&quot;row&quot;` behaves as it does today. Cascade identifiers have no dots, so this is unambiguous, and it matches the dotted keys `Asset.get` already uses.
+2. **Keyword-only `direct: bool = False`.** When true, it matches only direct leaf children of each matched group and doesn&#x27;t descend into subgroups. That removes the wrong-node case.
+
+With both, `get_data_structure(&quot;accordion.row&quot;, &quot;title&quot;, direct=True)` returns exactly 3 nodes on the three-row page. On `main-content`, `get_data_structure(&quot;main-content&quot;, &quot;title&quot;, direct=True)` returns 1 node, the parent&#x27;s own `title`. Defaults stay the same, so existing scripts keep working and this would be a minor release, 3.9.0.
+
+**Work in the library repo:** the two changes, tests built from the shapes you just captured, a CHANGELOG entry, and the docstring. The library repo is clean on `master`, apart from an untracked `handoff_followup_live_findings.txt`. I&#x27;d work on a branch, commit locally, and not tag or publish.
+
+**Work in this repo, after you release:** `build_release.py` would bundle the new version. `asset_api.md` would then describe the dotted path and `direct=True` as the way to reach repeated rows. I&#x27;d hold the `row`-lookup wording until that&#x27;s live, so the docs don&#x27;t describe an API that doesn&#x27;t exist yet.
+
+Should I go ahead with this design in `py-cascade-cms`? Two choices are yours:
+- **Path matching:** I&#x27;d match the end of the parent chain (`accordion.row` matches wherever `accordion` is), not anchor it at the root. The alternative is anchoring at the top-level group, which is stricter but needs the full path every time.
+- **Names:** `direct` and the dotted path are my suggestions. Change either if you prefer other names.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 17:59 UTC</span></span></div><div class="body"><div class="part">Which implement would require the least amount of change?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 17:59 UTC</span></span></div><div class="body"><div class="part">The path-qualified group is the smaller change that fixes what you hit. Only `find_group` in `cmstypes.py` changes. It needs to remember its ancestors as it walks:
+
+```python
+parts = group.split(&quot;.&quot;)
+
+def find_group(obj, trail=()):
+    if isinstance(obj, dict):
+        ident = obj.get(&quot;identifier&quot;)
+        here = trail
+        if obj.get(&quot;type&quot;) == &quot;group&quot;:
+            here = trail + (ident,)
+            if here[-len(parts):] == tuple(parts):
+                yield obj
+        for value in obj.values():
+            yield from find_group(value, here)
+    elif isinstance(obj, list):
+        for item in obj:
+            yield from find_group(item, trail)
+```
+
+- **Size:** about 8 changed lines, and `find_in_nodes` and the return logic stay as they are.
+- **Compatibility:** a bare `&quot;row&quot;` has one part, so it matches every `row` as it does today.
+- **What it fixes:** `get_data_structure(&quot;accordion.row&quot;, &quot;title&quot;)` skips `tabs`&#x27; row, so on the three-row page it returns 3 nodes, one per row.
+
+**`direct=True`** is fewer lines, about 3: a keyword argument and a check that skips the recursion in `find_in_nodes`. It doesn&#x27;t fix your problem, though. `get_data_structure(&quot;row&quot;, &quot;title&quot;, direct=True)` would still pull in `tabs`&#x27; row, because the ambiguity is in which group matches, not in how deep the field search goes.
+
+**What path-qualifying leaves unfixed:** the wrong-node case still exists. `get_data_structure(&quot;column&quot;, &quot;title&quot;)` on a `column` with no `title` of its own can still return `column.video.title`. It&#x27;s much less likely once you can name the exact group, and you can add `direct=True` later as a separate change if you want it closed.
+
+I&#x27;d do path-qualifying alone first. Should I implement it in `py-cascade-cms` on a branch, with tests built from your `accordion` and `tabs` shapes?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 18:06 UTC</span></span></div><div class="body"><div class="part">Okay the first change looks good. Is it possible to add a condition that stops at the end. Per your example. Look at children of column if the `column` identifier doesn&#x27;t exist return an empty list. Is this feasible? And how would it affect existing code?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 18:06 UTC</span></span></div><div class="body"><div class="part">Feasible. Before I say how it affects existing code, I&#x27;ll check how the skill templates and docs use the lookup.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -rn &quot;get_data_structure(&quot; skill --include=*.py --include=*.md | grep -v &quot;cascade_get_data_structure&quot; | he...</span><span class="td">1.6s</span></summary><pre class="si">grep -rn &quot;get_data_structure(&quot; skill --include=*.py --include=*.md | grep -v &quot;cascade_get_data_structure&quot; | head -30; echo ---; grep -rn &quot;is None\|is not None&quot; skill/cascade-script-writer/templates/*.py | grep -i &quot;struct\|node&quot; | head; echo ---LIB; cd /mnt/D/py-cascade-cms &amp;&amp; grep -rn &quot;get_data_structure&quot; tests README.md CHANGELOG.md docs 2&gt;/dev/null | head -20</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/D/cascade-cms-tools/skill/cascade-script-writer &amp;&amp; sed -n 160,185p templates/callback-structured-data-...</span><span class="td">&lt;1s</span></summary><pre class="si">cd /mnt/D/cascade-cms-tools/skill/cascade-script-writer &amp;&amp; sed -n 160,185p templates/callback-structured-data-edit.py; sed -n 575,590p SKILL.md; sed -n 204,212p references/asset_api.md; cd /mnt/D/py-cascade-cms &amp;&amp; ls; grep -rln &quot;get_data_structure&quot; . --include=*.py --include=*.md 2&gt;/dev/null | grep -v &quot;\.conda\|\.venv&quot; | head</pre></details><hr class="div"><div class="part">Yes, it&#x27;s feasible. The impact on existing code depends on whether it&#x27;s opt-in or the new default.
+
+**The change:** add a keyword-only `direct: bool = False` to `get_data_structure`. When it&#x27;s true, `find_in_nodes` checks only the matched group&#x27;s own children and never descends into subgroups. That is about 3 lines on top of the path change. Two behaviours to know about:
+- **One match per group instance:** an instance that lacks the field directly is skipped, not matched against a nested one. Three `column` instances where one has no `title` return 2 nodes, not 3. That is what `EXPECTED_COUNT` exists to catch.
+- **Empty result:** you get an empty result only when no instance has the field directly. `column.video.title` is then never returned for `(&quot;column&quot;, &quot;title&quot;)`.
+
+**Effect on existing code, opt-in (my recommendation):** none. The default stays the same, so every current script, the skill templates and the docs behave as before. It would be a minor release.
+
+**If direct became the default:**
+- **Breaks nested lookups:** any script that reaches a nested field through an outer group, such as `get_data_structure(&quot;main-content&quot;, &quot;url&quot;)` where `url` sits in a subgroup, would stop matching.
+- **Hits the skill templates:** `callback-structured-data-edit.py` guards with `if not nodes: raise`, so it would fail loudly. A script written as `for n in nodes or []` would silently do nothing, which is exactly the failure this project tries to avoid.
+- **Needs a major release:** that means 4.0.0, plus changes here to the `SKILL.md` and `asset_api.md` text and to the hint in `validate_script.py` (line ~937).
+
+**Empty list vs `None`:** today a miss returns `None`, and `asset_api.md` documents that. Returning `[]` in direct mode only would leave two different miss values.
+- **Templates:** both are falsy, so `if not nodes` works either way. The template doesn&#x27;t use `is None` for this.
+- **Your own scripts:** any that check `is None` would break if `[]` became the default. I don&#x27;t know of any, but the docs promise `None`.
+- **My suggestion:** keep `None` in every mode, so there is one convention and no break. If you&#x27;d rather have `[]`, I can make it `[]` only when `direct=True`.
+
+**Testing:** the library has no existing tests for `get_data_structure`, so the tests would be new. They would cover `accordion.row` with three rows, the `tabs` exclusion, `direct` on `main-content` and on a `column` with no `title`, and a bare group name behaving as before.
+
+Should I implement path-qualified groups plus opt-in `direct`, with a `None` miss, on a branch in `py-cascade-cms`? Or do you want `[]` for direct mode?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 18:08 UTC</span></span></div><div class="body"><div class="part">Sorry correction, I meant if `column` is the group and `title` is the identifier it should check whether it exists if not empty list.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 18:08 UTC</span></span></div><div class="body"><div class="part">Yes, that&#x27;s what `direct=True` does: for group `column` and identifier `title`, it checks whether `title` is a direct child of `column` and returns `[]` if it isn&#x27;t. I&#x27;ll implement it with `[]` in direct mode and `None` unchanged in the default mode. First I&#x27;ll read the library repo&#x27;s conventions.</div><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; cat AGENTS.md | head -60; ls tests | head -30; sed -n 1,30p CHANGELOG.md; git bran...</span><span class="td">1.0s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; cat AGENTS.md | head -60; ls tests | head -30; sed -n 1,30p CHANGELOG.md; git branch -a</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; sed -n 1,40p tests/test_cmstypes.py; grep -n &quot;^def test\|^class &quot; tests/test_cmsty...</span><span class="td">1.5s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; sed -n 1,40p tests/test_cmstypes.py; grep -n &quot;^def test\|^class &quot; tests/test_cmstypes.py | head -20; ls -d .conda .venv 2&gt;/dev/null; which python; python -c &quot;import cascade_cms,sys;print(cascade_cms.__file__)&quot;</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; git checkout -q -b get-data-structure-path-direct &amp;&amp; python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">1.0s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; git checkout -q -b get-data-structure-path-direct &amp;&amp; python - &lt;&lt;&#x27;EOF&#x27;
+import re
+p=&quot;src/cascade_cms/cmstypes.py&quot;
+s=open(p).read()
+start=s.index(&quot;    def get_data_structure(self: &#x27;Asset&#x27;&quot;)
+end=s.index(&quot;    def get_page_configuration(&quot;)
+new=&#x27;&#x27;&#x27;    def get_data_structure(
+        self: &#x27;Asset&#x27;,
+        group: str,
+        identifier: str,
+        *,
+        direct: bool = False,
+    ) -&gt; list[dict[str, Any]] | None:
+        &quot;&quot;&quot;
+        Find nodes matching identifier within all instances of a group.
+        Returns first match per group instance as a list of node objects by reference.
+        Raises KeyError if required fields (identifier, structuredDataNodes) are missing.
+
+        `group` is a group identifier or a dotted path of group identifiers
+        (`&quot;accordion.row&quot;`). A bare identifier matches every group with that
+        identifier, wherever it sits. A dotted path matches only groups whose
+        chain of enclosing groups ends with that path, so `&quot;accordion.row&quot;`
+        skips a `row` under `tabs`. Cascade identifiers contain no dots.
+
+        By default the search inside each matched group is depth-first and
+        descends into nested groups, so a group that lacks `identifier`
+        itself can match a field of a nested group. Returns None when nothing
+        matches.
+
+        With `direct=True` only the matched group&#x27;s own leaf children are
+        checked and nested groups are never entered. A group instance without
+        the field directly is skipped, and the result is an empty list, not
+        None, when no instance has it.
+        &quot;&quot;&quot;
+        parts = tuple(group.split(&quot;.&quot;))
+        if not all(parts):
+            raise ValueError(f&quot;Invalid group path {group!r}&quot;)
+
+        def find_group(obj, trail=()):
+            if isinsta...</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; cat &gt; tests/test_get_data_structure.py &lt;&lt;&#x27;EOF&#x27;</span><span class="td">2.5s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; cat &gt; tests/test_get_data_structure.py &lt;&lt;&#x27;EOF&#x27;
+import pytest
+
+from cascade_cms.cmstypes import Asset
+
+
+def leaf(identifier: str, text: str = &quot;&quot;) -&gt; dict:
+    return {&quot;type&quot;: &quot;text&quot;, &quot;identifier&quot;: identifier, &quot;text&quot;: text}
+
+
+def group(identifier: str, *children: dict) -&gt; dict:
+    return {
+        &quot;type&quot;: &quot;group&quot;,
+        &quot;identifier&quot;: identifier,
+        &quot;structuredDataNodes&quot;: list(children),
+    }
+
+
+def page(*nodes: dict) -&gt; Asset:
+    return Asset(
+        {
+            &quot;asset&quot;: {
+                &quot;page&quot;: {
+                    &quot;id&quot;: &quot;p1&quot;,
+                    &quot;structuredData&quot;: {
+                        &quot;structuredDataNodes&quot;: [
+                            group(&quot;page-content&quot;, *nodes)
+                        ]
+                    },
+                }
+            }
+        }
+    )
+
+
+def texts(nodes: list[dict] | None) -&gt; list[str]:
+    assert nodes is not None
+    return [n[&quot;text&quot;] for n in nodes]
+
+
+def accordion_and_tabs() -&gt; Asset:
+    return page(
+        group(
+            &quot;main-content&quot;,
+            leaf(&quot;title&quot;, &quot;own&quot;),
+            group(
+                &quot;accordion&quot;,
+                leaf(&quot;show&quot;),
+                group(&quot;row&quot;, leaf(&quot;title&quot;, &quot;row-1&quot;)),
+                group(&quot;row&quot;, leaf(&quot;title&quot;, &quot;row-2&quot;)),
+                group(&quot;row&quot;, leaf(&quot;title&quot;, &quot;row-3&quot;)),
+            ),
+            group(&quot;tabs&quot;, group(&quot;row&quot;, leaf(&quot;title&quot;, &quot;tab-1&quot;))),
+        )
+    )
+
+
+def test_bare_group_matches_every_group_with_that_identifier():
+    # Unchanged behavior: &quot;row&quot; is ambiguous between the
+    # accordion&#x27;s rows and the tabs row.
+    found = accordion_and_tabs().get_data_structure(&quot;row&quot;, &quot;title&quot;)
+    assert texts(found) == [&quot;row-1&quot;, &quot;row-2&quot;, &quot;row-3&quot;, &quot;tab-1&quot;]
+
+
+def test_dotted_path_selects_one_parent():
+    asset = accordion_and_tabs()
+    found = asset.get_...</pre></details><hr class="div"><div class="part">I&#x27;ll check that the default mode matches the old implementation, then add the changelog entry and run the full gates.</div><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; git show HEAD:src/cascade_cms/cmstypes.py &gt; /tmp/old_cmstypes.py 2&gt;/dev/null; .ven...</span><span class="td">1.6s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; git show HEAD:src/cascade_cms/cmstypes.py &gt; /tmp/old_cmstypes.py 2&gt;/dev/null; .venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+import importlib.util, sys, random
+sys.path.insert(0, &quot;tests&quot;)
+sys.path.insert(0, &quot;src&quot;)
+# load old module under a different name (relative imports may fail -&gt; fall back to copying method)
+import re
+from cascade_cms import cmstypes as new
+src = open(&quot;/tmp/old_cmstypes.py&quot;).read()
+start = src.index(&quot;    def get_data_structure(self: &#x27;Asset&#x27;&quot;)
+end = src.index(&quot;    def get_page_configuration(&quot;)
+import textwrap
+ns = {&quot;Any&quot;: __import__(&quot;typing&quot;).Any}
+exec(&quot;from typing import Any\n&quot; + textwrap.dedent(src[start:end]), ns)
+old = ns[&quot;get_data_structure&quot;]
+random.seed(1)
+names = [&quot;a&quot;,&quot;b&quot;,&quot;c&quot;]
+def gen(d=0):
+    if d&gt;3 or random.random()&lt;0.4:
+        return {&quot;type&quot;:&quot;text&quot;,&quot;identifier&quot;:random.choice(names),&quot;text&quot;:str(random.random())}
+    return {&quot;type&quot;:&quot;group&quot;,&quot;identifier&quot;:random.choice(names),
+            &quot;structuredDataNodes&quot;:[gen(d+1) for _ in range(random.randint(0,3))]}
+bad=0
+for i in range(5000):
+    a = new.Asset({&quot;asset&quot;:{&quot;page&quot;:{&quot;structuredData&quot;:{&quot;structuredDataNodes&quot;:[gen() for _ in range(3)]}}}})
+    g, f = random.choice(names), random.choice(names)
+    o = old(a, g, f); n = a.get_data_structure(g, f)
+    if not ((o is None and n is None) or (o is not None and n is not None and [id(x) for x in o]==[id(x) for x in n])):
+        bad+=1
+print(&quot;mismatches:&quot;, bad)
+EOF</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">5.1s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; python - &lt;&lt;&#x27;EOF&#x27;
+p=&quot;CHANGELOG.md&quot;
+s=open(p).read()
+marker=&quot;## [3.8.0]&quot;
+entry=&#x27;&#x27;&#x27;## [Unreleased]
+
+### Added
+- `Asset.get_data_structure` accepts a dotted group path. `&quot;accordion.row&quot;` matches only `row` groups whose chain of enclosing groups ends with `accordion`, so it no longer also matches a `row` under `tabs`. A bare identifier still matches every group with that identifier, exactly as before.
+- `Asset.get_data_structure(..., direct=True)` (keyword-only) checks only each matched group&#x27;s own leaf children and never enters nested groups. A group instance without the field directly is skipped, and the result is `[]` (not `None`) when no instance has it. Use it with an exact group path to get one node per instance and no nested-group matches.
+
+### Unchanged
+- The default search is still depth-first and first-match per group instance, and a miss still returns `None`. With the default, a group that lacks the field itself can still return a nested group&#x27;s field (e.g. `(&quot;column&quot;, &quot;title&quot;)` returning `column.video.title`); use `direct=True` to avoid that. Checked against the previous implementation on 5000 random trees: identical results.
+
+**Files changed:** `src/cascade_cms/cmstypes.py`, `tests/test_get_data_structure.py`, `CHANGELOG.md`
+
+&#x27;&#x27;&#x27;
+open(p,&quot;w&quot;).write(s.replace(marker, entry+marker,1))
+EOF
+.venv/bin/python -m pytest -q 2&gt;&amp;1 | tail -4; .venv/bin/ruff check . 2&gt;&amp;1 | tail -5; .venv/bin/python -m mypy src/ 2&gt;&amp;1 | tail -3; git status --short</pre></details><hr class="div"><div class="part">Both changes are implemented in `/mnt/D/py-cascade-cms` on the new branch `get-data-structure-path-direct`. I haven&#x27;t committed, bumped the version, tagged or published. All three gates pass: pytest (244 passed, 19 of them new), `ruff check`, and mypy.
+
+**What changed:**
+- **Dotted group path:** `get_data_structure(&quot;accordion.row&quot;, &quot;title&quot;)` matches only `row` groups whose enclosing chain ends in `accordion`. On the three-row shape it returns 3 nodes and skips the `tabs` row. A bare `&quot;row&quot;` still matches every `row`. Empty path segments like `&quot;a..b&quot;` raise `ValueError`.
+- **`direct=True`, keyword-only:** `(&quot;column&quot;, &quot;title&quot;, direct=True)` checks only `column`&#x27;s own leaf children. It returns `[]` when no `column` has a `title` directly, and it skips any instance that lacks one.
+- **Default mode:** unchanged. A miss still returns `None`. I compared the old and new code on 5000 random trees, and the results were identical, including node identity.
+- **Files:** `src/cascade_cms/cmstypes.py`, a new `tests/test_get_data_structure.py`, and a `CHANGELOG.md` entry under `[Unreleased]`. The tests use the `accordion`/`tabs`/`main-content` shapes from your live page. They also pin the default&#x27;s depth-first first-match behaviour, so a future change can&#x27;t alter it unnoticed.
+
+**Not done:**
+- **Version:** I didn&#x27;t bump `pyproject.toml`. It should be a minor release, 3.9.0, but the number and tag are yours.
+- **Live check:** I didn&#x27;t run it against a live page. The tests use the shapes from your captures, so a run of `handoff_tests.py` with `accordion.row` and `direct` on `970e61f0…` would be a good last check once it&#x27;s installed.
+- **This repo:** `asset_api.md` and `SKILL.md` still describe the old behaviour. I&#x27;ll update them after the library is released and `build_release.py` bundles it.
+- **Untracked file:** `handoff_followup_live_findings.txt` was already untracked there, and I left it alone.
+
+Should I commit it on that branch, leaving the handoff file out?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 18:11 UTC</span></span></div><div class="body"><div class="part">Actually, just keep the default ignore logic was it `None`?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-30 18:11 UTC</span></span></div><div class="body"><div class="part">Yes. The default returns `None` on a miss. I&#x27;ll make `direct=True` do the same, so there is one miss convention.</div><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">cd /mnt/D/py-cascade-cms &amp;&amp; python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">2.6s</span></summary><pre class="si">cd /mnt/D/py-cascade-cms &amp;&amp; python - &lt;&lt;&#x27;EOF&#x27;
+p=&quot;src/cascade_cms/cmstypes.py&quot;
+s=open(p).read()
+s=s.replace(&#x27;&#x27;&#x27;        if direct:
+            return matches
+        return matches if matches else None
+&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;        return matches if matches else None
+&#x27;&#x27;&#x27;)
+s=s.replace(&#x27;&#x27;&#x27;        the field directly is skipped, and the result is an empty list, not
+        None, when no instance has it.&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;        the field directly is skipped, and the result is None when no
+        instance has it, as in the default mode.&#x27;&#x27;&#x27;)
+open(p,&quot;w&quot;).write(s)
+
+p=&quot;tests/test_get_data_structure.py&quot;
+s=open(p).read()
+s=s.replace(&#x27;&#x27;&#x27;    assert asset.get_data_structure(
+        &quot;column&quot;, &quot;title&quot;, direct=True
+    ) == []
+
+
+def test_direct_returns_the_groups_own_field&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;    assert (
+        asset.get_data_structure(&quot;column&quot;, &quot;title&quot;, direct=True)
+        is None
+    )
+
+
+def test_direct_returns_the_groups_own_field&#x27;&#x27;&#x27;)
+s=s.replace(&#x27;&#x27;&#x27;    assert asset.get_data_structure(
+        &quot;column&quot;, &quot;title&quot;, direct=True
+    ) == []
+
+
+def test_direct_with_dotted&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;    assert (
+        asset.get_data_structure(&quot;column&quot;, &quot;title&quot;, direct=True)
+        is None
+    )
+
+
+def test_direct_with_dotted&#x27;&#x27;&#x27;)
+s=s.replace(&#x27;&#x27;&#x27;def test_miss_is_none_by_default_and_empty_list_when_direct():&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;def test_miss_is_none_in_both_modes():&#x27;&#x27;&#x27;)
+s=s.replace(&#x27;&#x27;&#x27;    assert asset.get_data_structure(&quot;nope&quot;, &quot;title&quot;, direct=True) == []&#x27;&#x27;&#x27;,&#x27;&#x27;&#x27;    assert (
+        asset.get_data_structure(&quot;nope&quot;, &quot;title&quot;, direct=True)
+        is None
+    )&#x27;&#x27;&#x27;)
+open(p,&quot;w&quot;).write(s)
+
+p=&quot;CHANGELOG.md&quot;
+s=open(p).read()
+s=s.replace(&quot;and the result is `[]` (not `None`) when no instance has it.&quot;,&quot;and the result is `None` when no instance has it, same as the default mode.&quot;)
+s=s.replace(&quot;a miss still returns `None`. With the default&quot;,&quot;a miss returns `None` in both modes. ...</pre></details><hr class="div"><div class="part">`get_data_structure` now returns `None` on a miss in both modes, so `direct=True` no longer returns `[]`. I updated the code, the docstring, the tests and the changelog entry to match.
+
+pytest (244 passed), `ruff check` and mypy all pass. The work is still uncommitted on `get-data-structure-path-direct` in `/mnt/D/py-cascade-cms`.
+
+Existing callers get no surprises: a miss is `None` whichever mode they use. With `direct=True`, `(&quot;column&quot;, &quot;title&quot;)` on a `column` with no direct `title` returns `None`.
+
+Should I commit it on that branch? I&#x27;d leave out the untracked `handoff_followup_live_findings.txt`.</div></div></div></article></div></main></body></html>

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>drop-asset-type-key-aliases</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>drop-asset-type-key-aliases</h1>
+<p class="meta">2026-09-03 &middot; py-cascade-cms &middot; claude-code &middot; 29 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude-code</span></span></div><div class="item"><b>Active time</b><span>31m</span></div><div class="item"><b>Date</b><span>2026-09-03</span></div><div class="item"><b>Tokens</b><span>In 8.1K · Out 48.9K · Cache read 6.7M · Cache write 205.7K</span></div></div><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-03 00:05 UTC</span></span></div><div class="body"><div class="part">Why does `_ASSET_TYPE_KEY_ALIASES` have predefined keys?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Haiku 4.5 <span class="sep">&middot;</span> <span class="mode m-default">Default</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-03 00:05 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -r &quot;_ASSET_TYPE_KEY_ALIASES&quot; /mnt/D/py-cascade-cms --include=&quot;*.py&quot;</span><span class="td">&lt;1s</span></summary><pre class="si">grep -r &quot;_ASSET_TYPE_KEY_ALIASES&quot; /mnt/D/py-cascade-cms --include=&quot;*.py&quot;</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">cascade_cms/mcp/references.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/mcp/references.py</pre></details><hr class="div"><div class="part">`_ASSET_TYPE_KEY_ALIASES` has predefined keys because **Cascade&#x27;s REST API has hard-coded exceptions to its normal naming convention that can&#x27;t be derived programmatically**.
+
+Here&#x27;s what&#x27;s happening:
+
+1. **Normal pattern**: When you request an asset of type `&quot;format&quot;`, Cascade wraps the response under a re-cased key like `&quot;format&quot;`. This is predictable and mechanical.
+
+2. **The exception**: For script formats (`format_SCRIPT`), Cascade responds with the wrapper key `&quot;scriptformat&quot;` instead of the expected `&quot;format&quot;`. This is a hard-coded quirk of the API server.
+
+3. **Why it&#x27;s predefined**: Rather than guess at patterns or assume all responses follow the re-casing rule, the library uses a **&quot;don&#x27;t guess&quot; discipline** (as noted in the comments at cmstypes.py:604-607 and references.py:26). This means:
+   - Only map what&#x27;s been **confirmed via actual Cascade payloads**
+   - Make exceptions explicit and visible in the code
+   - If a new exception is discovered, add it to the dict rather than inferring a rule
+   - This keeps the behavior predictable and prevents silent bugs from wrong guesses
+
+So the predefined entries aren&#x27;t an arbitrary choice—they&#x27;re a defensive pattern against Cascade&#x27;s undocumented API quirks. You document what you know works, and nothing else.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-03 00:11 UTC</span></span></div><div class="body"><div class="part">Is it possible to change it? I understand it use case. Though, That makes the `Asset` class more bloated. I think that this should be something that is handled by Cascade and rely on CascadeErrors. Placing the responsibility on the script writer to figure how they want it handled.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Haiku 4.5 <span class="sep">&middot;</span> <span class="mode m-default">Default</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-03 00:11 UTC</span></span></div><div class="body"><div class="part">You raise a fair point—there&#x27;s a design tension here. The current approach centralizes the normalization problem in the `Asset` class to provide a seamless interface. But you&#x27;re right that it couples library code to Cascade API quirks.
+
+A few options to consider:
+
+**Option 1: Remove normalization entirely, expose raw keys**
+- Strip `_ASSET_TYPE_KEY_ALIASES` and just use `_asset_type` as-is
+- The caller sees exactly what Cascade returns
+- Pro: lighter, no magic, explicit responsibility
+- Con: caller code has to handle &quot;scriptformat&quot; vs &quot;format&quot; inconsistency
+
+**Option 2: Fail fast on unknown wrapper keys**
+- Validate that the response wrapper matches expected re-casing when creating an Asset
+- Raise a `CascadeError` or similar if it doesn&#x27;t
+- Pro: explicit failure mode, caller sees the problem immediately
+- Con: might break on legit Cascade responses we haven&#x27;t documented yet
+
+**Option 3: Move normalization to a separate decorator/factory**
+- Keep Asset simple (just hold the raw data)
+- Have a separate `normalize_asset()` function callers can optionally use
+- Pro: Asset stays lightweight, normalization is opt-in
+- Con: extra boilerplate for callers who want normalized types
+
+**Option 4: Make it configurable**
+- Add a parameter to Asset.__init__ to control whether to normalize
+- Callers can choose lightweight or normalized versions
+
+Which approach aligns better with how you want the library to behave? My gut is **Option 2** (fail fast) might be cleanest—let Cascade&#x27;s inconsistencies bubble up as explicit errors rather than silently normalizing them away.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-03 00:14 UTC</span></span></div><div class="body"><div class="part">Lets plan for Option 1 this keeps the Asset light and clean rather than forcing it behave similar to Pydantic BaseModels. That&#x27;s why I moved away from making it a `BaseModel` because I would have enable `extra` in the configs.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5 <span class="sep">&middot;</span> <span class="mode m-plan">Plan</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-03 00:14 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Agent</span><span class="ts">Explore</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;subagent_type&quot;: &quot;Explore&quot;, &quot;description&quot;: &quot;Find all usages of Asset.asset_type and _ASSET_TYPE_KEY_ALIASES&quot;, &quot;prompt&quot;: &quot;In the repo /mnt/D/py-cascade-cms, I&#x27;m planning to remove the `_ASSET_TYPE_KEY_ALIASES` normalization dict from the `Asset` class in src/cascade_cms/cmstypes.py (around line 608-617). Currently `Asset.asset_type` (a property) normalizes the raw response wrapper key (`_asset_type`, e.g. \&quot;scriptformat...&quot;}</pre></details><hr class="div"><div class="part">I&#x27;ve launched an Explore agent to map out all usages of `Asset.asset_type` and `_ASSET_TYPE_KEY_ALIASES` across the codebase (src, tests, and mcp/) so I can understand the blast radius before drafting the plan. I&#x27;ll report back once it completes.</div><hr class="div"><details class="note"><summary>Background task notification</summary><div class="part">a8a6eef4e1be441e4 
+ toolu_01SbCJsq9Grzv73XNJP6FKn7 
+ /tmp/claude-1000/-mnt-D-py-cascade-cms/a69f5e06-8e94-4d72-87b2-69a1c7a2d793/tasks/a8a6eef4e1be441e4.output 
+ completed 
+ Agent &quot;Find all usages of Asset.asset_type and _ASSET_TYPE_KEY_ALIASES&quot; finished 
+ A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once. 
+ ## Summary of findings
+
+### 1. Definition site
+
+**`src/cascade_cms/cmstypes.py`**
+- Lines 604-610: comment + `_ASSET_TYPE_KEY_ALIASES: ClassVar[dict[str, str]] = {&quot;scriptformat&quot;: &quot;format&quot;}` on `Asset`.
+- Lines 612-617: the `asset_type` property itself:
+  ```python
+  @property
+  def asset_type(self) -&amp;gt; str:
+      lowered = self._asset_type.lower()
+      return self._ASSET_TYPE_KEY_ALIASES.get(lowered, lowered)
+  ```
+- Line 568/573: `_asset_type` is set in `Asset.__init__` from `next(iter(data[&quot;asset&quot;].keys()))` — the raw response wrapper key, unmodified/uncased except lowering happens only in the property.
+- Line 968: `reconstructed = {&quot;asset&quot;: {asset._asset_type: data}}` — uses the raw `_asset_type` directly (bypasses the alias entirely already), inside what looks like a re-serialization helper. Unaffected by removing the alias dict.
+
+### 2. Consumers of `Asset.asset_type` (the property, not `_asset_type`)
+
+Only one production code path reads `Asset.asset_type`:
+
+- **`src/cascade_cms/cmstypes.py:445`**, inside `identifier_from_asset()` (def at line 426):
+  ```python
+  return IdentifierType(
+      identifier=uuid.UUID(asset.get(&quot;id&quot;)),
+      asset_type=cast(AssetTypes, asset.asset_type),
+      path=path_value,
+  )
+  ```
+  This feeds straight into `IdentifierType.asset_type`, which is declared `Annotated[AssetTypes, Field(default=..., alias=&quot;type&quot;)]` (line 356). `cast()` is a no-op at runtime — it&#x27;s purely a type-checker hint.
+
+- **`src/cascade_cms/operations.py:334-351`**, `Chain._edit_identifier(self, asset: Asset)` calls `identifier_from_asset(asset)` (line 351), which is invoked from `_build_edit_requests` for every `edit()` call (comment at line 300 confirms: &quot;each asset&#x27;s own id/path/site fields are used to build its per-request identifier&quot;). This is the real production trigger path — any `edit()` call on an `Asset` whose raw wrapper key doesn&#x27;t match a valid `AssetTypes` literal will hit this.
+
+- **`src/cascade_cms/operations.py:277`**: `single_asset.asset_type` inside `create()` — **NOT** the same thing. `single_asset` here is a `NewAsset` (payload/request model, see `NewAsset.asset_type` at cmstypes.py:305, a plain `AssetTypes`-typed field set by the caller), not a response `Asset`. This usage is unaffected by the alias removal.
+
+### 3. `identifier_from_asset()` / `IdentifierType` — will &quot;scriptformat&quot; actually break it?
+
+Yes, at runtime, not just for type-checkers.
+
+- `AssetTypes` (cmstypes.py:43-119) is a `Literal[...]` that includes `&quot;format&quot;`, `&quot;format_SCRIPT&quot;`, `&quot;format_XSLT&quot;`, but **not** `&quot;scriptformat&quot;`.
+- `IdentifierType.asset_type` (cmstypes.py:356) is declared `Annotated[AssetTypes, Field(default=..., alias=&quot;type&quot;)]` on a pydantic `BaseModel` with `model_config = ConfigDict(frozen=True, extra=&quot;forbid&quot;, populate_by_name=True)` (lines 349-353) — no `arbitrary_types_allowed`, no `strict=False` override, nothing that disables Literal validation.
+- Pydantic v2 validates `Literal` fields by exact membership check on every model construction, regardless of &quot;lax&quot;/strict mode — that check isn&#x27;t bypassable by `cast()`, which is purely a `typing` no-op that vanishes at runtime.
+- Therefore, `IdentifierType(identifier=..., asset_type=cast(AssetTypes, &quot;scriptformat&quot;), ...)` **will raise a `pydantic.ValidationError`** (&quot;Input should be &#x27;assetfactory&#x27;, &#x27;assetfactorycontainer&#x27;, ... &quot; listing all valid literals), since `&quot;scriptformat&quot;` is not a member.
+- Concretely: if the alias dict is removed, calling `.edit()` on any `Asset` that was read back from Cascade with wrapper key `scriptFormat` (i.e. any script-format asset) will start raising a `ValidationError` inside `identifier_from_asset()` the moment `_edit_identifier`/`edit()` builds the request identifier — this is the direct behavioral break the plan needs to account for.
+- Same applies to `src/cascade_cms/mcp/resolution.py:34-36`&#x27;s `_read()`, which also constructs an `IdentifierType(... asset_type=cast(AssetTypes, asset_type))` from an `asset_type: str` argument — if that string ever came from `Asset.asset_type` upstream (need to check callers) rather than a hardcoded literal, it would hit the same failure mode. (I did not find a caller in the current search that feeds `Asset.asset_type` into this specific function, but it&#x27;s the same validation trap if one is added.)
+
+### 4. Tests that assert normalized/aliased behavior
+
+**`tests/test_cmstypes.py`**
+- Lines 153-164: parametrized test that will need updating/removal —
+  ```python
+  @pytest.mark.parametrize(
+      (&quot;raw_key&quot;, &quot;expected&quot;),
+      [
+          (&quot;datadefinition&quot;, &quot;datadefinition&quot;),
+          (&quot;dataDefinition&quot;, &quot;datadefinition&quot;),
+          (&quot;sharedField&quot;, &quot;sharedfield&quot;),
+          (&quot;scriptFormat&quot;, &quot;format&quot;),   # &amp;lt;-- this case directly tests the alias
+      ],
+  )
+  def test_asset_type_normalizes_response_key(raw_key, expected):
+      asset = Asset({&quot;asset&quot;: {raw_key: {&quot;id&quot;: &quot;x&quot;}}})
+      assert asset.asset_type == expected
+  ```
+  The `(&quot;scriptFormat&quot;, &quot;format&quot;)` case will fail once the alias is dropped (would now expect `&quot;scriptformat&quot;`).
+- Lines 167-209 (`test_identifier_from_asset_builds_full_identifier`, `test_identifier_from_asset_without_site_fields`) use `asset_type=&quot;page&quot;`/`&quot;folder&quot;` — both pass through unchanged (identity mapping), so these are unaffected by the alias removal itself, but they do exercise the `identifier_from_asset` → `IdentifierType` path that would break for non-literal-matching types.
+
+No other test file in `tests/` (including `tests/mcp/`) references `scriptformat`/`scriptFormat` or the alias dict. `tests/test_operation_chains.py:742-752` (`test_standalone_edit_derives_identifier_from_asset`) exercises the `edit()` → `identifier_from_asset` path via `make_asset(...)` but only with `asset_type=&quot;page&quot;` (default), so it won&#x27;t fail, though it&#x27;s the test that would catch a regression if extended to a script-format asset.
+
+### 5. `src/cascade_cms/mcp/` directory
+
+- **`formatting.py`**: no reference to `Asset.asset_type`, `_asset_type`, or `_ASSET_TYPE_KEY_ALIASES` at all (confirmed via grep — zero matches). Its docstring (line 5) only mentions `identifier_from_asset()` in cmstypes.py as doing &quot;the same thing&quot; it avoids re-deriving.
+- **`resolution.py`**: no direct use of `Asset.asset_type`; `_read()` (lines 21-44) takes `asset_type: str` as a parameter (sourced from &quot;another asset&#x27;s own `_data`&quot; per the comment at line 29-33, i.e. raw JSON field values like `contentTypeId`&#x27;s sibling data — not `Asset.asset_type`) and passes it into `IdentifierType(... asset_type=cast(AssetTypes, asset_type))`, same validation trap as described in §3 but for a different data source.
+- **`references.py`**: has its own, unrelated `_REFERENCE_TYPE_ALIASES` dict (lines 27-29, currently just `{&quot;parentfolder&quot;: &quot;folder&quot;}`) used by `guess_asset_type()`. It is a *separate* mechanism (for guessing an asset type from an `&amp;lt;prefix&amp;gt;Id` field name, not from `Asset._asset_type`), but its comment at line 26 explicitly name-drops `_ASSET_TYPE_KEY_ALIASES`:
+  ```python
+  # Prefixes that don&#x27;t match a literal AssetTypes value directly but are
+  # confirmed (via a real payload) to mean a specific type. Only what&#x27;s
+  # confirmed is listed here - mirrors Asset._ROOT_CONTAINER_FIELDS/
+  # _ASSET_TYPE_KEY_ALIASES&#x27;s &quot;don&#x27;t guess&quot; discipline in cmstypes.py.
+  ```
+  This comment would become a dangling reference to a removed symbol and should be updated/removed as part of the change, even though `references.py`&#x27;s logic itself has no functional dependency on `_ASSET_TYPE_KEY_ALIASES`.
+
+### Other related dict (context, not directly affected)
+
+- `Asset._ROOT_CONTAINER_FIELDS` (cmstypes.py:710-714) and `root_container_id()` (716-728) — a structurally similar &quot;confirmed-only&quot; alias/lookup dict for root-container field names, unrelated to `asset_type` normalization and not touched by this change, but grouped with it in the `references.py` comment mentioned above. 
+  36057  17  76091</div></details><hr class="div"><div class="part">The Explore agent found something important: removing `_ASSET_TYPE_KEY_ALIASES` isn&#x27;t just a cosmetic simplification — it has a concrete behavioral consequence.
+
+`identifier_from_asset()` (cmstypes.py:426-447) feeds `asset.asset_type` into `IdentifierType.asset_type`, which is a **strictly-validated pydantic `Literal[AssetTypes]` field** (frozen, `extra=&quot;forbid&quot;`). Pydantic validates `Literal` membership at runtime regardless of the `cast()` type-hint. So:
+
+- Today: reading a script-format asset gives wrapper key `&quot;scriptFormat&quot;` → normalized via the alias to `&quot;format&quot;` → `edit()` on that asset works.
+- After Option 1 (raw pass-through, no alias): `asset.asset_type` becomes `&quot;scriptformat&quot;`, which is **not** a member of the `AssetTypes` Literal → `identifier_from_asset()` raises `pydantic.ValidationError` the moment `.edit()` is called on any script-format asset (via `operations.py`&#x27;s `Chain._edit_identifier`).
+
+So this isn&#x27;t purely a &quot;make Asset leaner&quot; refactor — it&#x27;s also a functional regression for editing script-format assets, unless something is done. There&#x27;s a real fork here on how to reconcile that with your intent:</div><details class="step"><summary><span class="tn">AskUserQuestion</span><span class="ts"></span><span class="td">3m 37s</span><span class="err">failed</span></summary><pre class="si">{&quot;questions&quot;: [{&quot;question&quot;: &quot;Removing the alias means every edit() call on a script-format asset (wrapper key \&quot;scriptFormat\&quot;) will raise a pydantic ValidationError inside identifier_from_asset(), since \&quot;scriptformat\&quot; isn&#x27;t a valid AssetTypes literal. How should this be handled?&quot;, &quot;header&quot;: &quot;scriptformat break&quot;, &quot;options&quot;: [{&quot;label&quot;: &quot;Let it raise (Recommended)&quot;, &quot;description&quot;: &quot;No workaround. Asset.asset_type is raw and unnormalized; identifier_from_asset()&#x27;s existing pydantic validation naturally rejects \&quot;scriptformat\&quot; with a clear ValidationError. This matches your \&quot;let Cascade/the type system surface it, script writer handles it\&quot; intent exactly — no new code needed.&quot;}, {&quot;label&quot;: &quot;Widen AssetTypes to accept scriptformat&quot;, &quot;description&quot;: &quot;Add \&quot;scriptformat\&quot; as a valid literal alongside \&quot;format\&quot; in AssetTypes, so IdentifierType construction succeeds with the raw wrapper key instead of erroring. Keeps edit() working for script formats but means the request-side type sent to Cascade would be the wrapper key, not the documented request type \&quot;format\&quot; (untested whether Cascade&#x27;s edit endpoint accepts \&quot;scriptformat\&quot; as a URL segment).&quot;}, {&quot;label&quot;: &quot;Normalize only at identifier_from_asset(), not on Asset&quot;, &quot;description&quot;: &quot;Keep Asset.asset_type fully raw (no alias, no bloat on Asset itself). Move a small, local mapping into identifier_from_asset() (or a helper it calls) so IdentifierType construction still succeeds for known Cascade wrapper-key quirks. Asset stays lea...</pre></details><hr class="div"><div class="part">What would you like to clarify?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-03 00:26 UTC</span></span></div><div class="body"><div class="part">I see now, so this is side effect from a different conversation about converting the 2 param `(identifier, Asset)` to `(Asset)`. Maybe I&#x27;ll conform more to Cascade endpoint. Rather than exposing `asset_type` as an &quot;actual&quot; `asset_type` it should be treated as a raw string. Might be worth renaming to something like `internal_type` to remove confusion between real asset type used in the endpoint. My rationale for this is that the endpoint doesn&#x27;t use the asset type all it cares about is that the asset is provided in the body of the request in the same format as the response if you were to `read()` it.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5 <span class="sep">&middot;</span> <span class="mode m-plan">Plan</span> <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-03 00:27 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Agent</span><span class="ts">Explore</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;subagent_type&quot;: &quot;Explore&quot;, &quot;description&quot;: &quot;Trace how asset_type is used to build edit request URLs&quot;, &quot;prompt&quot;: &quot;In the repo /mnt/D/py-cascade-cms, I&#x27;m investigating how the `edit()` operation builds its Cascade REST request, specifically whether the \&quot;asset_type\&quot; segment used to build the request URL/identifier must be a canonical Cascade request-side type (like \&quot;format\&quot;) or whether it&#x27;s more flexible (e.g., c...&quot;}</pre></details><hr class="div"><div class="part">That clarifies the real question: whether the URL segment `edit()` needs for its identifier must match the *request-side* type used for `read()`, or whether Cascade&#x27;s edit endpoint only cares about the request body being round-tripped correctly (making the URL type segment largely irrelevant/routing-only). I&#x27;ve launched an agent to trace the actual HTTP request-building code to settle that. I&#x27;ll report back once it&#x27;s done.</div><hr class="div"><details class="note"><summary>Background task notification</summary><div class="part">a39f29a5470f3fcb8 
+ toolu_01S7EjstaFakYFmE6ZbEbBVW 
+ /tmp/claude-1000/-mnt-D-py-cascade-cms/a69f5e06-8e94-4d72-87b2-69a1c7a2d793/tasks/a39f29a5470f3fcb8.output 
+ completed 
+ Agent &quot;Trace how asset_type is used to build edit request URLs&quot; finished 
+ A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once. 
+ I have everything needed for a full report.
+
+## Report: `edit()` request-building and the role of `asset_type`
+
+### 1. `edit()` flow in `src/cascade_cms/operations.py`
+
+- `OperationChain.edit()` (operations.py:291-332) does **not** call `_identifier_operation` and never calls `resolve_identifier()`. It either builds requests immediately via `_build_edit_requests` (payload not callable) or defers to it via a `builder` partial (payload callable, operations.py:313-322).
+- `_build_edit_requests` (operations.py:353-382):
+  ```python
+  url = self._driver._build_url(&quot;edit&quot;)                 # line 375 — NO type/id segments at all
+  identifier = self._edit_identifier(single_asset)       # line 376 — used only for RequestExecutor.identifier
+  requests.append(RequestExecutor(url, &quot;POST&quot;, parser, payload=single_asset, identifier=identifier))
+  ```
+  So the actual HTTP URL for `edit` is literally `{base_url}/edit` — a fixed string built by `CascadeCMSRestDriver._build_url(&quot;edit&quot;)` (driver.py:226-227: `&quot;/&quot;.join([self.base_url, *map(str, segments)])`), with **zero** asset-type or id path segments appended.
+- `_edit_identifier` (operations.py:334-351) calls `identifier_from_asset(asset)` (cmstypes.py:426-447), which builds an `IdentifierType` using the asset&#x27;s **normalized** `asset.asset_type` (e.g. `&quot;format&quot;`, not `&quot;scriptformat&quot;`/`&quot;scriptFormat&quot;`). This `IdentifierType` is attached to `RequestExecutor.identifier` purely for bookkeeping — it feeds `RequestExecutor.log_key` (driver.py:73-85, used for naming verbose-mode JSON log files) and the chain&#x27;s `_asset_identifier` (used for chain-level error logging/labeling, per `OperationChain._append`, operations.py:126-128). It is **never** used to build the request URL for `edit`.
+
+By contrast, `read`/`delete`/`copy`/`move`/`publish`/etc. go through `_identifier_operation` (operations.py:184-212), which **does** call `resolve_identifier(identifier)` (cmstypes.py:412-423) and interpolates the resulting `(asset_type, id)` or `(asset_type, siteName, path)` tuple into the URL via `self._driver._build_url(op_name, *segments)` — e.g. `.../read/{asset_type}/{id}`.
+
+**Conclusion for Q1/Q2/Q3**: `resolve_identifier()`&#x27;s returned tuple is literally URL-path-joined for identifier-addressed operations (read/delete/copy/move/publish/checkIn/checkOut/etc.), but `edit()` is the one operation that bypasses this entirely — its URL is just `.../edit` with no asset-type segment at all. So the &quot;asset_type&quot; question is moot for `edit()`&#x27;s URL: there is no URL segment for Cascade to validate or key off of. The only place `asset_type` matters for `edit()` is inside the **JSON request body**.
+
+### 2. What the `edit()` request body actually contains
+
+`serialize_payload()` (cmstypes.py:977-983) dispatches an `Asset` payload to `AssetAdapter.dump_json()` (cmstypes.py:960-969):
+```python
+data = {**asset._data}
+reconstructed = {&quot;asset&quot;: {asset._asset_type: data}}   # RAW wrapper key, e.g. &quot;scriptFormat&quot;
+return json.dumps(reconstructed).encode()
+```
+This uses `asset._asset_type` — the **raw, un-normalized wrapper key exactly as Cascade sent it in the read response** (e.g. `&quot;scriptFormat&quot;`) — not the normalized `asset.asset_type` property (`&quot;format&quot;`) that `identifier_from_asset` uses. This is a deliberate round-trip design: CHANGELOG.md:46 documents that `dump_json` was changed to serialize `asset._data` verbatim so an `edit()` round-trip doesn&#x27;t drop fields, and the whole `Asset` class docstring (cmstypes.py:555-566) frames `_data`/`_asset_type` as &quot;thin dict-backed wrapper&quot; preserving the original payload shape.
+
+### 3. HTTP client / URL template
+
+- Client: `aiohttp` (`driver.py:7`, `ClientSession`), with `aiohttp_client_cache` for GET caching only (driver.py:27-29, `allowed_methods=(&quot;GET&quot;,)`).
+- URL template: `CascadeCMSRestDriver._build_url(*segments)` (driver.py:226-227) is a bare string join: `base_url + &quot;/&quot; + segment1 + &quot;/&quot; + segment2 + ...`. There is **no validation** anywhere of the segment strings against any known-type list — `resolve_identifier` returns plain `str(...)` casts (cmstypes.py:420, 423) and `_build_url` does `map(str, segments)`. Nothing checks that `asset_type` is a member of `AssetTypes` before it&#x27;s interpolated into a URL (for the identifier-addressed ops that do include it). For `edit`, since there&#x27;s no type segment in the URL at all, this question doesn&#x27;t even arise there.
+
+### 4. Docs/AGENTS.md/comments on Cascade&#x27;s actual REST contract
+
+- No file in the repo (`AGENTS.md`, `README.md`, `CHANGELOG.md`, `PUBLISHING.md`, MCP planning docs) documents Cascade&#x27;s server-side validation behavior for the `edit` endpoint&#x27;s URL segment — there&#x27;s no discussion of whether Cascade&#x27;s real `/api/v1/edit` even accepts/uses a type/id URL suffix. Historical git blame / design intent embedded in code comments (operations.py:296-302, and `_edit_identifier`&#x27;s docstring at operations.py:334-351) frames `edit`&#x27;s identity model explicitly as **payload-addressed, not URL-addressed**: &quot;The `edit` endpoint is addressed by the payload rather than an explicit identifier: each asset&#x27;s own id/path/site fields are used to build its per-request identifier... and the chain&#x27;s own logging identifier is captured from it too&quot; (operations.py:298-302) — i.e., this codebase&#x27;s authors already concluded Cascade&#x27;s `edit` operation only cares about the JSON body&#x27;s `id`/type-key, and only builds a same-shaped `IdentifierType` locally for logging purposes, never for the URL.
+- `cmstypes.py:604-610` comments explain `_ASSET_TYPE_KEY_ALIASES` exists because &quot;Cascade wraps a response under a key that&#x27;s usually the requested asset_type re-cased... but not always&quot; — confirming the two strings (`&quot;format&quot;` request-side vs `&quot;scriptFormat&quot;`/`&quot;scriptformat&quot;` response-wrapper-side) are **known by this codebase to be genuinely different literal strings for at least one asset type**, and the alias map exists specifically to bridge that mismatch for `AssetTypes`/request-routing purposes.
+
+### 5. Are `&quot;format&quot;` and `&quot;scriptformat&quot;` interchangeable for the edit URL segment?
+
+- For `edit()` specifically: **the question is moot** — there is no type segment in the edit URL at all (see #1). So neither `&quot;format&quot;` nor `&quot;scriptformat&quot;` is used to build `edit`&#x27;s URL/path.
+- More broadly in this codebase: **no**, they are not treated as interchangeable strings. `Asset.asset_type` (cmstypes.py:612-617) explicitly normalizes `&quot;scriptformat&quot;` → `&quot;format&quot;` via `_ASSET_TYPE_KEY_ALIASES` (cmstypes.py:608-610) precisely because they are different literals that must be reconciled before use as a request-side type (e.g. for `IdentifierType.asset_type`, which — for read/delete/etc. — *would* end up interpolated into a URL via `resolve_identifier`). Test `test_asset_type_normalizes_response_key` (tests/test_cmstypes.py:150-161) explicitly parametrizes `(&quot;scriptFormat&quot;, &quot;format&quot;)`, confirming the codebase&#x27;s own test suite treats these as requiring translation, not as interchangeable strings, for any request-side/routing usage.
+- Meanwhile, the edit **request body**&#x27;s wrapper key deliberately does the opposite — it uses the raw `&quot;scriptFormat&quot;` (un-normalized), not `&quot;format&quot;`, to round-trip byte-for-byte what Cascade originally sent (cmstypes.py:960-969, CHANGELOG.md:46). So within this single codebase there are two different, deliberately divergent uses of &quot;the type string&quot; for the same asset: the JSON body key is the raw response wrapper key, while `IdentifierType.asset_type` (used for read/delete/... URLs, and for edit&#x27;s non-URL-affecting bookkeeping) is the normalized request-side type. 
+  45505  20  85465</div></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -n &quot;identifier&quot; /mnt/D/py-cascade-cms/src/cascade_cms/driver.py | head -60</span><span class="td">&lt;1s</span></summary><pre class="si">grep -n &quot;identifier&quot; /mnt/D/py-cascade-cms/src/cascade_cms/driver.py | head -60</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -n &quot;_asset_identifier&quot; /mnt/D/py-cascade-cms/src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">grep -n &quot;_asset_identifier&quot; /mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -rn &quot;identifier_from_asset&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-cascade-cms/tests</span><span class="td">&lt;1s</span></summary><pre class="si">grep -rn &quot;identifier_from_asset&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-cascade-cms/tests</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/driver.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/driver.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -n &quot;_line\|class.*Line\|def start&quot; /mnt/D/py-cascade-cms/src/cascade_cms/operations.py | head -30</span><span class="td">&lt;1s</span></summary><pre class="si">grep -n &quot;_line\|class.*Line\|def start&quot; /mnt/D/py-cascade-cms/src/cascade_cms/operations.py | head -30</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -n &quot;class ChainLineBuilder&quot; -A 30 /mnt/D/py-cascade-cms/src/cascade_cms/*.py | grep -A 30 &quot;class ChainLin...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -n &quot;class ChainLineBuilder&quot; -A 30 /mnt/D/py-cascade-cms/src/cascade_cms/*.py | grep -A 30 &quot;class ChainLineBuilder&quot;</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -n &quot;_format_chain_identifier&quot; -A 25 /mnt/D/py-cascade-cms/src/cascade_cms/operation_logger.py | head -40</span><span class="td">&lt;1s</span></summary><pre class="si">grep -n &quot;_format_chain_identifier&quot; -A 25 /mnt/D/py-cascade-cms/src/cascade_cms/operation_logger.py | head -40</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -rn &quot;identifier_from_asset\|IdentifierType&quot; /mnt/D/py-cascade-cms/src/cascade_cms/__init__.py 2&gt;/dev/null...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -rn &quot;identifier_from_asset\|IdentifierType&quot; /mnt/D/py-cascade-cms/src/cascade_cms/__init__.py 2&gt;/dev/null; echo &quot;---&quot;; grep -n &quot;asset_type&quot; /mnt/D/py-cascade-cms/tests/test_cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Write</span><span class="ts">.claude/plans/lets-plan-for-option-generic-cloud.md</span><span class="td">&lt;1s</span></summary><pre class="si">/home/Coder/.claude/plans/lets-plan-for-option-generic-cloud.md</pre></details><hr class="div"><details class="step"><summary><span class="tn">ToolSearch</span><span class="ts">select:ExitPlanMode</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;select:ExitPlanMode&quot;, &quot;max_results&quot;: 1}</pre></details><hr class="div"><details class="step"><summary><span class="tn">ExitPlanMode</span><span class="ts"># Drop `_ASSET_TYPE_KEY_ALIASES`; treat `Asset`&#x27;s type key as a raw string
+
+## Context
+
+`A...</span><span class="td">2m 13s</span></summary><pre class="si">{&quot;plan&quot;: &quot;# Drop `_ASSET_TYPE_KEY_ALIASES`; treat `Asset`&#x27;s type key as a raw string\n\n## Context\n\n`Asset._ASSET_TYPE_KEY_ALIASES` (cmstypes.py:608-610) exists to normalize\nCascade&#x27;s response-wrapper key (e.g. `\&quot;scriptFormat\&quot;`) back to a \&quot;request-side\&quot;\n`AssetTypes` value (`\&quot;format\&quot;`) via the `Asset.asset_type`...&quot;, &quot;planFilePath&quot;: &quot;/home/Coder/.claude/plans/lets-plan-for-option-generic-cloud.md&quot;}</pre></details><hr class="div"><div class="part">Implementing the approved plan now.</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Now the `AssetLogIdentifier` type and `identifier_from_asset` → `edit_log_identifier_from_asset` rename:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Need `NamedTuple` import. Let me check the imports.</div><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Now check if `PathBase` is still used elsewhere (we removed its usage in `identifier_from_asset`) and if `cast`/`ClassVar` remain used.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -n &quot;PathBase\|\bcast(\|ClassVar&quot; /mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">grep -n &quot;PathBase\|\bcast(\|ClassVar&quot; /mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Good, all still used elsewhere. Now update `operations.py`.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -n &quot;identifier_from_asset\|_asset_identifier: \|IdentifierType&quot; /mnt/D/py-cascade-cms/src/cascade_cms/ope...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -n &quot;identifier_from_asset\|_asset_identifier: \|IdentifierType&quot; /mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><div class="part">Now let&#x27;s update `references.py`&#x27;s comment.</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">cascade_cms/mcp/references.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/mcp/references.py</pre></details><hr class="div"><div class="part">Now let&#x27;s check for any other stray references to the old names, then move to updating tests.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -rn &quot;identifier_from_asset\|_ASSET_TYPE_KEY_ALIASES\|\.asset_type\b&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -rn &quot;identifier_from_asset\|_ASSET_TYPE_KEY_ALIASES\|\.asset_type\b&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-cascade-cms/tests | grep -v &quot;IdentifierType.asset_type\|NewAsset\|payload_dict\[.asset_type.\]\|self\.asset_type\|asset_type: AssetTypes\|asset_type=cast\|asset_type=self\.asset_type&quot;</pre></details><hr class="div"><div class="part">`operations.py:278` (`single_asset.asset_type` on `NewAsset`) is unaffected — correct, that&#x27;s the payload field. Let&#x27;s check `formatting.py:5` docstring reference and fix it.</div><details class="step"><summary><span class="tn">Read</span><span class="ts">cascade_cms/mcp/formatting.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/mcp/formatting.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">cascade_cms/mcp/formatting.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/mcp/formatting.py</pre></details><hr class="div"><div class="part">Now let&#x27;s update the tests. First, `test_cmstypes.py`.</div><details class="step"><summary><span class="tn">Read</span><span class="ts">py-cascade-cms/tests/test_cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">py-cascade-cms/tests/test_cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">py-cascade-cms/tests/test_cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">py-cascade-cms/tests/test_cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_cmstypes.py</pre></details><hr class="div"><div class="part">Now `test_operation_chains.py`.</div><details class="step"><summary><span class="tn">Read</span><span class="ts">py-cascade-cms/tests/test_operation_chains.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_operation_chains.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">py-cascade-cms/tests/test_operation_chains.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_operation_chains.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">py-cascade-cms/tests/test_operation_chains.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_operation_chains.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">py-cascade-cms/tests/test_operation_chains.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_operation_chains.py</pre></details><hr class="div"><div class="part">Now let&#x27;s search for any other spot referencing `.asset_type` on a real `Asset` instance elsewhere (e.g., mcp tests, other test helpers) that I might&#x27;ve missed.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -rn &quot;identifier_from_asset\|_ASSET_TYPE_KEY_ALIASES&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-cascade-cms/test...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -rn &quot;identifier_from_asset\|_ASSET_TYPE_KEY_ALIASES&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-cascade-cms/tests
+echo &quot;---asset_type on Asset instances---&quot;
+grep -rn &quot;asset\.asset_type\|\.asset_type ==&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-cascade-cms/tests</pre></details><hr class="div"><div class="part">That last one is `NewAsset.asset_type`, unrelated. Clean. Now let&#x27;s run the test suite to verify.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">python -m pytest tests/test_cmstypes.py tests/test_operation_chains.py -q 2&gt;&amp;1 | tail -60</span><span class="td">1.9s</span></summary><pre class="si">python -m pytest tests/test_cmstypes.py tests/test_operation_chains.py -q 2&gt;&amp;1 | tail -60</pre></details><hr class="div"><div class="part">All passing. Now run the full test suite.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">python -m pytest -q 2&gt;&amp;1 | tail -40</span><span class="td">2.0s</span></summary><pre class="si">python -m pytest -q 2&gt;&amp;1 | tail -40</pre></details><hr class="div"><div class="part">All 167 tests pass. Final grep spot-check per the plan&#x27;s verification step:</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -rn &quot;asset_type\b&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-cascade-cms/tests</span><span class="td">&lt;1s</span></summary><pre class="si">grep -rn &quot;asset_type\b&quot; /mnt/D/py-cascade-cms/src /mnt/D/py-cascade-cms/tests</pre></details><hr class="div"><div class="part">All remaining hits are `NewAsset.asset_type`, `IdentifierType.asset_type`, `Path.asset_type`, or unrelated `guess_asset_type`/dict-key usages — none reference the removed `Asset.asset_type` property. Full suite (167 tests) passes.
+
+## Summary
+
+- **`src/cascade_cms/cmstypes.py`**: removed `_ASSET_TYPE_KEY_ALIASES`; renamed `Asset.asset_type` → `Asset.internal_type` (returns the raw, unnormalized wrapper key); replaced `identifier_from_asset()` with `edit_log_identifier_from_asset()`, which now returns a new lightweight `AssetLogIdentifier` `NamedTuple` (id + raw_type, duck-typed `get_id`/`get_type`/`get_path`) instead of a strictly-validated `IdentifierType` — since `edit()`&#x27;s request has no type/id URL segment and this value is only ever used for verbose-log labeling.
+- **`src/cascade_cms/operations.py`**: updated `Chain._asset_identifier` type hint and `_edit_identifier()` to use `AssetLogIdentifier`/`edit_log_identifier_from_asset`.
+- **`src/cascade_cms/mcp/references.py`** and **`formatting.py`**: updated stale comments referencing the old names.
+- **Tests**: renamed/updated `test_cmstypes.py` and `test_operation_chains.py` cases to match — notably `scriptFormat` now normalizes to `&quot;scriptformat&quot;` (no aliasing), not `&quot;format&quot;`.
+
+Net effect: `Asset` is now a pure raw passthrough with no hidden normalization, and the one place that used to need a &quot;real&quot; `AssetTypes` value for logging no longer does — it was never load-bearing for the actual HTTP request.</div><hr class="div"><details class="note"><summary>Message from another Claude session (schema-authoritative-discovery)</summary><div class="part">Hi — I&#x27;m the &quot;schema-authoritative-discovery&quot; session, working on py-cascade-cms too (the read-only MCP server under src/cascade_cms/mcp/). I noticed cmstypes.py changed on disk mid-session, and our user pointed me at you to check for conflicts before I finalize a Phase 3 plan.
+
+My Phase 3 plan (cascade_root_container_id + cascade_list_sites tools) depends on these specific pieces of cmstypes.py:
+1. `Asset._ROOT_CONTAINER_FIELDS` (ClassVar dict: &quot;datadefinition&quot;-&gt;&quot;rootDataDefinitionContainerId&quot;, &quot;sharedfield&quot;-&gt;&quot;rootSharedFieldContainerId&quot;, &quot;folder&quot;-&gt;&quot;rootFolderId&quot;)
+2. `Asset.root_container_id(asset_type)` method (requires self to be a &quot;site&quot; asset)
+3. `Asset.asset_type` property — I use it to validate a read-back asset is actually type &quot;site&quot; before calling root_container_id() on it
+4. `_ASSET_TYPE_KEY_ALIASES` (currently just {&quot;scriptformat&quot;: &quot;format&quot;}) which `asset_type` normalizes through
+
+Given your branch/session name is &quot;drop-asset-type-key-aliases&quot;, it sounds like you&#x27;re removing or restructuring `_ASSET_TYPE_KEY_ALIASES` and possibly the `asset_type` property that depends on it. Could you tell me:
+- What exactly you&#x27;re changing and why
+- Whether `Asset.asset_type` (the property) is staying, being renamed, or removed
+- Whether `_ROOT_CONTAINER_FIELDS` / `root_container_id()` are touched at all
+- Roughly when you expect to land this
+
+I just need to know whether to plan against cmstypes.py as it stands right now or coordinate on landing order. A concise summary is all I need — no need to change anything for me.</div></details><hr class="div"><details class="step"><summary><span class="tn">ListAgents</span><span class="ts"></span><span class="td">&lt;1s</span></summary><pre class="si">{}</pre></details><hr class="div"><details class="step"><summary><span class="tn">ToolSearch</span><span class="ts">select:SendMessage</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;select:SendMessage&quot;, &quot;max_results&quot;: 1}</pre></details><hr class="div"><details class="step"><summary><span class="tn">SendMessage</span><span class="ts">schema-authoritative-discovery [e80748]</span><span class="td">1.5s</span></summary><pre class="si">{&quot;to&quot;: &quot;schema-authoritative-discovery [e80748]&quot;, &quot;summary&quot;: &quot;cmstypes.py change summary — no conflict with your plan&quot;, &quot;message&quot;: &quot;Summary: `_ASSET_TYPE_KEY_ALIASES` is removed and `Asset.asset_type` is renamed to `Asset.internal_type`, but your plan items 1 and 2 are untouched — no conflict.\n\nDetails:\n1. `Asset._ROOT_CONTAINER_FIELDS` and `Asset.root_container_id()` — completely untouched, no changes at all.\n2. `_ASSET_TYPE_KE...&quot;, &quot;type&quot;: &quot;message&quot;, &quot;recipient&quot;: &quot;schema-authoritative-discovery [e80748]&quot;, &quot;content&quot;: &quot;Summary: `_ASSET_TYPE_KEY_ALIASES` is removed and…&quot;}</pre></details><hr class="div"><div class="part">Sent a summary to the `schema-authoritative-discovery` session: their `_ROOT_CONTAINER_FIELDS`/`root_container_id()` dependencies are untouched, and their only required change is renaming `Asset.asset_type` → `Asset.internal_type` (behavior is identical for validating a &quot;site&quot; asset type, since that wrapper key was never aliased).</div></div></div></article></div></main></body></html>
