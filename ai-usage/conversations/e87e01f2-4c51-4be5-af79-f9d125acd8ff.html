@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>read-only-page-region-config</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>read-only-page-region-config</h1>
+<p class="meta">2026-09-29 &middot; py-cascade-cms &middot; claude-code &middot; 25 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude-code</span></span></div><div class="item"><b>Active time</b><span>59m</span></div><div class="item"><b>Date</b><span>2026-09-29</span></div><div class="item"><b>Tokens</b><span>In 26.6K · Out 41.2K · Cache read 4.9M · Cache write 150.9K</span></div></div><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 20:42 UTC</span></span></div><div class="body"><div class="part">I want you to convert `PageRegion` into a read-only pydantic dataclasse use the @page-region-schema.json as the shape. Convert `PageConfiguration` using this schema @page-configurations-node.json . I&#x27;ve tested this behavior out on Cascade live edits made to the page&#x27;s `PageRegion` doesn&#x27;t get their values updated when `edit()` is called. Instead `PageRegion` should invalidate any changes made to the shape/values and instead include a message like &quot;cannot make direct edits to a page&#x27;s configuration region. Editing regions is only allowed at the template level&quot;. I&#x27;ve also tested updating the template asset directly which works. However, the structure of pageRegions returned from Cascade API should not be trusted, I&#x27;ve remove both `blockId`/`blockPath` and `formatId`/`formatPath` Cascade still returned `noBlock` and `noFormat` as `false`. Meaning even Cascade fields can&#x27;t be trusted in some cases. This quirk should be documented in the AGENTS file and notified to the other agent in the `cascade-cms-tools`. Maybe the other agent needs to include this type of cautionous language.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-plan">Plan</span> <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 20:42 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Agent</span><span class="ts">Explore PageRegion/PageConfiguration code</span><span class="td">1.5s</span></summary><pre class="si">{&quot;description&quot;: &quot;Explore PageRegion/PageConfiguration code&quot;, &quot;subagent_type&quot;: &quot;Explore&quot;, &quot;prompt&quot;: &quot;In /mnt/c/Users/&lt;user&gt;/Documents/Projects/new/py-cascade-cms (read-only, very thorough), find everything about `PageRegion` and `PageConfiguration`: definitions in src/cascade_cms/cmstypes.py (full class bodies, fields, aliases, validators, how they&#x27;re serialized in edit payloads, page-configuration...&quot;}</pre></details><hr class="div"><div class="part">I&#x27;ve launched an exploration agent to map the current `PageRegion`/`PageConfiguration` code, the AGENTS file, and the `cascade-cms-tools` agent definition. I&#x27;ll continue planning once it reports back.</div><hr class="div"><details class="note"><summary>Background task notification</summary><div class="part">a26d1cbbef46c4167 
+ toolu_01LR4eP3piSSHs4JwJQserfM 
+ /tmp/claude-1000/-mnt-c-Users- -Documents-Projects-new-py-cascade-cms/25b59b8c-a5c2-499c-9cce-0a0e7be815f1/tasks/a26d1cbbef46c4167.output 
+ completed 
+ Agent &quot;Explore PageRegion/PageConfiguration code&quot; finished 
+ A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once. 
+ The 3.6.0 write-through fix from the handoff is already implemented and committed (`97dee33`, &quot;Release 3.6.0: page-configuration accessors write through&quot;). `git status` shows only three untracked files. I did not run pytest, ruff or mypy.
+
+The three untracked files are the handoff `.txt`, `page-configurations-node.json` and `page-region-schema.json`. The two JSON files hold real Cascade shapes for one config and one region (details at the end).
+
+## 1. Definitions
+
+All in `/mnt/c/Users/ /Documents/Projects/new/py-cascade-cms/src/cascade_cms/cmstypes.py` (1195 lines).
+
+```python
+# lines 485-543
+class PageRegion(BaseModel):
+    model_config = ConfigDict(
+        validate_assignment=True,
+        from_attributes=True,
+    )
+
+    name: str
+    content: str | None = None
+
+    # The raw region dict this view was built from (set by `_build_page_views`).
+    _raw: dict[str, Any] | None = PrivateAttr(default=None)
+
+    def __setattr__(self, key: str, value: object) -&amp;gt; None:
+        if key == &quot;name&quot;:
+            raise AttributeError(
+                &quot;PageRegion.name is read-only; only content can be edited&quot;
+            )
+        super().__setattr__(key, value)  # validates first; raises on bad input
+        if key == &quot;content&quot; and self._raw is not None:
+            self._raw[&quot;content&quot;] = self.content
+
+
+class PageConfiguration(BaseModel):
+    model_config = ConfigDict(
+        validate_assignment=True,
+        from_attributes=True,
+    )
+
+    name: str
+    page_regions: list[PageRegion] = Field(
+        validation_alias=&quot;pageRegions&quot;, serialization_alias=&quot;pageRegions&quot;
+    )
+
+    def __setattr__(self, key: str, value: object) -&amp;gt; None:
+        if key == &quot;name&quot;:
+            raise AttributeError(
+                &quot;PageConfiguration.name is read-only; only region content &quot;
+                &quot;can be edited&quot;
+            )
+        super().__setattr__(key, value)
+
+
+def _build_page_views(raw_configs: list[dict[str, Any]]) -&amp;gt; list[PageConfiguration]:
+    &quot;&quot;&quot;Parse raw `pageConfigurations` dicts into models that write through.
+    ...
+    &quot;&quot;&quot;
+    views: list[PageConfiguration] = []
+    for raw_config in raw_configs:
+        config = PageConfiguration(**raw_config)
+        for region, raw_region in zip(config.page_regions, raw_config[&quot;pageRegions&quot;]):
+            region._raw = raw_region
+        views.append(config)
+    return views
+```
+
+- **Aliases:** `page_regions` uses `validation_alias=&quot;pageRegions&quot;` and `serialization_alias=&quot;pageRegions&quot;`.
+- **Validators:** neither model has a `field_validator` or `model_validator`. The only validation is `validate_assignment=True` on `content` (`str | None`).
+- **Missing `populate_by_name`:** neither model sets `populate_by_name=True`, unlike most other models, so `PageConfiguration(page_regions=...)` fails and only `pageRegions=` works.
+- **No config on `PageConfiguration`:** it has no `_raw` attribute.
+- **Unmodelled keys:** the models silently drop `templateId`, `blockId` and similar. Those survive only in the raw dicts.
+
+### Asset wiring
+
+- **Class docstring, lines 645-657:** `Asset` is a plain dict-backed class, not pydantic. It has `_page_configs: list[PageConfiguration]` at line 661.
+- **`__init__`, line 669:** it calls `self._current_page_views()`, which returns `[]` if there is no `pageConfigurations` key and otherwise calls `_build_page_views` (lines 671-674). Malformed data therefore fails at creation.
+- **`Asset.__setattr__`, lines 676-687:** names starting with `_` pass through. Any other name is written to `_data`, after a type-equality check if the key already exists. So `asset.pageConfigurations = [...]` is allowed silently.
+- **`Asset.get`, line 706:** it emits a `UserWarning` for keys `structuredData` and `pageConfigurations`.
+- **`get_page_configuration`, lines 770-820:**
+  - It rebuilds `_page_configs` on every call (line 798) via `object.__setattr__`.
+  - It looks up by config name, then by region name.
+  - It returns `None` on a miss.
+  - The docstring states the limits: only `content` writes through, `name` raises, list changes are not propagated, and nothing is created.
+
+## 2. How `edit()` builds the payload from an `Asset`
+
+- **Serialization entry point:** `serialize_payload` (lines 1089-1095) sends an `Asset` to `asset_adapter.dump_json`, a `NewAsset` to `new_asset_adapter.dump_json(by_alias=True)`, and everything else to `simple_payload_adapter.dump_json`.
+- **`AssetAdapter.dump_json`, lines 1063-1082:** it does not use `model_dump`. It shallow-copies the raw data, wraps it as `{&quot;asset&quot;: {asset._asset_type: data}}` and calls `json.dumps`. The pydantic page models are never serialized. That is why writing `content` into `_raw` is needed for the edit to reach the payload.
+- **`Operations.edit`, line 447 of `src/cascade_cms/operations.py`:**
+  - It takes `Asset | list[Asset] | callable`.
+  - A callable is resolved against the previous chain step&#x27;s result via `_build_edit_requests`.
+  - Line 479: `multi = isinstance(payload, list)`.
+- **`model_dump` options elsewhere:**
+  - `SimplePayload.format_builder` (lines 254-308) is a `@model_serializer` that calls `value.model_dump(by_alias=True)` for nested models.
+  - `SimplePayload` config is `populate_by_name=True, from_attributes=True, validate_assignment=True, serialize_by_alias=True`.
+  - `NewAsset.dump_json` uses `by_alias=True` (line 353).
+  - The only `exclude_none` is inside a docstring-commented `toJson` at about line 1011.
+
+## 3. Style precedent in `cmstypes.py`
+
+- **No dataclasses:** there are no pydantic dataclasses and no `RootModel`.
+- **Shared style:** every model is `BaseModel` with `model_config = ConfigDict(...)`.
+- **Config combinations in use:**
+  - `frozen=True` for read-only response models: `Audit`, `workflowInformation`, `WorkflowAction`, `WorkflowSteps`, `CheckedOutAsset`, `ListElements`.
+  - `frozen=True, extra=&#x27;forbid&#x27;` for `CascadeError` and `CascadeSuccess`.
+  - `populate_by_name=True, validate_assignment=True` for `WorkflowSettingsModel`, `Entries` and `AccessRightsModel`.
+  - `frozen=True, populate_by_name=True` for `PathBase`.
+- **Aliases:** written as `Field(validation_alias=&quot;x&quot;, serialization_alias=&quot;x&quot;)`, or in the `Annotated[..., Field(...)]` form.
+- **Other imports and uses:** `PrivateAttr` is imported at line 21, `field_validator` is used at line 855 and `model_validator` at lines 334, 409 and 1002, and `TypeAdapter` is used for the adapters.
+
+## 4. Tests
+
+- **`tests/test_page_configurations.py`** is new in 3.6.0. It imports `ID_ONE`, `StubDriver`, `make_asset` and `make_wrapper` from `tests/test_wrapper.py`. Its tests are:
+  - accessor edit reaches the payload
+  - edit via `config.page_regions[1]`
+  - unmodelled fields preserved
+  - raw edit visible through the accessor
+  - wholesale `pageConfigurations` reassignment visible
+  - invalid content raises `ValidationError` and the payload is unchanged
+  - `content=None` is written
+  - assigning `name` raises `AttributeError` for both classes
+  - construction from raw data is unaffected
+  - misses return `None`
+  - two-config isolation
+  - `_page_configs` compatibility
+  - a malformed config fails at creation
+  - an end-to-end `read().edit(callback)` run through `StubDriver`
+- **`tests/test_cmstypes.py`, lines 100-140:** `_raw_asset()` and `test_asset_dump_json_preserves_page_configuration_bindings` check that `templateId`, `blockId`, `formatId` and the regions survive a round trip.
+- **Not covered:** there is no test for `Asset.get` warning on `pageConfigurations`, and none of appending to `page_regions`.
+
+## 5. Docs and mentions
+
+- **README, `docs/`, `PUBLISHING.md`:** no mentions of `PageRegion`, `PageConfiguration` or `get_page_configuration`. There is no `docs/` directory in this repo.
+- **`CHANGELOG.md`:**
+  - Lines 5-13: the `[3.6.0]` entry.
+  - Line 79: the snake_case models note.
+  - Line 210: `dump_json` serializes `_data`.
+  - Line 159 mentions the move to the `cascade-cms-tools` repo.
+- **`pyproject.toml`:** the version is `3.6.0`.
+
+## 6. AGENTS.md and agent definitions
+
+- **`py-cascade-cms/AGENTS.md`:**
+  - It gives the repo commands (`pip install -e &quot;.[dev]&quot;`, pytest, `ruff check .`, `mypy src/`).
+  - It says the script-writing skills and MCP live in the sibling `cascade-cms-tools` repo.
+  - It has a logging section.
+  - It requires each CHANGELOG section to end with a `**Files changed:**` line.
+- **`py-cascade-cms/CLAUDE.md`:** it exists and covers architecture, commands and data flow.
+- **`it-cascade-rest-scripts`:** it has no `AGENTS.md` and no mention of `PageRegion`, `PageConfiguration` or `cascade-cms-tools`. It has `CLAUDE.md` and `README.md` only.
+- **`~/.claude/agents` and `.claude/agents`:** neither exists in the searched directories. There is no `cascade-cms-tools` agent definition anywhere in the searched paths, and `~/.claude/skills/synced` contained no `cascade-cms-tools` reference.
+- **`cascade-cms-tools` is a repo, not an agent:** it is at `/mnt/c/Users/ /Documents/Projects/cascade-cms-tools`, with its own `AGENTS.md` (155 lines). It is not one of the two directories you named, but it is the one the handoff and the library&#x27;s `AGENTS.md` refer to. Its `.claude/` holds only `scheduled_tasks.lock`.
+- **Outside the two directories you named:** the handoff `.txt` is byte-identical in the tools repo (`diff -q` showed no difference).
+
+## 7. The handoff file
+
+`handoff_pageconfig_fix_and_live_mcp_verification.txt` was read in full. The key points:
+
+- **Three parts:** Part 1 is the library 3.5.0 to 3.6.0 change. Part 2 (T0) is read-only live MCP verification V1-V8. Part 3 is skill follow-through, blocked on 3.6.0 being on PyPI.
+- **Decisions D1-D5:**
+  - D1: only `content` writes through and `name` raises.
+  - D2: views are rebuilt on every call.
+  - D3: `_page_configs` stays a `list[PageConfiguration]`.
+  - D4: version 3.6.0.
+  - D5: skill validator generalization waits for library &amp;gt;= 3.6.0.
+- **Constraints:** C1-C8 are all met by the current code.
+- **P2 test list:** it maps one-to-one onto the existing `tests/test_page_configurations.py`.
+- **Left undone:** the live MCP verification and the skill follow-through are not done. That includes the skill docs at `SKILL.md` line 329 and `references/asset_api.md` lines 30 and 92-105.
+- **Not started:** the validator generalization in `scripts/validate_script.py`. It already lists `pageConfigurations` at line 771 in its accessor map. Whether the new checks exist there is unchecked.
+- **Known open item, not part of this handoff:** `asset.asset_type` does not exist. The real property is `internal_type`. Five templates and `asset_api.md:14` are affected.
+
+## 8. Related files in the tools repo
+
+The bundled copy is `/mnt/c/Users/ /Documents/Projects/cascade-cms-tools/skill/cascade-script-writer/cascade_cms/cmstypes.py`. It already contains the 3.6.0 `PageRegion` and `PageConfiguration` code, at the same line numbers as the library.
+
+- **MCP server:** `mcp/src/cascade_cms_rest_mcp/server.py`
+  - Line 387 reads `asset._page_configs` directly.
+  - Line 399 calls `get_page_configuration`.
+  - Line 345 reads `contentTypePageConfigurations` from the content type.
+- **Skill docs:** `skill/cascade-script-writer/SKILL.md:329` and `references/asset_api.md:30,92-105` still say &quot;live references&quot;. That is now true.
+- **Template:** `templates/callback-page-region-audit.py` is read-only.
+
+## 9. Untracked JSON samples
+
+- **`page-configurations-node.json`:**
+  - Keys: `name`, `defaultConfiguration`, `templateId`, `templatePath`, `formatRecycled`, `pageRegions: []`, `includeXMLDeclaration`, `publishable`, `id`.
+  - This is a real config where `pageRegions` is empty.
+- **`page-region-schema.json`:**
+  - Keys: `name`, `blockId`, `blockPath`, `blockRecycled`, `noBlock`, `formatId`, `formatPath`, `formatRecycled`, `noFormat`, `id`.
+  - There is no `content` key on this region, which is a block-bound region.
+
+Together these show that real regions can lack `content`, and that a config&#x27;s `pageRegions` can be empty. `PageRegion.content` defaults to `None`, so parsing survives. On assignment, `_raw[&quot;content&quot;]` is created on a region that had none. 
+  65538  10  108314</div></details><hr class="div"><details class="step"><summary><span class="tn">Write</span><span class="ts">.claude/plans/i-want-you-to-tender-sunset.md</span><span class="td">&lt;1s</span></summary><pre class="si">/home/&lt;user&gt;/.claude/plans/i-want-you-to-tender-sunset.md</pre></details><details class="step"><summary><span class="tn">ToolSearch</span><span class="ts">select:ExitPlanMode</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;select:ExitPlanMode&quot;, &quot;max_results&quot;: 1}</pre></details><hr class="div"><details class="step"><summary><span class="tn">ExitPlanMode</span><span class="ts"># Plan: read-only PageRegion / PageConfiguration
+
+## Context
+3.6.0 made `PageRegion.conten...</span><span class="td">10m 3s</span><span class="err">failed</span></summary><pre class="si">{&quot;plan&quot;: &quot;# Plan: read-only PageRegion / PageConfiguration\n\n## Context\n3.6.0 made `PageRegion.content` write through into the asset&#x27;s raw `pageConfigurations`. Live testing shows Cascade ignores region edits on `edit()`; regions are only editable on the template asset (which works). Cascade&#x27;s own region field...&quot;, &quot;planFilePath&quot;: &quot;/home/&lt;user&gt;/.claude/plans/i-want-you-to-tender-sunset.md&quot;}</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">.claude/plans/i-want-you-to-tender-sunset.md</span><span class="td">&lt;1s</span></summary><pre class="si">/home/&lt;user&gt;/.claude/plans/i-want-you-to-tender-sunset.md</pre></details><details class="step"><summary><span class="tn">Edit</span><span class="ts">.claude/plans/i-want-you-to-tender-sunset.md</span><span class="td">&lt;1s</span></summary><pre class="si">/home/&lt;user&gt;/.claude/plans/i-want-you-to-tender-sunset.md</pre></details><details class="step"><summary><span class="tn">Edit</span><span class="ts">.claude/plans/i-want-you-to-tender-sunset.md</span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">/home/&lt;user&gt;/.claude/plans/i-want-you-to-tender-sunset.md</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">.claude/plans/i-want-you-to-tender-sunset.md</span><span class="td">&lt;1s</span></summary><pre class="si">/home/&lt;user&gt;/.claude/plans/i-want-you-to-tender-sunset.md</pre></details><details class="step"><summary><span class="tn">ExitPlanMode</span><span class="ts"># Plan: read-only PageRegion / PageConfiguration
+
+## Context
+3.6.0 made `PageRegion.conten...</span><span class="td">42s</span></summary><pre class="si">{&quot;plan&quot;: &quot;# Plan: read-only PageRegion / PageConfiguration\n\n## Context\n3.6.0 made `PageRegion.content` write through into the asset&#x27;s raw `pageConfigurations`. Live testing shows Cascade ignores region edits on `edit()`; regions are only editable on the template asset (which works). Cascade&#x27;s own region field...&quot;, &quot;planFilePath&quot;: &quot;/home/&lt;user&gt;/.claude/plans/i-want-you-to-tender-sunset.md&quot;}</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/new/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/new/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">&lt;1s</span></summary><pre class="si">python - &lt;&lt;&#x27;EOF&#x27;
+import re
+p=&#x27;src/cascade_cms/cmstypes.py&#x27;
+s=open(p).read()
+start=s.index(&quot;class PageRegion(BaseModel):&quot;)
+end=s.index(&#x27;&quot;&quot;&quot;\nUsed to retrieve the workflow deinitions&#x27;)
+new=&#x27;&#x27;&#x27;class ReadOnlyPageConfigError(AttributeError):
+    &quot;&quot;&quot;Raised on any attempt to modify a `PageConfiguration` or `PageRegion`.&quot;&quot;&quot;
+
+
+REGION_READ_ONLY_MESSAGE = (
+    &quot;cannot make direct edits to a page&#x27;s configuration region. Editing &quot;
+    &quot;regions is only allowed at the template level: edit the `template` &quot;
+    &quot;asset&#x27;s `pageRegions` instead&quot;
+)
+CONFIGURATION_READ_ONLY_MESSAGE = (
+    &quot;cannot make direct edits to a page&#x27;s configuration. Edit the &quot;
+    &quot;`pageConfigurationSet` asset&#x27;s `pageConfiguration` instead (or the &quot;
+    &quot;`template` asset&#x27;s `pageRegions` for regions)&quot;
+)
+
+_PAGE_VIEW_CONFIG = ConfigDict(populate_by_name=True)
+
+
+@pydantic_dataclass(config=_PAGE_VIEW_CONFIG)
+class PageRegion:
+    &quot;&quot;&quot;Read-only snapshot of one region of a page configuration.
+
+    Cascade ignores region edits sent through a page&#x27;s `edit()`; regions can
+    only be changed on the `template` asset. Any assignment or deletion raises
+    `ReadOnlyPageConfigError`, and nothing here is ever written back to the
+    asset.
+
+    Do not trust Cascade&#x27;s `noBlock`/`noFormat` flags: they have been observed
+    as `false` on regions with no `blockId`/`blockPath` or `formatId`/
+    `formatPath`. Check the ids/paths themselves.
+    &quot;&quot;&quot;
+
+    name: str
+    block_id: str | None = Field(
+        default=None, validation_alias=&quot;blockId&quot;, serialization_alias=&quot;blockId&quot;
+    )
+    block_path: str | None = Field(
+        default=None, validation_alias=&quot;blockPath&quot;, serialization_alias=&quot;blockPath&quot;
+    )
+    block_recycled: bool | None = Field(
+        default=None,
+        validation_alias=&quot;blockRecycled&quot;,
+        serialization_alias=...</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">which python3; ls -d .venv venv 2&gt;/dev/null; python3 -c &quot;import pydantic;print(pydantic.VERSION)&quot;</span><span class="td">1.2s</span><span class="err">failed</span></summary><pre class="si">which python3; ls -d .venv venv 2&gt;/dev/null; python3 -c &quot;import pydantic;print(pydantic.VERSION)&quot;</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">ls .venv .venv/bin .venv/Scripts 2&gt;&amp;1 | head -20</span><span class="td">1.2s</span></summary><pre class="si">ls .venv .venv/bin .venv/Scripts 2&gt;&amp;1 | head -20</pre></details><hr class="div"><div class="part">Venv exists; I&#x27;ll rerun the edit script with its Python.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">ls .venv/bin | grep -i python; .venv/bin/python -c &quot;import pydantic;print(pydantic.VERSION)&quot;</span><span class="td">2.0s</span></summary><pre class="si">ls .venv/bin | grep -i python; .venv/bin/python -c &quot;import pydantic;print(pydantic.VERSION)&quot;</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">4.1s</span><span class="err">failed</span></summary><pre class="si">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;src/cascade_cms/cmstypes.py&#x27;
+s=open(p).read()
+start=s.index(&quot;class PageRegion(BaseModel):&quot;)
+end=s.index(&#x27;&quot;&quot;&quot;\nUsed to retrieve the workflow deinitions&#x27;)
+def f(name, alias, typ=&quot;bool | None&quot;):
+    return f&#x27;&#x27;&#x27;    {name}: {typ} = Field(
+        default=None, validation_alias=&quot;{alias}&quot;, serialization_alias=&quot;{alias}&quot;
+    )
+&#x27;&#x27;&#x27;
+new=&#x27;&#x27;&#x27;class ReadOnlyPageConfigError(AttributeError):
+    &quot;&quot;&quot;Raised on any attempt to modify a `PageConfiguration` or `PageRegion`.&quot;&quot;&quot;
+
+
+REGION_READ_ONLY_MESSAGE = (
+    &quot;cannot make direct edits to a page&#x27;s configuration region. Editing &quot;
+    &quot;regions is only allowed at the template level: edit the `template` &quot;
+    &quot;asset&#x27;s `pageRegions` instead&quot;
+)
+CONFIGURATION_READ_ONLY_MESSAGE = (
+    &quot;cannot make direct edits to a page&#x27;s configuration. Edit the &quot;
+    &quot;`pageConfigurationSet` asset&#x27;s `pageConfiguration` instead (or the &quot;
+    &quot;`template` asset&#x27;s `pageRegions` for regions)&quot;
+)
+
+_PAGE_VIEW_CONFIG = ConfigDict(populate_by_name=True)
+
+
+@pydantic_dataclass(config=_PAGE_VIEW_CONFIG)
+class PageRegion:
+    &quot;&quot;&quot;Read-only snapshot of one region of a page configuration.
+
+    Cascade ignores region edits sent through a page&#x27;s `edit()`; regions can
+    only be changed on the `template` asset. Any assignment or deletion raises
+    `ReadOnlyPageConfigError`, and nothing here is ever written back to the
+    asset.
+
+    Do not trust Cascade&#x27;s `noBlock`/`noFormat` flags: they have been observed
+    as `false` on regions with no `blockId`/`blockPath` or `formatId`/
+    `formatPath`. Check the ids/paths themselves.
+    &quot;&quot;&quot;
+
+    name: str
+&#x27;&#x27;&#x27; + f(&quot;block_id&quot;,&quot;blockId&quot;,&quot;str | None&quot;) + f(&quot;block_path&quot;,&quot;blockPath&quot;,&quot;str | None&quot;) + f(&quot;block_recycled&quot;,&quot;blockRecycled&quot;) + f(&quot;no_block&quot;,&quot;noBlock&quot;) + f(&quot;format_id&quot;,&quot;formatId&quot;,&quot;str | None&quot;) + f(&quot;format_path&quot;...</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">21s</span></summary><pre class="si">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+import json
+from cascade_cms.cmstypes import _build_page_views
+c=json.load(open(&#x27;page-configurations-node.json&#x27;))
+r=json.load(open(&#x27;page-region-schema.json&#x27;))
+c[&#x27;pageRegions&#x27;]=[r]
+pc=_build_page_views([c])[0]
+print(pc)
+for o,a in ((pc.page_regions[0],&#x27;name&#x27;),(pc,&#x27;publishable&#x27;)):
+    try: setattr(o,a,1)
+    except Exception as e: print(type(e).__name__,e)
+EOF
+git status --short; .venv/bin/pytest -q 2&gt;&amp;1 | tail -15</pre></details><hr class="div"><div class="part">Works. Now rewrite the tests; let me see the current file&#x27;s helpers.</div><details class="step"><summary><span class="tn">Read</span><span class="ts">py-cascade-cms/tests/test_page_configurations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/new/py-cascade-cms/tests/test_page_configurations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">py-cascade-cms/tests/test_page_configurations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/new/py-cascade-cms/tests/test_page_configurations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Write</span><span class="ts">py-cascade-cms/tests/test_page_configurations.py</span><span class="td">2.2s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/new/py-cascade-cms/tests/test_page_configurations.py</pre></details><details class="step"><summary><span class="tn">Bash</span><span class="ts">.venv/bin/pytest -q 2&gt;&amp;1 | tail -15; .venv/bin/ruff check . | tail -15; .venv/bin/mypy src/ | tail; grep -n &quot;3...</span><span class="td">21s</span></summary><pre class="si">.venv/bin/pytest -q 2&gt;&amp;1 | tail -15; .venv/bin/ruff check . | tail -15; .venv/bin/mypy src/ | tail; grep -n &quot;3.6.0&quot; pyproject.toml src/cascade_cms/*.py | head; sed -n 1,16p CHANGELOG.md; cat AGENTS.md | head -60</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">sed -i &#x27;s/^version = &quot;3.6.0&quot;/version = &quot;3.7.0&quot;/&#x27; pyproject.toml &amp;&amp; .venv/bin/python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">2.8s</span></summary><pre class="si">sed -i &#x27;s/^version = &quot;3.6.0&quot;/version = &quot;3.7.0&quot;/&#x27; pyproject.toml &amp;&amp; .venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;CHANGELOG.md&#x27;
+s=open(p).read()
+entry=&#x27;&#x27;&#x27;## [3.7.0]
+
+### Changed (breaking)
+- **`PageRegion` and `PageConfiguration` are now read-only pydantic dataclasses** shaped by Cascade&#x27;s real payloads (region: `name`, `block_id`/`block_path`/`block_recycled`/`no_block`, `format_id`/`format_path`/`format_recycled`/`no_format`, `id`; configuration: `name`, `default_configuration`, `template_id`, `template_path`, `format_recycled`, `page_regions` (a tuple, may be empty), `include_xml_declaration`, `publishable`, `id`). The 3.6.0 write-through and the `content` field are removed: Cascade ignores region edits sent through `edit()`.
+- Assigning to or deleting any attribute, or assigning `asset.pageConfigurations`, raises the new `ReadOnlyPageConfigError` (an `AttributeError`) pointing at where the edit belongs: the `template` asset&#x27;s `pageRegions` for regions, the `pageConfigurationSet` asset&#x27;s `pageConfiguration` for configurations.
+
+### Documented
+- Cascade&#x27;s own response fields cannot be trusted: `noBlock`/`noFormat` came back `false` on regions whose `blockId`/`blockPath`/`formatId`/`formatPath` had been removed. Check the ids/paths themselves (see `AGENTS.md`).
+
+**Files changed:** `src/cascade_cms/cmstypes.py`, `tests/test_page_configurations.py`, `AGENTS.md`, `CLAUDE.md`, `CHANGELOG.md`, `pyproject.toml`
+
+&#x27;&#x27;&#x27;
+s=s.replace(&quot;## [3.6.0]&quot;,entry+&quot;## [3.6.0]&quot;,1)
+open(p,&#x27;w&#x27;).write(s)
+p=&#x27;AGENTS.md&#x27;
+s=open(p).read()
+q=&#x27;&#x27;&#x27;## Cascade API quirks
+
+- **Page regions are read-only through the API.** Edits to a page&#x27;s `pageRegions` sent via
+  `edit()` are ignored by Cascade. Regions are changed on the `template` asset (`pageRegions`);
+  page configurations on the `pageConfigurationSet` asset (`pageConf...</pre></details><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; grep -n &quot;page_config\|PageRegion\|PageConfigura...</span><span class="td">2.1s</span></summary><pre class="si">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; grep -n &quot;page_config\|PageRegion\|PageConfiguration\|\.content\|pageConfigurations&quot; -r AGENTS.md skill/cascade-script-writer/SKILL.md skill/cascade-script-writer/references/asset_api.md templates/callback-page-region-audit.py mcp/src/cascade_cms_rest_mcp/server.py | head -40; grep -rn &quot;cascade-cms-rest&quot; pyproject.toml mcp/pyproject.toml 2&gt;/dev/null | head</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; sed -n 70,90p AGENTS.md; sed -n 322,335p skill/...</span><span class="td">1.4s</span></summary><pre class="si">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; sed -n 70,90p AGENTS.md; sed -n 322,335p skill/cascade-script-writer/SKILL.md; sed -n 24,32p skill/cascade-script-writer/references/asset_api.md; sed -n 84,110p skill/cascade-script-writer/references/asset_api.md; sed -n 380,410p mcp/src/cascade_cms_rest_mcp/server.py; sed -n 305,320p mcp/src/cascade_cms_rest_mcp/server.py; grep -rln &quot;get_page_configuration\|region.content&quot; --include=* . 2&gt;/dev/null | grep -v &quot;dist\|logs&quot; | head</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; cat skill/cascade-script-writer/templates/callb...</span><span class="td">1.2s</span></summary><pre class="si">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; cat skill/cascade-script-writer/templates/callback-page-region-audit.py; grep -n &quot;get_page_configuration\|region.content\|\.content\|page_region\|pageConfig&quot; skill/cascade-script-writer/scripts/validate_script.py skill/cascade-script-writer/references/operations_schema.json | head -30; sed -n 320,330p mcp/src/cascade_cms_rest_mcp/server.py; grep -n &quot;^import\|^from&quot; mcp/src/cascade_cms_rest_mcp/server.py | head -20</pre></details><hr class="div"><div class="part">Library work is done and green (224 tests, ruff, mypy). I&#x27;m now updating the `cascade-cms-tools` repo: docs, the audit template, and the MCP server, which still called `region.model_dump()`.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; .venv_none 2&gt;/dev/null; python3 - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">1.2s</span></summary><pre class="si">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; .venv_none 2&gt;/dev/null; python3 - &lt;&lt;&#x27;EOF&#x27;
+def sub(p, old, new):
+    s=open(p).read()
+    assert old in s, (p, old[:40])
+    open(p,&#x27;w&#x27;).write(s.replace(old,new,1))
+
+# MCP server
+p=&#x27;mcp/src/cascade_cms_rest_mcp/server.py&#x27;
+sub(p,&quot;from typing import Any, Literal, cast\n&quot;,&quot;import dataclasses\nfrom typing import Any, Literal, cast\n&quot;)
+sub(p,&#x27;&quot;region&quot;: region.model_dump()}&#x27;,&#x27;&quot;region&quot;: dataclasses.asdict(region),\n            &quot;caution&quot;: REGION_CAUTION,\n        }&#x27;)
+sub(p,&quot;    Both given: returns that region&#x27;s content.\n&quot;,&quot;    Both given: returns that region&#x27;s block/format bindings.\n\n    Caution: regions are read-only snapshots and Cascade&#x27;s noBlock/noFormat\n    flags are unreliable (seen false with no blockId/blockPath or\n    formatId/formatPath). Trust the ids/paths, not the flags.\n&quot;)
+sub(p,&quot;\n\ndef cascade_get_page_config(&quot;,&quot;\n\nREGION_CAUTION = (\n    \&quot;Cascade&#x27;s noBlock/noFormat flags are unreliable (they can be false \&quot;\n    \&quot;when no block/format id or path exists); trust the ids/paths. \&quot;\n    \&quot;Regions cannot be edited via an asset edit: edit the template \&quot;\n    \&quot;asset&#x27;s pageRegions.\&quot;\n)\n\n\ndef cascade_get_page_config(&quot;) if False else None
+EOF
+grep -n &quot;^def cascade_get_page_config\|^@&quot; mcp/src/cascade_cms_rest_mcp/server.py | sed -n 1,20p</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; python3 - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">1.9s</span></summary><pre class="si">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; python3 - &lt;&lt;&#x27;EOF&#x27;
+def sub(p, old, new):
+    s=open(p).read()
+    assert old in s, (p, old[:40])
+    open(p,&#x27;w&#x27;).write(s.replace(old,new,1))
+p=&#x27;mcp/src/cascade_cms_rest_mcp/server.py&#x27;
+sub(p,&quot;@mcp.tool()\ndef cascade_get_page_config(&quot;,&#x27;&#x27;&#x27;REGION_CAUTION = (
+    &quot;Cascade&#x27;s noBlock/noFormat flags are unreliable (they can be false &quot;
+    &quot;when no block/format id or path exists); trust the ids/paths. &quot;
+    &quot;Regions cannot be edited via an asset edit: edit the template &quot;
+    &quot;asset&#x27;s pageRegions.&quot;
+)
+
+
+@mcp.tool()
+def cascade_get_page_config(&#x27;&#x27;&#x27;)
+
+caution_agents=&#x27;&#x27;&#x27;## Cascade API quirks — be cautious
+
+- **Do not trust Cascade&#x27;s response fields blindly.** With a page region&#x27;s
+  `blockId`/`blockPath` and `formatId`/`formatPath` removed, Cascade still
+  returned `noBlock: false` and `noFormat: false`. Derive &quot;has a
+  block/format&quot; from the ids/paths, not the flags, and verify surprising
+  state live (`cascade_get_page_config`, `cascade_read_asset`) before
+  writing a script that depends on it.
+- **Page regions and configurations are read-only** in `cascade-cms-rest`
+  &gt;= 3.7.0 (`PageRegion`/`PageConfiguration` raise
+  `ReadOnlyPageConfigError` on assignment; `.content` is gone). Cascade
+  ignores region edits sent with a page&#x27;s `edit()`. Edit regions on the
+  `template` asset (`pageRegions`) and configurations on the
+  `pageConfigurationSet` asset (`pageConfiguration`).
+
+&#x27;&#x27;&#x27;
+sub(&#x27;AGENTS.md&#x27;,&quot;## Rebuilding the release bundle&quot;,caution_agents+&quot;## Rebuilding the release bundle&quot;)
+
+sub(&#x27;skill/cascade-script-writer/SKILL.md&#x27;,&quot;&quot;&quot;`asset.get_page_configuration(name, region)` instead — they return live
+references you can edit in place.&quot;&quot;&quot;,&quot;&quot;&quot;`asset.get_page_configuration(name, region)` instead. Structured-data nodes
+are live refere...</pre></details><hr class="div"><div class="part">`PageRegion` and `PageConfiguration` are now read-only pydantic dataclasses, and the quirk is documented in both repos. The library passes `pytest` (224 tests), `ruff check .` and `mypy src/`. I haven&#x27;t tested anything against a live Cascade server, and nothing is committed.
+
+**Library (`py-cascade-cms`, version bumped to 3.7.0)**
+- **Shape:** the two classes follow your JSON samples. Region fields are `name`, block and format ids and paths, the recycled and `noBlock`/`noFormat` flags, and `id`. Configuration fields are `name`, `default_configuration`, `template_id`, `template_path`, `page_regions` and the rest. `page_regions` is now a tuple and can be empty. Fields Cascade omitted are `None`, so a missing `noBlock` isn&#x27;t read as &quot;has a block&quot;.
+- **Rejected edits:** assigning or deleting any attribute raises `ReadOnlyPageConfigError` (an `AttributeError`). Assigning `asset.pageConfigurations` raises it too.
+  - **Region message:** &quot;cannot make direct edits to a page&#x27;s configuration region. Editing regions is only allowed at the template level: edit the `template` asset&#x27;s `pageRegions` instead&quot;.
+  - **Configuration message:** points to the `pageConfigurationSet` asset&#x27;s `pageConfiguration`, or to the `template` asset&#x27;s `pageRegions` for regions.
+- **`edit()` payload:** it is built from the asset&#x27;s raw data, so it never carries region changes. A test confirms the payload is unchanged after a rejected edit.
+- **Breaking change:** `PageRegion.content` and the 3.6.0 write-through are gone. `CHANGELOG.md` and `CLAUDE.md` are updated.
+- **`AGENTS.md`:** new &quot;Cascade API quirks&quot; section covering read-only regions and the untrusted `noBlock`/`noFormat` flags.
+
+**`cascade-cms-tools`**
+- **Not an agent:** it is a repo, and I found no agent definition in it. I put the cautionary language in its `AGENTS.md` and in the skill docs (`SKILL.md`, `references/asset_api.md`, `operations_schema.json`).
+- **Audit template:** `callback-page-region-audit.py` used `region.content`, which no longer exists. It now checks `block_id` and `block_path`.
+- **MCP server:** `cascade_get_page_config` called `region.model_dump()`, which doesn&#x27;t work on a dataclass. I switched it to `dataclasses.asdict`, added a `caution` field to its output, and added the same warning to its docstring. It compiles, but I haven&#x27;t run the server.
+- **Not done in `cascade-cms-tools`:** I didn&#x27;t re-vendor the bundled `cmstypes.py`, since `build_release.py` builds it from the installed package. Publish 3.7.0 and rebuild first. The MCP&#x27;s `cascade-cms-rest&gt;=3.4.0` pin should also be raised to 3.7.0. The skill&#x27;s `validate_script.py` couldn&#x27;t finish in this environment (`aiohttp` missing), so I don&#x27;t know whether its checks still pass.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 20:59 UTC</span></span></div><div class="body"><div class="part">try to get in contact with the agent again.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 20:59 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">ListAgents</span><span class="ts"></span><span class="td">&lt;1s</span></summary><pre class="si">{}</pre></details><details class="step"><summary><span class="tn">ToolSearch</span><span class="ts">select:SendMessage</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;select:SendMessage&quot;, &quot;max_results&quot;: 1}</pre></details><hr class="div"><details class="step"><summary><span class="tn">SendMessage</span><span class="ts">cascade-cms-tools-pageconfig-handoff</span><span class="td">1.2s</span></summary><pre class="si">{&quot;to&quot;: &quot;cascade-cms-tools-pageconfig-handoff&quot;, &quot;summary&quot;: &quot;Notify tools agent of 3.7.0 read-only regions&quot;, &quot;message&quot;: &quot;Heads-up: cascade-cms-rest 3.7.0 makes PageRegion/PageConfiguration read-only, and I already edited files in cascade-cms-tools (uncommitted).\nLibrary changes (py-cascade-cms, uncommitted, tests/ruff/mypy pass):\n- PageRegion/PageConfiguration are read-only pydantic dataclasses; `.content` is gone; an...&quot;, &quot;type&quot;: &quot;message&quot;, &quot;recipient&quot;: &quot;cascade-cms-tools-pageconfig-handoff&quot;, &quot;content&quot;: &quot;Heads-up: cascade-cms-rest 3.7.0 makes PageRegion…&quot;}</pre></details><hr class="div"><div class="part">I sent a message to the other Claude session, `cascade-cms-tools-pageconfig-handoff` (listed as idle). It&#x27;s queued there, and I haven&#x27;t heard back. If that session holds it for approval or refuses it, a delivery notice should follow.
+
+I assumed you meant that session, since I found no agent definition in `cascade-cms-tools`.
+
+The message covers:
+- **What changed:** the 3.7.0 read-only `PageRegion`/`PageConfiguration`, and the two places edits belong (the `template` asset for regions, the `pageConfigurationSet` asset for configurations).
+- **The quirk:** Cascade returned `noBlock`/`noFormat` as `false` after the block and format ids and paths were removed, so it should trust the ids and paths instead.
+- **Files I already edited there:** `AGENTS.md`, the skill docs, the audit template and the MCP server, so it doesn&#x27;t overwrite them.
+- **Still open on its side:** raise the MCP&#x27;s `cascade-cms-rest` pin to 3.7.0, re-vendor `cmstypes.py` once 3.7.0 is on PyPI, check `validate_script.py`, and consider more cautionary wording elsewhere.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 20:59 UTC</span></span></div><div class="body"><div class="part">commit and push.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:00 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git status --short &amp;&amp; git branch -vv | head -3 &amp;&amp; git add AGENTS.md CHANGELOG.md CLAUDE.md pyproject.toml src/...</span><span class="td">1.9s</span></summary><pre class="si">git status --short &amp;&amp; git branch -vv | head -3 &amp;&amp; git add AGENTS.md CHANGELOG.md CLAUDE.md pyproject.toml src/cascade_cms/cmstypes.py tests/test_page_configurations.py &amp;&amp; git commit -q -m &quot;$(cat &lt;&lt;&#x27;EOF&#x27;
+Release 3.7.0: read-only PageRegion/PageConfiguration
+
+Replace the write-through models with read-only pydantic dataclasses shaped
+by Cascade&#x27;s real payloads. Cascade ignores region edits sent via edit(), so
+any assignment (or assigning asset.pageConfigurations) now raises
+ReadOnlyPageConfigError pointing at the template / pageConfigurationSet
+asset. Document that Cascade&#x27;s noBlock/noFormat flags are unreliable.
+
+Co-Authored-By: Claude Sonnet 5.5 &lt;<span class="red">[redacted: personal]</span>&gt;
+EOF
+)&quot; &amp;&amp; git push 2&gt;&amp;1 | tail -3; git status --short</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">sed -i &#x27;s/`AGENTS.md`, `CLAUDE.md`, `CHANGELOG.md`, `pyproject.toml`/`AGENTS.md`, `CHANGELOG.md`, `pyproject.t...</span><span class="td">4.5s</span></summary><pre class="si">sed -i &#x27;s/`AGENTS.md`, `CLAUDE.md`, `CHANGELOG.md`, `pyproject.toml`/`AGENTS.md`, `CHANGELOG.md`, `pyproject.toml`/&#x27; CHANGELOG.md &amp;&amp; git add CHANGELOG.md &amp;&amp; git commit -q -m &quot;$(cat &lt;&lt;&#x27;EOF&#x27;
+Release 3.7.0: read-only PageRegion/PageConfiguration
+
+Replace the write-through models with read-only pydantic dataclasses shaped
+by Cascade&#x27;s real payloads. Cascade ignores region edits sent via edit(), so
+any assignment (or assigning asset.pageConfigurations) now raises
+ReadOnlyPageConfigError pointing at the template / pageConfigurationSet
+asset. Document that Cascade&#x27;s noBlock/noFormat flags are unreliable.
+
+Co-Authored-By: Claude Sonnet 5.5 &lt;<span class="red">[redacted: personal]</span>&gt;
+EOF
+)&quot; &amp;&amp; git push 2&gt;&amp;1 | tail -3; git log --oneline -1; git status --short</pre></details><hr class="div"><div class="part">I committed and pushed the library to `master` as `03a03f5`, &quot;Release 3.7.0: read-only PageRegion/PageConfiguration&quot;. It includes the `cmstypes.py` change, the tests, `AGENTS.md`, `CHANGELOG.md` and the version bump.
+
+- **`CLAUDE.md`:** it&#x27;s gitignored in this repo, so my edit to it stayed local. I removed it from the changelog&#x27;s &quot;Files changed&quot; line.
+- **Left untracked:** the handoff `.txt` and the two sample JSON files.
+- **`cascade-cms-tools` not committed:** its edits are still uncommitted, and the other session is active in that repo. I held off so I don&#x27;t collide with it. Say the word if you want me to commit and push there too.
+- **PyPI:** I only pushed to git. 3.7.0 isn&#x27;t published to PyPI, and the tools repo&#x27;s re-vendor step depends on that.</div><hr class="div"><details class="note"><summary>Message from another Claude session (cascade-cms-tools-pageconfig-handoff)</summary><div class="part">My user approved your findings and your edits to this repo, including the `server.py` change. Two questions for you, and my plan for 3.7.0:
+1. My user wants `CLAUDE.md` updated in cascade-cms-tools. Which changes does it need, and what exact text should go in? Tell me whether it belongs in `CLAUDE.md` or only in `AGENTS.md`, and whether the &quot;Cascade API quirks&quot; section should be mirrored. Send the text, not a summary, so I can apply it verbatim.
+2. Confirm your uncommitted files here are final. I&#x27;m not touching them, apart from reformatting `server.py` (ruff format) and fixing the failing MCP test `test_cascade_get_page_config_page_region_returns_content` once 3.7.0 is installed.
+My plan: wait for my user&#x27;s approval after 3.7.0 is published. Then I re-snapshot, bump the MCP pin, update the docs and the validator for the read-only accessors, and rebuild. No tag and no version bump from me.
+Please message me when 3.7.0 is on PyPI.</div></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; ls CLAUDE.md 2&gt;&amp;1; grep -n &quot;page\|Page\|AGENTS\...</span><span class="td">1.2s</span><span class="err">failed</span></summary><pre class="si">cd /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools &amp;&amp; ls CLAUDE.md 2&gt;&amp;1; grep -n &quot;page\|Page\|AGENTS\|^#&quot; CLAUDE.md 2&gt;/dev/null | head -40; wc -l CLAUDE.md</pre></details><hr class="div"><details class="step"><summary><span class="tn">SendMessage</span><span class="ts">cascade-cms-tools-pageconfig-handoff</span><span class="td">1.2s</span></summary><pre class="si">{&quot;to&quot;: &quot;cascade-cms-tools-pageconfig-handoff&quot;, &quot;summary&quot;: &quot;Answer CLAUDE.md text, confirm files final&quot;, &quot;message&quot;: &quot;Answers to your two questions and the 3.7.0 status.\n1. CLAUDE.md: cascade-cms-tools has no CLAUDE.md at all (I checked), so there is nothing to update. Put the quirks only in AGENTS.md (already there, \&quot;Cascade API quirks — be cautious\&quot;) and don&#x27;t mirror the section. Instead create a CLAUDE.md that i...&quot;, &quot;type&quot;: &quot;message&quot;, &quot;recipient&quot;: &quot;cascade-cms-tools-pageconfig-handoff&quot;, &quot;content&quot;: &quot;Answers to your two questions and the 3.7.0 statu…&quot;}</pre></details><hr class="div"><div class="part">I replied to the `cascade-cms-tools-pageconfig-handoff` session:
+
+- **`CLAUDE.md`:** `cascade-cms-tools` has no `CLAUDE.md`, so there was nothing to update. I told it to keep the quirks only in `AGENTS.md`, without mirroring the section. It should create a `CLAUDE.md` containing just `@AGENTS.md` so the two files can&#x27;t drift. I didn&#x27;t edit anything in that repo.
+- **My edits there:** I confirmed they are final. That includes the `server.py` change, so it can safely ruff-format that file. Its failing test `test_cascade_get_page_config_page_region_returns_content` probably still expects a `content` key. It should assert `block_id`/`block_path` and the new `caution` key instead.
+- **PyPI:** 3.7.0 is on git `master` only. I told it I haven&#x27;t published to PyPI and can&#x27;t message it when it lands, so it should check PyPI itself before re-snapshotting.
+
+Do you want to publish 3.7.0 to PyPI? That would unblock the other session&#x27;s re-snapshot and MCP pin bump. If you do, tell me and I&#x27;ll message it afterward.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:05 UTC</span></span></div><div class="body"><div class="part">Can you please tag and push  `3.7.0`?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:05 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git tag | tail -3; git tag -a 3.7.0 -m &quot;Release 3.7.0&quot; 2&gt;&amp;1; git push origin 3.7.0 2&gt;&amp;1 | tail -3; grep -n &quot;ta...</span><span class="td">3.6s</span></summary><pre class="si">git tag | tail -3; git tag -a 3.7.0 -m &quot;Release 3.7.0&quot; 2&gt;&amp;1; git push origin 3.7.0 2&gt;&amp;1 | tail -3; grep -n &quot;tags\|on:&quot; -A4 .github/workflows/*.yml | head -20</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">sed -n 1,15p .github/workflows/release.yml</span><span class="td">1.1s</span></summary><pre class="si">sed -n 1,15p .github/workflows/release.yml</pre></details><hr class="div"><div class="part">I tagged `3.7.0` and pushed it to `origin`, but that tag won&#x27;t publish anything to PyPI.
+
+The release workflow (`.github/workflows/release.yml`) only runs on tags shaped like `v*.*.*`, and the existing tags are `v3.4.0`, `v3.5.0` and `v3.6.0`. Tagging exactly `3.7.0`, as you asked, didn&#x27;t match, so no publish run started.
+
+To publish, the tag needs to be `v3.7.0`. I can add and push `v3.7.0` on the same commit and delete the stray `3.7.0` tag from the remote. Deleting a pushed tag is outward-facing, so I haven&#x27;t done it. Tell me if you want that.
+
+Pushing `v3.7.0` will trigger the PyPI release job. I haven&#x27;t looked at the rest of `release.yml`, so I don&#x27;t know whether it publishes straight away or waits for an approval step.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:08 UTC</span></span></div><div class="body"><div class="part">that previous commit didnt trigger PyPI workflow because it wasn&#x27;t tagged. Can you include that language in the `AGENTS.md`?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:08 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="ts">sed -n 15,60p .github/workflows/release.yml; grep -n &quot;tag\|PyPI\|publish&quot; -i AGENTS.md PUBLISHING.md | head</span><span class="td">1.2s</span></summary><pre class="si">sed -n 15,60p .github/workflows/release.yml; grep -n &quot;tag\|PyPI\|publish&quot; -i AGENTS.md PUBLISHING.md | head</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">4.1s</span></summary><pre class="si">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;AGENTS.md&#x27;
+s=open(p).read()
+new=&#x27;&#x27;&#x27;## Releasing to PyPI
+
+Pushing a commit to `master` does **not** publish anything. The `Release` workflow
+(`.github/workflows/release.yml`) runs only when a tag matching `v*.*.*` is pushed
+(e.g. `v3.7.0`; a bare `3.7.0` does not match and triggers nothing). It builds the
+sdist/wheel and publishes to PyPI (the `publish` job uses the `pypi` environment).
+To release: commit the version bump and CHANGELOG, then
+`git tag -a vX.Y.Z -m &quot;Release X.Y.Z&quot;` and `git push origin vX.Y.Z`. See `PUBLISHING.md`.
+Downstream consumers (`cascade-cms-tools`) depend on the *published* package, so they
+cannot pick up a change until the tag has been pushed and PyPI shows the version.
+
+&#x27;&#x27;&#x27;
+s=s.replace(&quot;## Maintaining the CHANGELOG&quot;,new+&quot;## Maintaining the CHANGELOG&quot;,1)
+open(p,&#x27;w&#x27;).write(s)
+EOF
+git add AGENTS.md &amp;&amp; git commit -q -m &quot;$(cat &lt;&lt;&#x27;EOF&#x27;
+Document that PyPI publishing requires a v*.*.* tag
+
+Co-Authored-By: Claude Sonnet 5.5 &lt;<span class="red">[redacted: personal]</span>&gt;
+EOF
+)&quot; &amp;&amp; git push 2&gt;&amp;1 | tail -1</pre></details><hr class="div"><div class="part">I added a &quot;Releasing to PyPI&quot; section to `AGENTS.md`, then committed and pushed it as `b1821ff`.
+
+It says:
+- **No publish on push:** pushing to `master` doesn&#x27;t publish anything.
+- **What triggers it:** the `Release` workflow only runs on a tag matching `v*.*.*`, so a bare `3.7.0` triggers nothing.
+- **What it does:** it builds the sdist and wheel and publishes to PyPI through the `pypi` environment.
+- **How to release:** commit the version bump and changelog, run `git tag -a vX.Y.Z` and push that tag. `PUBLISHING.md` has the full guide.
+- **Downstream:** `cascade-cms-tools` can only pick up a change once the tag is pushed and PyPI shows the version.
+
+3.7.0 still isn&#x27;t on PyPI, because the stray `3.7.0` tag never matched the workflow. To publish, I&#x27;d push `v3.7.0` on commit `b1821ff` (or `03a03f5`, the code commit). The `publish` job uses the `pypi` environment, which may wait for an approval. I can also delete the stray `3.7.0` tag from the remote. Do you want me to do either?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:09 UTC</span></span></div><div class="body"><div class="part">Go ahread with the redo</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:09 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git push origin --delete 3.7.0 2&gt;&amp;1 | tail -1; git tag -d 3.7.0; git tag -a v3.7.0 -m &quot;Release 3.7.0&quot; &amp;&amp; git p...</span><span class="td">5.4s</span></summary><pre class="si">git push origin --delete 3.7.0 2&gt;&amp;1 | tail -1; git tag -d 3.7.0; git tag -a v3.7.0 -m &quot;Release 3.7.0&quot; &amp;&amp; git push origin v3.7.0 2&gt;&amp;1 | tail -1; git ls-remote --tags origin | tail -3</pre></details><hr class="div"><div class="part">I deleted the stray `3.7.0` tag locally and on `origin`, then pushed an annotated `v3.7.0` tag on `b1821ff`, the current `master`. That commit includes the `AGENTS.md` release note.
+
+The push should start the `Release` workflow. I haven&#x27;t checked that it started or that it finished. The `publish` job uses the `pypi` environment, so it may be waiting for your approval in GitHub Actions. Until PyPI shows 3.7.0, `cascade-cms-tools` can&#x27;t pick it up.
+
+I haven&#x27;t told the other session yet. I&#x27;ll message it once you confirm 3.7.0 is on PyPI.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:30 UTC</span></span></div><div class="body"><div class="part">How does this current change to the `_PAGE_VIEW_CONFIG` affect the behavior of the basemodels `PageConfiguration` and `PageRegion`?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:30 UTC</span></span></div><div class="body"><div class="part">First, a correction to the premise. `PageRegion` and `PageConfiguration` are no longer `BaseModel`s. They are `@pydantic_dataclass(config=_PAGE_VIEW_CONFIG)` classes. `_PAGE_VIEW_CONFIG` is `ConfigDict(populate_by_name=True)`, which I added in 3.7.0, not a change to an earlier config. The 3.6.0 `BaseModel` versions used `validate_assignment=True, from_attributes=True` instead.
+
+What that config does:
+
+- **`populate_by_name=True`:** each field is accepted under its snake_case name or its Cascade alias. `PageConfiguration(page_regions=...)` and `pageRegions=...` both work. The 3.6.0 model only accepted `pageRegions`. This mainly helps anyone constructing these objects by hand, for example in tests. The library itself always parses raw Cascade dicts, which use the aliases.
+- **No `extra` setting:** pydantic&#x27;s default, `ignore`, applies. Unknown keys in a payload are dropped silently. That is why the old `content` key is ignored if it shows up. The raw dicts on the `Asset` are untouched, so `edit()` still round-trips every key.
+- **No `frozen`, no `validate_assignment`:** these are deliberately left unset. Read-only comes from the `__setattr__` and `__delattr__` overrides raising `ReadOnlyPageConfigError`. `frozen=True` wouldn&#x27;t work here, because the dataclass machinery forbids a custom `__setattr__` on a frozen class and would raise a generic `FrozenInstanceError` instead of our message.
+- **Default lax validation:** a JSON list becomes the `page_regions` tuple. Field types still validate, which is why a config without `name` fails at `Asset` creation.
+- **`serialization_alias`:** it only takes effect if someone dumps with `by_alias=True`. Nothing in the library serializes these objects, since `edit()` uses the raw data.
+
+`from_attributes=True` is gone. Nothing in the library or tests relied on validating these from arbitrary objects.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:32 UTC</span></span></div><div class="body"><div class="part">Can you change it? I want them to be `read-only` they should be `frozen`.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:32 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="ts">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">25s</span></summary><pre class="si">.venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;src/cascade_cms/cmstypes.py&#x27;
+s=open(p).read()
+s=s.replace(&quot;_PAGE_VIEW_CONFIG = ConfigDict(populate_by_name=True)&quot;,&quot;_PAGE_VIEW_CONFIG = ConfigDict(frozen=True, populate_by_name=True)&quot;)
+for cls,msg in ((&quot;PageRegion&quot;,&quot;REGION_READ_ONLY_MESSAGE&quot;),(&quot;PageConfiguration&quot;,&quot;CONFIGURATION_READ_ONLY_MESSAGE&quot;)):
+    old=f&#x27;&#x27;&#x27;
+    def __setattr__(self, key: str, value: object) -&gt; None:
+        raise ReadOnlyPageConfigError({msg})
+
+    def __delattr__(self, key: str) -&gt; None:
+        raise ReadOnlyPageConfigError({msg})
+&#x27;&#x27;&#x27;
+    assert old in s
+    s=s.replace(old,&quot;&quot;,1)
+anchor=&quot;_page_configuration_adapter: TypeAdapter&quot;
+patch=&#x27;&#x27;&#x27;def _read_only(message: str) -&gt; Callable[..., NoReturn]:
+    def blocked(self: object, key: str, *value: object) -&gt; NoReturn:
+        raise ReadOnlyPageConfigError(message)
+
+    return blocked
+
+
+# `frozen=True` already blocks writes, but a frozen dataclass forbids defining
+# `__setattr__` in its body and raises a generic FrozenInstanceError. Replace
+# the generated methods after the fact so the error says where to edit.
+PageRegion.__setattr__ = PageRegion.__delattr__ = _read_only(  # type: ignore[assignment,method-assign]
+    REGION_READ_ONLY_MESSAGE
+)
+PageConfiguration.__setattr__ = PageConfiguration.__delattr__ = _read_only(  # type: ignore[assignment,method-assign]
+    CONFIGURATION_READ_ONLY_MESSAGE
+)
+
+
+&#x27;&#x27;&#x27;
+s=s.replace(anchor,patch+anchor,1)
+s=s.replace(&quot;from typing import (\n    Annotated,\n    Any,\n    ClassVar,&quot;,&quot;from collections.abc import Callable\nfrom typing import (\n    Annotated,\n    Any,\n    ClassVar,&quot;,1)
+s=s.replace(&quot;    NamedTuple,\n    Self,&quot;,&quot;    NamedTuple,\n    NoReturn,\n    Self,&quot;,1)
+open(p,&#x27;w&#x27;).write(s)
+EOF
+.venv/bin/pytest -q 2&gt;&amp;1 | tail -5; .venv/bin/ruff check . | tail; .venv/bin/mypy src/ | tail</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">.venv/bin/ruff check . --fix -q; .venv/bin/python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">21s</span></summary><pre class="si">.venv/bin/ruff check . --fix -q; .venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+from cascade_cms.cmstypes import PageRegion, PageConfiguration
+import dataclasses
+print(PageRegion.__dataclass_params__.frozen, PageConfiguration.__dataclass_params__.frozen)
+r=PageRegion(name=&quot;a&quot;); print(hash(r) is not None)
+try: r.name=&quot;b&quot;
+except Exception as e: print(type(e).__mro__[1].__name__, e)
+EOF
+.venv/bin/ruff check . &amp;&amp; .venv/bin/mypy src/ &amp;&amp; .venv/bin/pytest -q | tail -1</pre></details><hr class="div"><div class="part">`PageRegion` and `PageConfiguration` are now truly frozen: `_PAGE_VIEW_CONFIG = ConfigDict(frozen=True, populate_by_name=True)`. The change is in `src/cascade_cms/cmstypes.py` and is not committed. It passes `pytest` (224 tests), `ruff check .` and `mypy src/`.
+
+- **Frozen is real:** the stdlib dataclass parameter reports `frozen=True` for both classes.
+- **Hashable:** as a side effect, instances are now hashable, because frozen dataclasses get a `__hash__`.
+- **Error message kept:** a frozen dataclass won&#x27;t allow its own `__setattr__`/`__delattr__` in the class body. Without an override you get a generic `FrozenInstanceError` and lose the &quot;edit the `template` asset / `pageConfigurationSet` asset&quot; message. So after the classes are defined, I replace the generated methods with ones that raise `ReadOnlyPageConfigError` with the class-specific message. It&#x27;s still an `AttributeError`, and the existing tests pass unchanged. The replacement uses a small `_read_only()` helper with two `# type: ignore` comments for mypy. If you&#x27;d rather have the plain `FrozenInstanceError`, I can delete the helper. The messages would then only exist for the `asset.pageConfigurations = ...` guard.
+
+Should I commit and push this? 3.7.0 is already tagged on `b1821ff`, so this would need a follow-up release (3.7.1) or a re-tag. I&#x27;d rather not move the tag.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:34 UTC</span></span></div><div class="body"><div class="part">commit, tag, and push with new version bump `3.7.1`.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-29 21:34 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">sed -i &#x27;s/^version = &quot;3.7.0&quot;/version = &quot;3.7.1&quot;/&#x27; pyproject.toml &amp;&amp; .venv/bin/python - &lt;&lt;&#x27;EOF&#x27;</span><span class="td">24s</span></summary><pre class="si">sed -i &#x27;s/^version = &quot;3.7.0&quot;/version = &quot;3.7.1&quot;/&#x27; pyproject.toml &amp;&amp; .venv/bin/python - &lt;&lt;&#x27;EOF&#x27;
+p=&#x27;CHANGELOG.md&#x27;
+s=open(p).read()
+entry=&#x27;&#x27;&#x27;## [3.7.1]
+
+### Changed
+- `PageRegion` and `PageConfiguration` are now genuinely frozen (`ConfigDict(frozen=True, populate_by_name=True)`), so instances are hashable. Writes and deletes still raise `ReadOnlyPageConfigError` (an `AttributeError`) with the &quot;edit the `template` / `pageConfigurationSet` asset&quot; message: the frozen dataclass&#x27;s generated `__setattr__`/`__delattr__` are replaced after class creation, since a frozen dataclass cannot define them in its body.
+
+**Files changed:** `src/cascade_cms/cmstypes.py`, `CHANGELOG.md`, `pyproject.toml`
+
+&#x27;&#x27;&#x27;
+s=s.replace(&quot;## [3.7.0]&quot;,entry+&quot;## [3.7.0]&quot;,1)
+open(p,&#x27;w&#x27;).write(s)
+EOF
+.venv/bin/ruff check . &amp;&amp; .venv/bin/mypy src/ &amp;&amp; .venv/bin/pytest -q | tail -1 &amp;&amp; git add CHANGELOG.md pyproject.toml src/cascade_cms/cmstypes.py &amp;&amp; git commit -q -m &quot;$(cat &lt;&lt;&#x27;EOF&#x27;
+Release 3.7.1: freeze PageRegion/PageConfiguration
+
+Co-Authored-By: Claude Sonnet 5.5 &lt;<span class="red">[redacted: personal]</span>&gt;
+EOF
+)&quot; &amp;&amp; git tag -a v3.7.1 -m &quot;Release 3.7.1&quot; &amp;&amp; git push origin master v3.7.1 2&gt;&amp;1 | tail -3; git status --short</pre></details><hr class="div"><div class="part">I bumped the version to 3.7.1, committed the change as `1d0c8c0`, tagged `v3.7.1`, and pushed the commit and tag to `origin`. Lint, type-check and the 224 tests all passed first. The changelog entry covers the frozen change.
+
+The `v3.7.1` tag should trigger the `Release` workflow. I haven&#x27;t confirmed it started or finished, and the `publish` job may be waiting for your approval in GitHub Actions.
+
+Because 3.7.0 was tagged and pushed earlier, it will likely also publish, with the un-frozen classes. If you&#x27;d rather not have both on PyPI, check its run in GitHub Actions before approving anything.
+
+I still haven&#x27;t told the `cascade-cms-tools` session, and it needs the version to be on PyPI. I&#x27;ll message it once you confirm 3.7.1 is there. It should re-snapshot from 3.7.1 rather than 3.7.0.</div></div></div></article></div></main></body></html>

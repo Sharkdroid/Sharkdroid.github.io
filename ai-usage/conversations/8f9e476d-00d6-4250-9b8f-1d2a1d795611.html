@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Python 3.13.18 venv and workflows</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>Python 3.13.18 venv and workflows</h1>
+<p class="meta">2026-10-26 &middot; cascade-cms-tools &middot; claude-code &middot; 12 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude-code</span></span></div><div class="item"><b>Active time</b><span>8m</span></div><div class="item"><b>Date</b><span>2026-10-26</span></div><div class="item"><b>Tokens</b><span>In 2.0K · Out 8.6K · Cache read 936.8K · Cache write 43.3K</span></div></div><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-26 19:44 UTC</span></span></div><div class="body"><div class="part">remove `.venv` folder create a new virtual environment using python version `3.13.18` reinstall all required libraries with `dev`. Make sure no-cache used. Make sure to change the version for
+  workflows and also make sure the release is built with python version `3.13.18` in response to the CA certificate security.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Haiku 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-26 19:44 UTC</span></span></div><div class="body"><div class="part">I&#x27;ll start by checking the current environment, the workflow files, and the Python versions available.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">ls -la &amp;&amp; echo &quot;---WORKFLOWS---&quot; &amp;&amp; ls .github/workflows &amp;&amp; echo &quot;---PY---&quot; &amp;&amp; which python python3 uv conda p...</span><span class="td">1.6s</span></summary><pre class="si">ls -la &amp;&amp; echo &quot;---WORKFLOWS---&quot; &amp;&amp; ls .github/workflows &amp;&amp; echo &quot;---PY---&quot; &amp;&amp; which python python3 uv conda pyenv 2&gt;/dev/null; python3 --version; ls .venv 2&gt;/dev/null | head; echo &quot;---grep python-version---&quot;; grep -rn &quot;python&quot; .github/workflows/ | grep -iv &quot;pypi&quot; </pre></details><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -rn &quot;3\.13\|python_requires\|requires-python\|python-version&quot; --include=*.toml --include=*.yml --include=...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -rn &quot;3\.13\|python_requires\|requires-python\|python-version&quot; --include=*.toml --include=*.yml --include=*.yaml --include=*.md --include=*.py --include=*.cfg . 2&gt;/dev/null | grep -v &quot;/.venv/&quot; | grep -v &quot;/.conda/&quot; | head -50</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">cat .github/workflows/ci.yml &amp;&amp; echo &quot;=====RELEASE=====&quot; &amp;&amp; cat .github/workflows/release.yml &amp;&amp; echo &quot;=====GI...</span><span class="td">&lt;1s</span></summary><pre class="si">cat .github/workflows/ci.yml &amp;&amp; echo &quot;=====RELEASE=====&quot; &amp;&amp; cat .github/workflows/release.yml &amp;&amp; echo &quot;=====GIT DIFF mcp/pyproject.toml=====&quot; &amp;&amp; git diff mcp/pyproject.toml &amp;&amp; echo &quot;=====.venv cfg=====&quot; &amp;&amp; cat .venv/pyvenv.cfg &amp;&amp; echo &quot;=====uv pythons=====&quot; &amp;&amp; uv python list 2&gt;&amp;1 | head -30</pre></details><hr class="div"><div class="part">The `mcp/pyproject.toml` change (0.5.0 → 0.5.1) is already uncommitted in your tree, so I&#x27;ll leave it alone. Next I&#x27;ll confirm the 3.13.18 interpreter and the package&#x27;s dependencies.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">/usr/bin/python3.13 --version &amp;&amp; cat mcp/pyproject.toml &amp;&amp; echo &quot;=====gitignore=====&quot; &amp;&amp; cat .gitignore &amp;&amp; ech...</span><span class="td">&lt;1s</span></summary><pre class="si">/usr/bin/python3.13 --version &amp;&amp; cat mcp/pyproject.toml &amp;&amp; echo &quot;=====gitignore=====&quot; &amp;&amp; cat .gitignore &amp;&amp; echo &quot;=====build_release python refs=====&quot; &amp;&amp; grep -n &quot;python\|sys.executable\|cascade_cms&quot; build_release.py | head -40</pre></details><hr class="div"><div class="part">`/usr/bin/python3.13` is exactly 3.13.18, so I&#x27;ll use it. Now I&#x27;ll remove the old `.venv` and build the new one with `--no-cache-dir`.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">rm -rf .venv &amp;&amp; /usr/bin/python3.13 -m venv .venv &amp;&amp; ./.venv/bin/python --version &amp;&amp; ./.venv/bin/python -m pip...</span><span class="td">8.0s</span><span class="err">failed</span></summary><pre class="si">rm -rf .venv &amp;&amp; /usr/bin/python3.13 -m venv .venv &amp;&amp; ./.venv/bin/python --version &amp;&amp; ./.venv/bin/python -m pip install --no-cache-dir --upgrade pip &amp;&amp; ./.venv/bin/python -m pip install --no-cache-dir --upgrade cascade-cms-rest ruff &amp;&amp; ./.venv/bin/python -m pip install --no-cache-dir -e &quot;./mcp[dev]&quot;</pre></details><hr class="div"><div class="part">`ensurepip` failed, which usually means the system `python3.13-venv` package is missing. I&#x27;ll check that, and use `uv` to build the venv if it is.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">rm -rf .venv &amp;&amp; uv --version &amp;&amp; uv venv --python 3.13.18 --no-cache .venv &amp;&amp; ./.venv/bin/python --version &amp;&amp; u...</span><span class="td">59s</span></summary><pre class="si">rm -rf .venv &amp;&amp; uv --version &amp;&amp; uv venv --python 3.13.18 --no-cache .venv &amp;&amp; ./.venv/bin/python --version &amp;&amp; uv pip install --no-cache --python ./.venv/bin/python --upgrade cascade-cms-rest ruff &amp;&amp; uv pip install --no-cache --python ./.venv/bin/python -e &quot;./mcp[dev]&quot;</pre></details><hr class="div"><div class="part">The venv is built on 3.13.18 with all dev dependencies and no cache. Next I&#x27;ll update the workflow Python versions, which means reading the files before editing them.</div><details class="step"><summary><span class="tn">Read</span><span class="ts">.github/workflows/ci.yml</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools/.github/workflows/ci.yml</pre></details><details class="step"><summary><span class="tn">Read</span><span class="ts">.github/workflows/release.yml</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools/.github/workflows/release.yml</pre></details><hr class="div"><details class="step"><summary><span class="tn">Edit</span><span class="ts">.github/workflows/ci.yml</span><span class="td">2.0s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools/.github/workflows/ci.yml</pre></details><details class="step"><summary><span class="tn">Edit</span><span class="ts">.github/workflows/release.yml</span><span class="td">1.8s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools/.github/workflows/release.yml</pre></details><details class="step"><summary><span class="tn">Edit</span><span class="ts">.github/workflows/release.yml</span><span class="td">1.5s</span></summary><pre class="si">/mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools/.github/workflows/release.yml</pre></details><hr class="div"><div class="part">Workflows now use 3.13.18. Next I&#x27;ll run the repo&#x27;s three checks (ruff, mypy, pytest) in the new venv.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">./.venv/bin/ruff check . ; echo &quot;RUFF_EXIT=$?&quot;; ./.venv/bin/mypy mcp/src/; echo &quot;MYPY_EXIT=$?&quot;; ./.venv/bin/py...</span><span class="td">1m 16s</span></summary><pre class="si">./.venv/bin/ruff check . ; echo &quot;RUFF_EXIT=$?&quot;; ./.venv/bin/mypy mcp/src/; echo &quot;MYPY_EXIT=$?&quot;; ./.venv/bin/pytest; echo &quot;PYTEST_EXIT=$?&quot;</pre></details><hr class="div"><div class="part">All three checks pass on 3.13.18 (262 tests). Now I&#x27;ll build the release bundle with the 3.13.18 interpreter.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">./.venv/bin/python --version &amp;&amp; ./.venv/bin/python build_release.py; echo &quot;BUILD_EXIT=$?&quot;; ls -la dist/</span><span class="td">1m 23s</span></summary><pre class="si">./.venv/bin/python --version &amp;&amp; ./.venv/bin/python build_release.py; echo &quot;BUILD_EXIT=$?&quot;; ls -la dist/</pre></details><hr class="div"><div class="part">The `.venv` is rebuilt on Python 3.13.18 with dev dependencies, the workflows are pinned to 3.13.18, and the release bundle is built with it. Ruff, mypy, and pytest all pass in the new venv.
+
+**Environment**
+- Deleted the old `.venv` (it was on Python 3.12.3).
+- Created a new `.venv` from `/usr/bin/python3.13` (3.13.18). The stdlib `python -m venv` failed on `ensurepip`, so I used `uv venv` instead.
+- Installed `cascade-cms-rest==3.9.1`, `ruff==0.17.2`, and `cascade-cms-rest-mcp[dev]` with `--no-cache`. This is `uv`&#x27;s equivalent of `pip --no-cache-dir`.
+- The new venv has no `pip` binary. `AGENTS.md`&#x27;s `./.venv/bin/pip ...` commands won&#x27;t work there; use `uv pip --python ./.venv/bin/python ...` or `./.venv/bin/python -m ensurepip` if you want pip back.
+
+**Workflows** (`.github/workflows/`)
+- `ci.yml`: matrix changed from `[&quot;3.12&quot;, &quot;3.13&quot;, &quot;3.14&quot;]` to `[&quot;3.13.18&quot;]`. This drops CI coverage for 3.12 and 3.14, even though `mcp/pyproject.toml` still declares `requires-python = &quot;&gt;=3.12&quot;`. Say if you want 3.12 or 3.14 back in the matrix.
+- `release.yml`: both the `validate` job and the `publish-pypi` job now use `python-version: &quot;3.13.18&quot;`.
+
+**Release build**
+- `./.venv/bin/python build_release.py` ran on 3.13.18. All 22 templates passed, and it wrote `dist/cascade-cms-tools-skill-051.zip`.
+- The name says 051 because `mcp/pyproject.toml` is at 0.5.1. That bump was already uncommitted in your tree, and I left it alone.
+- I didn&#x27;t commit anything. The new zip, the workflow changes, and the pyproject bump are all uncommitted.
+
+I didn&#x27;t verify the &quot;CA certificate security&quot; reason for the pin. The change is just the version string, so the 3.13.18 pin is what I can confirm.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-26 19:52 UTC</span></span></div><div class="body"><div class="part">commit and push changes.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Haiku 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-26 19:52 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git status --short &amp;&amp; echo &quot;---BRANCH---&quot; &amp;&amp; git branch --show-current &amp;&amp; git remote -v &amp;&amp; echo &quot;---LOG---&quot; &amp;&amp;...</span><span class="td">1.0s</span></summary><pre class="si">git status --short &amp;&amp; echo &quot;---BRANCH---&quot; &amp;&amp; git branch --show-current &amp;&amp; git remote -v &amp;&amp; echo &quot;---LOG---&quot; &amp;&amp; git log --oneline -3</pre></details><hr class="div"><div class="part">We&#x27;re on `master`, the default branch, so I&#x27;ll commit to a new branch rather than push straight to `master`. I&#x27;ll stage only the files from this change and leave the untracked `script/` folder out, since it was already there before this work.</div><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git checkout -b chore/python-3.13.18 &amp;&amp; git add .github/workflows/ci.yml .github/workflows/release.yml mcp/pyp...</span><span class="td">5.8s</span></summary><pre class="si">git checkout -b chore/python-3.13.18 &amp;&amp; git add .github/workflows/ci.yml .github/workflows/release.yml mcp/pyproject.toml dist/cascade-cms-tools-skill-051.zip &amp;&amp; git commit -q -m &quot;$(cat &lt;&lt;&#x27;EOF&#x27;
+Pin Python to 3.13.18 in CI and release workflows; bump to v0.5.1
+
+Set every setup-python step in ci.yml and release.yml to 3.13.18 (CI
+matrix narrowed to that single version). Build the skill bundle with
+the same interpreter and bump the MCP package to 0.5.1.
+
+Co-Authored-By: Claude Haiku 5.5 &lt;<span class="red">[redacted: personal]</span>&gt;
+EOF
+)&quot; &amp;&amp; git log --oneline -1 &amp;&amp; git push -u origin chore/python-3.13.18 2&gt;&amp;1; echo &quot;PUSH_EXIT=$?&quot;</pre></details><hr class="div"><div class="part">The changes are committed as `4188a58` and pushed to a new branch, `chore/python-3.13.18`, on origin.
+
+I didn&#x27;t push to `master` directly, because it&#x27;s the default branch and the repo guidance says to branch first. To merge, open a PR from here: https://github.com/Sharkdroid/cascade-cms-tools/pull/new/chore/python-3.13.18
+
+The commit includes:
+- `.github/workflows/ci.yml` and `release.yml`: Python pinned to 3.13.18. The CI matrix is now only 3.13.18.
+- `dist/cascade-cms-tools-skill-051.zip`: the release bundle built on 3.13.18.
+- `mcp/pyproject.toml`: the 0.5.0 → 0.5.1 bump.
+
+I left out the untracked `script/` folder, which was there before this work. I didn&#x27;t open the PR, since you didn&#x27;t ask for one.</div></div></div></article></div></main></body></html>

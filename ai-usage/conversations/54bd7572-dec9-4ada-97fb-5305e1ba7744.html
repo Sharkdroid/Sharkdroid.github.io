@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Favicon wiring across all pages</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>Favicon wiring across all pages</h1>
+<p class="meta">2026-10-19 &middot; sharkdroid-github-io &middot; claude-code &middot; 18 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude-code</span></span></div><div class="item"><b>Active time</b><span>21m</span></div><div class="item"><b>Date</b><span>2026-10-19</span></div><div class="item"><b>Tokens</b><span>In 4.9K · Out 6.5K · Cache read 1.3M · Cache write 30.5K</span></div></div><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:33 UTC</span></span></div><div class="body"><div class="part">hook up the favicons to all pages. Then commit and push.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:33 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="ts">find . -name &quot;*.html&quot; -not -path &quot;./node_modules/*&quot; -not -path &quot;./.git/*&quot; | head -50; grep -rn &quot;icon&quot; --includ...</span><span class="td">1.4s</span></summary><pre class="si">find . -name &quot;*.html&quot; -not -path &quot;./node_modules/*&quot; -not -path &quot;./.git/*&quot; | head -50; grep -rn &quot;icon&quot; --include=*.html . | head</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">ls; git ls-files | grep -v &#x27;^wiki/.*/site/&#x27; | grep -Ei &#x27;html|mkdocs|yml|overrides&#x27; | head -30; cat .gitignore;...</span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">ls; git ls-files | grep -v &#x27;^wiki/.*/site/&#x27; | grep -Ei &#x27;html|mkdocs|yml|overrides&#x27; | head -30; cat .gitignore; grep -n &quot;icon\|favicon&quot; wiki/*/mkdocs.yml</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">cat build_root_site.py | head -80; cat wiki/cascade-cms-wiki/properdocs.yml; ls wiki-templates wiki/*; cat .gi...</span><span class="td">&lt;1s</span></summary><pre class="si">cat build_root_site.py | head -80; cat wiki/cascade-cms-wiki/properdocs.yml; ls wiki-templates wiki/*; cat .github/workflows/deploy.yml</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">for w in cascade-cms-wiki cascade-cms-tools-wiki; do mkdir -p wiki/$w/docs/assets; cp fav*.gif wiki/$w/docs/as...</span><span class="td">1.0s</span><span class="err">failed</span></summary><pre class="si">for w in cascade-cms-wiki cascade-cms-tools-wiki; do mkdir -p wiki/$w/docs/assets; cp fav*.gif wiki/$w/docs/assets/; sed -i &#x27;s|^  name: material|  name: material\n  favicon: assets/fav32x32.gif|&#x27; wiki/$w/properdocs.yml; grep -n -A2 &quot;^theme&quot; wiki/$w/properdocs.yml; done
+python3 - &lt;&lt;&#x27;E&#x27;
+p=&#x27;build_root_site.py&#x27;
+s=open(p).read()
+s=s.replace(&#x27;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;\n&#x27;,&#x27;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;\n&lt;link rel=&quot;icon&quot; type=&quot;image/gif&quot; sizes=&quot;16x16&quot; href=&quot;/fav16x16.gif&quot;&gt;\n&lt;link rel=&quot;icon&quot; type=&quot;image/gif&quot; sizes=&quot;32x32&quot; href=&quot;/fav32x32.gif&quot;&gt;\n&lt;link rel=&quot;icon&quot; type=&quot;image/gif&quot; sizes=&quot;48x48&quot; href=&quot;/fav48x48.gif&quot;&gt;\n&#x27;,1)
+s=s.replace(&#x27;import html\n&#x27;,&#x27;import html\nimport shutil\n&#x27;,1)
+s=s.replace(&#x27;    render_journals()\n&#x27;,&#x27;    render_journals()\n    for icon in ROOT.glob(&quot;fav*.gif&quot;):\n        shutil.copy(icon, OUTPUT / icon.name)\n&#x27;)
+open(p,&#x27;w&#x27;).write(s)
+E
+git diff --stat; git add -A . &#x27;:!.venv&#x27; &amp;&amp; git status --short | head</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git add build_root_site.py fav*.gif wiki/*/properdocs.yml wiki/*/docs/assets &amp;&amp; git commit -q -m &quot;Hook up favi...</span><span class="td">3.9s</span></summary><pre class="si">git add build_root_site.py fav*.gif wiki/*/properdocs.yml wiki/*/docs/assets &amp;&amp; git commit -q -m &quot;Hook up favicons to root, journal, and wiki pages
+
+Co-Authored-By: Claude Sonnet 5.5 &lt;<span class="red">[redacted: personal]</span>&gt;&quot; &amp;&amp; git push 2&gt;&amp;1 | tail -2</pre></details><hr class="div"><div class="part">The favicons are hooked up and pushed to `main` as commit `0b756c4`. I haven&#x27;t built the site or checked any page in a browser.
+
+- **Root, wiki hub and journal pages:** `build_root_site.py` now adds 16, 32 and 48px icon links to the page template and copies the three `fav*.gif` files into `combined-site/`. The links use absolute `/fav…gif` paths, which works because this is the user site at the domain root.
+- **Both wikis:** the icons are copied into each wiki&#x27;s `docs/assets/`, and `properdocs.yml` sets `theme.favicon: assets/fav32x32.gif`. The Material theme only takes one favicon, so the wiki pages get the 32px one.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:38 UTC</span></span></div><div class="body"><div class="part">does GitHub Pages support animated favicons?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:38 UTC</span></span></div><div class="body"><div class="part">GitHub Pages serves the GIF as-is, so that part isn&#x27;t a problem. Whether it animates depends on the browser.
+
+- **Firefox:** animates GIF favicons.
+- **Chrome, Edge and Safari:** show only the first frame. Chrome used to animate them but stopped.
+
+Your favicons are GIFs, so they&#x27;ll animate in Firefox and show as static images everywhere else. If you want an animation in other browsers, the only route is JavaScript that swaps the favicon `href` on a timer or draws frames to a canvas. I haven&#x27;t added that.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:38 UTC</span></span></div><div class="body"><div class="part">I dont see it on firefox</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:38 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="ts">gh run list --limit 3 2&gt;&amp;1 | head; curl -sI https://sharkdroid.github.io/fav32x32.gif | head -3; curl -s https...</span><span class="td">1.5s</span></summary><pre class="si">gh run list --limit 3 2&gt;&amp;1 | head; curl -sI https://sharkdroid.github.io/fav32x32.gif | head -3; curl -s https://sharkdroid.github.io/ | grep -i icon</pre></details><hr class="div"><div class="part">The deploy succeeded, and the live site is serving it. `https://sharkdroid.github.io/fav32x32.gif` returns 200 as `image/gif`, and the root page has the three `&lt;link rel=&quot;icon&quot;&gt;` tags. So the problem is on the browser side.
+
+Firefox caches favicons heavily, so try these in order:
+1. Hard refresh with Ctrl+Shift+R.
+2. Open `https://sharkdroid.github.io/fav32x32.gif` directly. If it shows there, the file is fine and only the tab icon is stale.
+3. Open the site in a private window. It has no favicon cache, so this shows whether the cache is the cause.
+4. If it still doesn&#x27;t show, clear the cache from History &gt; Clear Recent History &gt; Cache.
+
+Is it missing on every page, or only the wiki pages? I only checked the root page. The wikis use a different mechanism, and I haven&#x27;t verified that one on the live site.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:40 UTC</span></span></div><div class="body"><div class="part">the homepage isnt even animated it is just a still image</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:40 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="ts">python3 -c &quot;</span><span class="td">&lt;1s</span></summary><pre class="si">python3 -c &quot;
+from PIL import Image
+for n in (16,32,48):
+    i=Image.open(f&#x27;fav{n}x{n}.gif&#x27;);print(n,i.size,i.n_frames,i.info.get(&#x27;loop&#x27;),i.info.get(&#x27;duration&#x27;))
+&quot; 2&gt;&amp;1; file fav*.gif</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">for n in 16 32 48; do python3 - $n &lt;&lt;&#x27;E&#x27;</span><span class="td">&lt;1s</span></summary><pre class="si">for n in 16 32 48; do python3 - $n &lt;&lt;&#x27;E&#x27;
+import sys
+d=open(f&#x27;fav{sys.argv[1]}x{sys.argv[1]}.gif&#x27;,&#x27;rb&#x27;).read()
+print(sys.argv[1], &#x27;frames:&#x27;, d.count(b&#x27;\x00\x21\xf9\x04&#x27;)+ (1 if d[:1000].find(b&#x27;\x21\xf9\x04&#x27;)&gt;=0 and False else 0), &#x27;netscape loop:&#x27;, b&#x27;NETSCAPE2.0&#x27; in d, &#x27;bytes&#x27;, len(d))
+E
+done</pre></details><hr class="div"><div class="part">The GIFs are animated. Each file has roughly three frames and a loop flag, so the files aren&#x27;t the cause. My earlier claim that Firefox animates GIF favicons may be wrong. I&#x27;m not certain that current Firefox still animates favicons in the tab strip, and I haven&#x27;t tested it.
+
+- **Browser limits:** I can&#x27;t confirm the tab icon animates in any current browser, because the behavior has changed across versions and I haven&#x27;t tested it.
+- **What I&#x27;d try:** open `https://sharkdroid.github.io/fav32x32.gif` directly in a tab. If it animates there, the file is fine and the browser just doesn&#x27;t animate favicons.
+- **If you need animation:** JavaScript can do it by swapping the favicon `href` between frames on a timer. That means splitting the GIF into separate PNG frames and adding a small script to each page template and to the wikis. I can set that up if you want it.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:42 UTC</span></span></div><div class="body"><div class="part">Yes it animates when viewed directly but not in the tabs</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:42 UTC</span></span></div><div class="body"><div class="part">That means the browser is only showing the first frame in the tab. The files and the deploy are fine.
+
+The only way to get an animated tab icon is the JavaScript approach I described. I&#x27;d split the GIF into frames and add a small script that swaps the icon on a timer. It would go on the hub and journal pages and on both wikis, through a small override for each wiki&#x27;s theme. It would run in Chrome, Firefox and Safari. The cost is extra files, a script on every page, and a constantly updating tab icon.
+
+Do you want me to set that up, or leave the static icons as they are?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:44 UTC</span></span></div><div class="body"><div class="part">how much javascript will get added?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:44 UTC</span></span></div><div class="body"><div class="part">Very little, about 10 lines (roughly 300 bytes) in one shared file, `favicon-anim.js`.
+
+```js
+(function () {
+  var frames = [&#x27;/fav-1.png&#x27;, &#x27;/fav-2.png&#x27;, &#x27;/fav-3.png&#x27;];
+  var link = document.querySelector(&#x27;link[rel~=&quot;icon&quot;]&#x27;) || document.head.appendChild(Object.assign(document.createElement(&#x27;link&#x27;), { rel: &#x27;icon&#x27; }));
+  var i = 0;
+  setInterval(function () { link.href = frames[i++ % frames.length]; }, 300);
+})();
+```
+
+- **Pages:** each page adds one `&lt;script src=&quot;/favicon-anim.js&quot; defer&gt;` tag.
+- **Wikis:** each wiki needs a small theme override so the tag is added to its pages, and that is more setup than the script.
+- **Frames:** I&#x27;d also add the PNG frames, split from the GIF, so the script can swap them. The files are about 5 KB each now, so they add a few KB in total.
+- **Other changes:** nothing else changes, and the script has no dependencies and loads nothing from outside the site.
+
+I&#x27;d match the real frame timing instead of the 300 ms placeholder above. Want me to go ahead?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:50 UTC</span></span></div><div class="body"><div class="part">No, does properdocs support animated logo (homepage logo)?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:50 UTC</span></span></div><div class="body"><div class="part">Yes, as far as I can tell. I haven&#x27;t built it to check.
+
+Properdocs is a fork of MkDocs, and your wikis use the Material theme. Material renders `theme.logo` as a normal `&lt;img&gt;` in the header, so an animated GIF animates there without any JavaScript.
+
+Config, using a path relative to `docs/`:
+
+```yaml
+theme:
+  name: material
+  logo: assets/logo.gif
+```
+
+- **Placement:** the logo shows in the top-left of the header next to the site name. Material also shows it in the mobile drawer.
+- **Size:** it&#x27;s displayed at about 24px high, so a small GIF works best. Your `fav48x48.gif` would fit.
+- **Homepage hub:** that page is plain HTML from `build_root_site.py`, not Material. A logo there would be an `&lt;img&gt;` tag in the template.
+
+Want me to add the logo to the two wikis, using `fav48x48.gif` or a different file?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:50 UTC</span></span></div><div class="body"><div class="part">yes, add the logo to both wikis</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:50 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">for w in cascade-cms-wiki cascade-cms-tools-wiki; do cp fav48x48.gif wiki/$w/docs/assets/logo.gif; sed -i &#x27;s|^...</span><span class="td">4.2s</span></summary><pre class="si">for w in cascade-cms-wiki cascade-cms-tools-wiki; do cp fav48x48.gif wiki/$w/docs/assets/logo.gif; sed -i &#x27;s|^  favicon: assets/fav32x32.gif|&amp;\n  logo: assets/logo.gif|&#x27; wiki/$w/properdocs.yml; grep -n -A3 &quot;^theme&quot; wiki/$w/properdocs.yml; done
+git add wiki/*/properdocs.yml wiki/*/docs/assets/logo.gif &amp;&amp; git commit -q -m &quot;Add animated logo to both wikis
+
+Co-Authored-By: Claude Sonnet 5.5 &lt;<span class="red">[redacted: personal]</span>&gt;&quot; &amp;&amp; git push 2&gt;&amp;1 | tail -1</pre></details><hr class="div"><div class="part">I added the logo to both wikis and pushed it to `main` as commit `172601c`. I haven&#x27;t checked how it renders.
+
+Each wiki now has `fav48x48.gif` copied to `docs/assets/logo.gif`, and `properdocs.yml` sets `theme.logo: assets/logo.gif`. It should show in the header once the deploy finishes. Check it after a hard refresh.
+
+I left the hub and journal pages alone, since a logo there would need an `&lt;img&gt;` in `build_root_site.py`.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:54 UTC</span></span></div><div class="body"><div class="part">Can you also look into adding accessibility plugin and maybe a github workflow for accessibility checking? Don&#x27;t write anything accept for a plan</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-19 22:54 UTC</span></span></div><div class="body"><div class="part">Here&#x27;s a plan only. I haven&#x27;t written or changed any files.
+
+**1. Plugin (to verify before committing to one)**
+- Material already covers the basics: semantic landmarks, keyboard navigation, a skip-to-content link, and a `lang` attribute.
+- I&#x27;m not aware of a well-established MkDocs accessibility plugin, and I haven&#x27;t checked PyPI. First step is to search for one and check that it&#x27;s maintained and works with Properdocs. If nothing solid exists, I&#x27;d skip the plugin and rely on the CI checks below. A weak plugin would add a dependency without much value.
+- A cheap source-level substitute is `markdownlint` for heading order and missing image alt text, run against `docs/`.
+
+**2. Workflow: `.github/workflows/accessibility.yml`**
+- **Trigger:** pull requests and pushes to `main`. It would rebuild the site the same way `deploy.yml` does, or reuse that build&#x27;s artifact.
+- **Checker:** `pa11y-ci` (axe or HTML_CodeSniffer rules) or `@axe-core/cli`, run against `combined-site/` served locally. I&#x27;d lean toward pa11y-ci, with a `.pa11yci.json` listing the root, wiki hub, a few journal pages and a few pages from each wiki, so it stays fast.
+- **Standard:** WCAG 2.1 AA, which is axe&#x27;s default tag set.
+- **Failure handling:** fail the job on errors. Upload the report as an artifact. Start in report-only mode so existing issues don&#x27;t block everything, then switch to strict once they&#x27;re fixed.
+- **Optional:** Lighthouse CI for an accessibility score. It&#x27;s more setup and mostly overlaps with axe.
+
+**3. Likely fixes the first run will surface**
+- **Hub and journal template:** needs a `&lt;main&gt;` landmark and a skip link. Table contrast and the link colors in both themes need checking.
+- **Material:** blue primary color contrast, especially in dark mode.
+- **Animated logo:** a looping GIF over 5 seconds fails WCAG 2.2.2 (pause, stop, hide). The options are to accept the flag, make the loop finite, or add a pause control. This one is your call.
+- **Images:** the logo and any images in the docs need meaningful or empty `alt` text.
+
+**4. Order of work**
+1. Check for a plugin, and decide on pa11y-ci versus axe.
+2. Add the workflow in report-only mode.
+3. Fix whatever it finds.
+4. Make the check blocking.
+
+Two questions before I start:
+- Do you want the check to block merges eventually, or stay advisory?
+- Do you have a decision on the animated logo&#x27;s WCAG 2.2.2 issue?</div></div></div></article></div></main></body></html>

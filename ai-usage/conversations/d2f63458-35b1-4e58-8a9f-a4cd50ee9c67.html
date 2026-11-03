@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>[MCP/skill DIST] Converting Python MCP to .mcpb format</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>[MCP/skill DIST] Converting Python MCP to .mcpb format</h1>
+<p class="meta">2026-10-06 &middot; cascade-cms-tools &middot; claude.ai &middot; 45 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude.ai</span></span></div><div class="item"><b>Last updated</b><span>2026-10-13</span></div></div><details class="sum"><summary>Summary</summary><div class="part">Conversation overview
+
+The person maintains `cascade-cms-rest-mcp`, a Python MCP server published to PyPI (currently version 0.4.8) that exposes a read-only interface to Hannon Hill Cascade CMS, distributed via `uvx` for use in Claude Code. The conversation began with exploring whether to package the project as a `.mcpb` bundle to extend support to Claude Desktop and claude.ai for colleagues sharing the same Cascade infrastructure. Through discussion, Claude clarified `.mcpb` mechanics (manifest `user_config` fields, the `uv` server type for dependency management, credential handling via OS keychain for sensitive fields) and the two required credentials (`CASCADE_API_KEY`, `CASCADE_URL`). After reviewing the project&#x27;s `pyproject.toml` and dependency list, the person decided to reject the `.mcpb` approach entirely after checking with their supervisor, who confirmed Claude Code is the target platform, making Desktop/claude.ai support unnecessary.
+
+The conversation then shifted to building a credential-rotation tool for Claude Code, since the person currently rotates `CASCADE_API_KEY` and `CASCADE_URL` by manually editing `~/.claude.json`. Through iterative clarification, they defined requirements: a single stdlib-only Python script (`scripts/cascade_creds.py`) that colleagues can read without complex setup, hidden key input, URL defaulting to the current value, no live credential validation, no backup files (to avoid orphaned files in `~/`), and errors echoed directly to console rather than silently handled. The person specified user scope as default with an option for narrower scope, and that secrets should remain in `~/.claude.json` via the `claude` CLI rather than a separate env file, since manual editing is an acceptable fallback.
+
+A key correction occurred when the person identified that Claude&#x27;s initial implementation of `--scope project` incorrectly targeted a `.mcp.json` file; the person clarified that what they actually use is stored in `~/.claude.json` under `projects.&lt;project-path&gt;.mcpServers`. Claude verified this via `claude mcp add --help` and corrected the script to rename the option to `--scope local`, removing all `.mcp.json` handling. Claude also produced an accompanying markdown file (`credentials-readme-section.md`) with installation steps, a scope-explanation table, and manual fallback commands, intended for direct copy-paste into the existing README. The person emphasized keeping documentation consolidated in one README file rather than separate docs.
+
+Throughout, the person communicated in a direct, iterative style, answering clarifying questions in short enumerated lists and providing specific technical corrections when Claude&#x27;s assumptions diverged from actual CLI behavior (e.g., scope terminology, screen recording review of their actual install steps using `claude mcp add` with `-e` flags for environment variables).
+
+Tool knowledge
+
+The `claude mcp add` CLI command has three distinct scopes that are easy to conflate: `user` scope stores entries at the top level of `~/.claude.json` under `mcpServers` and applies across all projects; `local` scope (the CLI&#x27;s actual default, not `project`) stores entries under `projects.&lt;project-path&gt;.mcpServers` within the same `~/.claude.json` file and is scoped to one project without being committed to version control; `project` scope writes to a separate `.mcp.json` file in the project directory, intended for team-shared configuration and typically committed to git. The person&#x27;s existing setup uses `local` scope, not a `project`-named option as initially assumed—this was confirmed by running `claude mcp add --help` and grep-filtering for &quot;scope&quot; in the output. When building automation around this CLI, `claude mcp add` fails if an entry with the same server name already exists, so credential rotation requires a `remove` then `add` sequence rather than an idempotent update; this creates a brief window where failure after `remove` but before `add` succeeds could leave no entry, which was mitigated by holding the previous entry&#x27;s values in memory (read from `~/.claude.json` before any mutation) and attempting to restore them if `add` fails, rather than relying on a written backup file. The CLI accepts environment variables via repeated `-e KEY=value` flags before the `--` separator, followed by the command and its arguments (e.g., `claude mcp add cascade-cms -s user -e CASCADE_API_KEY=xxx -e CASCADE_URL=xxx -- uvx --no-cache cascade-cms-rest-mcp`).</div></details><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Hello, I&#x27;m facing a small question. Right now I have an MCP that is uploaded to PyPI. From my knowledge and searching the internet it seems that `claude.ai` and Claude Desktop both use `.mcpb` file extension. However, I have it setup to only be used in Claude Code which I am using the `uvx` command to install. Is there an effective method to convert my Python MCP project into a `.mcpb`.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Good question — there&#x27;s an important distinction here that shapes your options. Let me clarify the landscape first:
+
+**Quick mental model:** `.mcpb` (MCP Bundle) and `uvx`-installable packages solve different distribution problems:
+- **`.mcpb`** = pre-packaged binary bundles for Claude Desktop / claude.ai (requires explicit local build)
+- **`uvx` + PyPI** = dynamic installation + updates, works in Claude Code *and* can work in Desktop via uv configuration
+
+Let me ask some clarifying questions before we map out a strategy:
+
+1. **Why the .mcpb route?** Are you trying to:
+   - Make it easier for non-technical users to use in Claude Desktop?
+   - Distribute without requiring `uvx` / uv runtime?
+   - Support offline usage?
+   - Something else?
+
+2. **Current distribution satisfaction?** Is the PyPI + `uvx` setup working well for your Claude Code workflow, or hitting friction points?
+
+3. **Multi-environment support?** Do you want your *same* MCP to work across:
+   - Claude Code (uvx, current)
+   - Claude Desktop (`.mcpb` or `uv` config?)
+   - claude.ai (limited to `.mcpb`, I believe)
+
+**What I&#x27;m sensing:** There may not be a direct &quot;conversion&quot; tool—`.mcpb` isn&#x27;t a transpilation target from Python. Instead, you&#x27;d **build** the bundle at package time. But the good news is **you probably don&#x27;t need to abandon PyPI distribution** to support Desktop/claude.ai users.
+
+Before we diagram the workflow, which of those three goals above resonates most with what you&#x27;re trying to accomplish?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I like the current distribution and have no plans on changing it. I want to expand coverage to Claude Desktop and `claude.ai` just in case. If a user wants to discuss data and analysis over the MCP. However, there is a bit of a caveat, the MCP requires environment variables so it introduces a new challenge of &quot;How am I suppose to supply credentials to the bundle?&quot; question.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Ah, **that&#x27;s** the real friction point. You&#x27;ve spotted the core challenge—.mcpb bundles are static, and credentials need to flow in somehow. This is a genuine design question, not just a technical one.
+
+Let me understand your current credential model first:
+
+**About your MCP&#x27;s auth:**
+
+1. **How does it currently consume env vars?**
+   - Reading from `os.environ` at startup?
+   - Loaded via a `.env` file (python-dotenv)?
+   - Passed as MCP config parameters?
+
+2. **Which credentials does it need?**
+   - Cascade CMS API keys?
+   - Other service tokens?
+   - How many distinct env vars?
+
+3. **Who&#x27;s the user?** This matters for UX:
+   - You (testing/demo)?
+   - Colleagues with the same infrastructure?
+   - External users discovering it?
+
+**Why this shapes the answer:**
+
+The credential problem breaks into two sub-problems:
+- **Building the .mcpb** (technical; solvable)
+- **End-user credential supply** (UX; the real blocker)
+
+Claude Desktop reads env vars from the machine, but a Desktop user still needs to:
+- Know which vars to set
+- Set them in the right place (shell profile, Desktop config, etc.)
+- Update them if they rotate
+
+**Potential patterns** (depending on your answers):
+- Desktop config file (user-friendly, requires setup docs)
+- Environment variable docs + Desktop config pointing to them
+- MCP parameter config at initialization time
+- A credentials helper / setup script
+
+Before I diagram this workflow, **what&#x27;s your instinct on the credential UX?** Should the Desktop user:
+- Set env vars once on their machine and forget?
+- Provide credentials in a config file per-MCP?
+- Something context-specific?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">* It&#x27;s passed as MCP config parameters and requires editing the credential in `~/.claude.json` (Claude Code) after initialization.
+* 2 Cascade CMS API key and the Cascade server URL
+* Colleagues with the same knowledge base and infrastructure.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Perfect—that&#x27;s actually a *cleaner* scenario than environment variables, and your colleagues already have the domain knowledge to set credentials. This shapes the strategy significantly.
+
+**So the current flow is:**
+
+```
+PyPI Package (uvx install)
+         ↓
+    ~/.claude.json (user edits: add 2 keys + server URL)
+         ↓
+    Claude Code MCP ready
+```
+
+**What we&#x27;re adding:**
+
+```
+Claude Desktop  } need .mcpb + config story
+claude.ai       }
+```
+
+Before I diagram the multi-environment workflow, let me nail down the *distribution friction*:
+
+**For colleagues using Claude Desktop:**
+
+1. **Do they expect self-service** (find docs, build their own .mcpb)?
+   - Or would you build it once and they just use it?
+
+2. **Can they run Python/build tools** on their machines?
+   - Or do they need a pre-built binary?
+
+3. **For `.claude.json` on Desktop**, are they already comfortable with:
+   - Editing `~/.claude/config.json` (Desktop&#x27;s config location)?
+   - Or would a setup guide help?
+
+**For claude.ai users:**
+
+This is trickier—claude.ai doesn&#x27;t read local `~/.claude.json`. Instead, `.mcpb` bundles can:
+- Have credentials embedded (not ideal for rotation)
+- Accept them at connection time (if the MCP supports it)
+- Prompt for them interactively (best UX, but requires code changes)
+
+**My sense:** Since you want to *expand coverage* without changing your current distribution, the minimal path is probably:
+- Keep PyPI + uvx as-is
+- Add a **setup/build guide** for Desktop colleagues (build .mcpb locally, point to it)
+- Document `~/.claude/config.json` credential mapping for Desktop
+- For claude.ai, note the limitation and suggest Desktop as the preferred interface for now
+
+**Does that match your thinking, or are you envisioning something different?** Specifically: how much automation are you willing to add vs. documentation/manual setup for colleagues?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. For ease of use, I should build it and all that have to do is import.
+2. They have Python but preferred if that don&#x27;t have to touch and build process.
+3. A setup guide is essential (regardless of their knowledge on the subject)
+
+Additionally, answer to your last question: I&#x27;ll be responsible for distributing the bundle, most likely under a GitHub release, along with the skill files. Have the the installation guide walking through first install and maintenance (resupply of credentials).</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Excellent—that&#x27;s a sustainable distribution model. You own the build step (one-time, versioned), they get instant drop-in usage. Let me map this and then confirm before we create the guide.
+
+**Before I diagram the full workflow, a couple of technical clarifications:**
+
+1. **Building your .mcpb locally—do you have a build process set up yet?**
+   - Or do you need guidance on converting your Python MCP into a bundled `.mcpb`?
+   - (This determines whether we&#x27;re solving a new problem or documenting an existing one)
+
+2. **Credential security in the bundle:**
+   - Should the `.mcpb` bundle include credentials pre-baked?
+     - ❌ Not ideal (exposes secrets in distributed file, rotation headache)
+     - ✓ Better: bundle stays generic, credentials supplied at install time via config
+   - Or inject them at runtime when the MCP starts?
+
+3. **claude.ai limitation:**
+   - For your use case (colleagues discussing data analysis), is Desktop the primary interface?
+   - Or should we plan for claude.ai users too (requires solving the credential-in-bundle problem)?
+
+**What I&#x27;m picturing so far:**
+
+```
+GitHub Release
+├── .mcpb bundle (built + versioned by you)
+├── skill files
+└── Setup Guide
+    ├── First Install
+    │  ├── Download .mcpb
+    │  ├── Place in Desktop config dir
+    │  └── Add credentials to ~/.claude/config.json
+    └── Maintenance
+       ├── Rotating/updating credentials
+       └── Updating to new bundle version
+```
+
+**Confirmation before we build this out:** 
+
+Does this match what you&#x27;re envisioning? And do you already have a `.mcpb` build process, or is that a gap we need to solve first?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. Yes, I need guidance on creating this.
+2. I&#x27;d like to weight the options between supplying it at install time through config vs. injecting at runtime. (When you say &quot;inject&quot; do you mean supplying it an environment file? Or directly pasting the credentials into the conversation?)
+3. Keep it to Claude Desktop for security reducing the hassle of create hacky workaround.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Good clarification needed—let me unpack &quot;inject&quot;:
+
+**By &quot;inject at runtime,&quot; I mean:**
+- The MCP reads credentials from a **local file** (like `.env` or a `secrets.json`) *when it starts up*
+- NOT pasting into conversation (nightmare UX)
+- NOT environment variables (you&#x27;re moving away from that)
+
+So the two approaches are:
+
+---
+
+**Option A: Config-based (install-time)**
+```
+User adds to ~/.claude/config.json:
+{
+  &quot;mcps&quot;: {
+    &quot;cascade-cms&quot;: {
+      &quot;command&quot;: &quot;uvx&quot;,
+      &quot;args&quot;: [&quot;cascade-cms-mcp&quot;],
+      &quot;env&quot;: {
+        &quot;CASCADE_API_KEY&quot;: &quot;xxx&quot;,
+        &quot;CASCADE_SERVER_URL&quot;: &quot;https://...&quot;
+      }
+    }
+  }
+}
+
+MCP reads from env at startup (Desktop passes them)
+```
+**Pros:** Standard Desktop pattern, one-time setup, credentials managed by Desktop config  
+**Cons:** Credentials stored in plaintext in config file
+
+---
+
+**Option B: Runtime file-based**
+```
+User creates ~/cascade-cms/credentials.json:
+{
+  &quot;api_key&quot;: &quot;xxx&quot;,
+  &quot;api_key_2&quot;: &quot;yyy&quot;,
+  &quot;server_url&quot;: &quot;https://...&quot;
+}
+
+.mcpb bundle is generic (no credentials baked in)
+MCP code reads from ~/cascade-cms/credentials.json at startup
+```
+**Pros:** Separates config from credentials, credentials in isolated file, easier rotation  
+**Cons:** Extra setup step, requires MCP code modification to read from file
+
+---
+
+**Before I diagram the full workflow:**
+
+Which resonates more for your colleagues—**one config file to edit (A)** or **separate credentials file + guide (B)**?
+
+And once you decide, should I diagram:
+1. The `.mcpb` build process (how to bundle your Python MCP)?
+2. The Desktop + credential setup guide?
+3. Both?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">No, one config to edit is enough. Also, another question I have for `claude.ai` even though we are not implementing it. Is it possible to pass in a `.env` at runtime for the web platform through uploading the file into the conversation. Or is the bad practice/high security risk? Once you answer my question we can proceed to the diagram.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">**Short answer: Yes, technically possible. Bad practice.**
+
+**Why uploading .env to claude.ai is risky:**
+
+1. **Credentials in chat history** — they&#x27;re now stored (potentially indefinitely) in Anthropic&#x27;s systems, searchable, possibly visible in chat links
+2. **No credential rotation** — if the .env leaks, you can&#x27;t &quot;unshare&quot; it from the conversation
+3. **Audit trail problem** — hard to track who accessed what credentials when
+4. **Not MCP-native** — claude.ai&#x27;s MCP setup isn&#x27;t designed for file-based runtime injection the way Desktop is
+
+**Better approaches if you *had* to support claude.ai:**
+- Pre-bake short-lived tokens into the `.mcpb` (rotate them regularly via GitHub releases)
+- Use Cascade&#x27;s OAuth/session token flow (if available) to generate temporary access
+- Accept that claude.ai isn&#x27;t the right interface for credential-heavy tools
+
+**But since you&#x27;re Desktop-focused**, this isn&#x27;t your problem. Just note it for future reference—`.env` uploads = anti-pattern.
+
+---
+
+**Ready to diagram the workflow now?**
+
+So far we&#x27;re building:
+1. `.mcpb` build process (how you create the bundle)
+2. GitHub Release distribution (bundle + skills + guide)
+3. Desktop credential setup (Option A: credentials in `~/.claude/config.json`)
+4. Maintenance guide (rotating credentials, updating bundle)
+
+**Should I create:**
+- A visual workflow diagram (text-based Mermaid)?
+- An outline of the setup guide structure?
+- Both?
+
+And do you want to confirm the structure before I create the files, or should I build them out as drafts for review?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Both, for preview.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">First, a correction to my earlier framing. I told you to edit a Desktop config file, but `.mcpb` has a better mechanism: the manifest can declare **`user_config`** fields. Desktop then shows a settings form at install time, and you can mark API keys as `sensitive` so they&#x27;re stored in the OS keychain instead of plaintext JSON. So your &quot;one config to edit&quot; becomes a form in Settings &gt; Extensions, and colleagues never touch a JSON file.
+
+**Preview 1: Workflow diagram**
+
+```
+ YOU (maintainer)                          COLLEAGUE (Desktop)
+ ----------------                          -------------------
+ Bump version in pyproject
+        |
+        v
+ Publish to PyPI (unchanged)
+        |
+        v
+ Build bundle:
+  - manifest.json (user_config:
+    api_key_1, api_key_2, server_url)
+  - vendor deps into server/lib
+  - mcpb pack -&gt; cascade-cms.mcpb
+        |
+        v
+ Test: install the .mcpb in your own Desktop
+        |
+        v
+ GitHub Release:
+  .mcpb + skill files + SETUP guide
+        |
+        +--------------------------------&gt; Download release
+                                                  |
+                                                  v
+                                           Double-click .mcpb
+                                                  |
+                                                  v
+                                           Desktop form: enter
+                                           2 keys + server URL
+                                                  |
+                                                  v
+                                           MCP running; add skills
+                                                  |
+        Rotate creds? ----------------------&gt; Settings &gt; Extensions &gt;
+                                              edit fields, restart
+        New version? -----------------------&gt; Download new .mcpb,
+                                              install over old one
+```
+
+**Preview 2: Setup guide outline**
+
+1. What you&#x27;re installing (bundle + skills, one paragraph)
+2. Prerequisites (Claude Desktop version, Cascade API keys, server URL)
+3. First install: download, open, fill in the form, verify with a test prompt
+4. Installing the skill files
+5. Maintenance: rotating credentials, updating versions, uninstalling
+6. Troubleshooting (bad key, wrong URL, extension won&#x27;t start)
+7. Security notes (never paste keys into chat, never commit them)
+
+**Two things to flag:**
+- **Python bundling is the hard part.** Desktop doesn&#x27;t install your dependencies for you, so they must be vendored into the bundle. Compiled dependencies can break across Windows and macOS, so check which platforms your colleagues use. The newer manifest spec also has an experimental `uv` server type that might let the bundle pull from PyPI. I&#x27;d verify its current status before relying on it.
+- **Your MCP reads config parameters, not env vars.** The manifest maps `user_config` values into env vars or args, so you may need a small entry-point shim to bridge that.
+
+Nothing has been created as a file yet. A few questions:
+1. Are your colleagues all on one OS, or a mix of Windows and macOS?
+2. Does your MCP&#x27;s dependency tree include compiled packages (e.g. `pydantic-core`, `cryptography`)?
+3. Do you want the guide in plain `.txt`, or in your repo&#x27;s markdown wiki format?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. It&#x27;s between Windows and Linux (WSL).
+2. 
+
+
+```text
+aiohappyeyeballs          2.7.1
+aiohttp                   3.14.3
+aiohttp-client-cache      0.14.3
+aiosignal                 1.4.0
+aiosqlite                 0.22.1
+annotated-types           0.8.0
+anyio                     4.15.1
+ast_serialize             0.9.0
+attrs                     26.1.0
+cascade-cms-rest          3.9.1
+cascade-cms-rest-mcp      0.4.8    /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools/mcp
+cffi                      2.1.1
+click                     8.5.0
+cryptography              50.0.1
+frozenlist                1.8.0
+h11                       0.16.0
+httpcore2                 2.12.0
+httpx2                    2.12.0
+idna                      3.19
+iniconfig                 2.3.0
+itsdangerous              2.2.0
+jsonschema                4.26.0
+jsonschema-specifications 2025.9.1
+librt                     0.15.0
+mcp                       2.2.0
+mcp-types                 2.2.0
+multidict                 6.7.1
+mypy                      2.3.1
+mypy_extensions           1.1.0
+opentelemetry-api         1.44.0
+packaging                 26.3
+pathspec                  1.1.1
+pip                       24.0
+pluggy                    1.6.0
+propcache                 0.5.2
+pycparser                 3.0
+pydantic                  2.13.5
+pydantic_core             2.46.5
+Pygments                  2.21.0
+PyJWT                     2.13.0
+pytest                    9.1.1
+python-dotenv             1.2.3
+python-multipart          0.0.32
+referencing               0.37.0
+rpds-py                   2026.6.3
+ruff                      0.16.9
+sse-starlette             3.4.11
+starlette                 1.6.0
+truststore                0.10.4
+typing_extensions         4.16.0
+typing-inspection         0.4.4
+url-normalize             3.0.0
+uvicorn                   0.52.4
+yarl                      1.24.5
+```
+
+1.  
+2.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. It&#x27;s between Windows and Linux (WSL).
+2. 
+
+
+```text
+aiohappyeyeballs          2.7.1
+aiohttp                   3.14.3
+aiohttp-client-cache      0.14.3
+aiosignal                 1.4.0
+aiosqlite                 0.22.1
+annotated-types           0.8.0
+anyio                     4.15.1
+ast_serialize             0.9.0
+attrs                     26.1.0
+cascade-cms-rest          3.9.1
+cascade-cms-rest-mcp      0.4.8    /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools/mcp
+cffi                      2.1.1
+click                     8.5.0
+cryptography              50.0.1
+frozenlist                1.8.0
+h11                       0.16.0
+httpcore2                 2.12.0
+httpx2                    2.12.0
+idna                      3.19
+iniconfig                 2.3.0
+itsdangerous              2.2.0
+jsonschema                4.26.0
+jsonschema-specifications 2025.9.1
+librt                     0.15.0
+mcp                       2.2.0
+mcp-types                 2.2.0
+multidict                 6.7.1
+mypy                      2.3.1
+mypy_extensions           1.1.0
+opentelemetry-api         1.44.0
+packaging                 26.3
+pathspec                  1.1.1
+pip                       24.0
+pluggy                    1.6.0
+propcache                 0.5.2
+pycparser                 3.0
+pydantic                  2.13.5
+pydantic_core             2.46.5
+Pygments                  2.21.0
+PyJWT                     2.13.0
+pytest                    9.1.1
+python-dotenv             1.2.3
+python-multipart          0.0.32
+referencing               0.37.0
+rpds-py                   2026.6.3
+ruff                      0.16.9
+sse-starlette             3.4.11
+starlette                 1.6.0
+truststore                0.10.4
+typing_extensions         4.16.0
+typing-inspection         0.4.4
+url-normalize             3.0.0
+uvicorn                   0.52.4
+yarl                      1.24.5
+```
+
+3.  Markdown will work better for transferability</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Thanks, that list changes the picture in a useful way.
+
+**Key insight: WSL probably doesn&#x27;t matter for the bundle.** Claude Desktop on Windows launches extensions as native Windows processes, so the `.mcpb` only needs to run on Windows. Your WSL colleagues are presumably using Claude Code, which already works through `uvx`. If they use Desktop, it&#x27;s still the Windows app.
+
+**Your dependency list, split by what ships:**
+
+```
+Runtime (must be in bundle)      Dev-only (leave out)
+---------------------------      --------------------
+aiohttp, aiosqlite, pydantic     mypy, ast_serialize, librt
+mcp, httpx2/httpcore2, PyJWT     pytest, pluggy, iniconfig
+cryptography, cffi               ruff, pygments
+yarl, multidict, frozenlist,     (editable cascade-cms-rest-mcp
+propcache, rpds-py, pydantic_    install itself)
+core (all compiled)
+```
+
+Roughly 8 to 10 compiled packages are runtime dependencies, so vendoring means Windows wheels pinned to one Python minor version (e.g. cp312). Any colleague on a different Python version breaks.
+
+**That leaves two bundling strategies:**
+
+```
+Option 1: Fat bundle (vendored)         Option 2: Thin bundle (shim + uvx)
+-------------------------------         ----------------------------------
+.mcpb contains:                         .mcpb contains:
+  manifest + server code                  manifest + tiny launcher
+  + win_amd64 wheels (~50-80 MB?)         launcher runs: uvx cascade-cms-rest-mcp
+                                          (user_config -&gt; env/args)
+Pros: works offline, pinned, no uv      Pros: tiny, reuses your PyPI pipeline,
+Cons: Python-version-locked,                  no wheel/ABI problems, updates
+      rebuild per release                     come from PyPI
+                                        Cons: colleagues need uv installed
+```
+
+Option 2 reuses what you already have, so it&#x27;s my lean. But it adds one prerequisite (uv) to the setup guide, and I&#x27;d want to verify whether the current `mcpb` spec&#x27;s experimental `uv` server type removes the need for a shim entirely.
+
+Nothing has been created yet. Two questions to settle before we draft files:
+
+1. Would your colleagues be fine installing `uv` (a one-line install, which the guide would cover), or is &quot;no extra tools&quot; a hard requirement? That decides Option 1 vs 2.
+2. Do you know which Python version your Windows colleagues have? It only matters if we go with Option 1.
+
+Once you answer, I&#x27;ll propose a file list (build script, manifest, shim if needed, SETUP.md in your wiki markdown format) for you to confirm before I create anything.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. That is only maybe have it as a global install so they don&#x27;t have to constantly reinstall it in a virtual environment. 
+2. This part should not matter. Only that the version is pinned to the `cascade-cms-rest` library accepted Python version. Current the library is pin to `&gt;=3.12` .</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Good, that settles Option 2 (thin bundle). Before I propose files, I&#x27;m going to check the one thing I said I&#x27;d verify: whether the `mcpb` spec&#x27;s `uv` server type removes the need for a shim.
+```
+This block is not supported on your current device yet.
+```
+
+The `uv` server type changes the picture, and it&#x27;s better than the shim I described.
+
+`server.type = &quot;uv&quot;` lets Claude Desktop automatically manage Python environments and dependencies for an extension, reading them from `pyproject.toml`. It requires manifest version 0.4 or later. That means:
+
+- **No global `uv` install for colleagues.** Desktop handles it, so one prerequisite drops out of your guide.
+- **No wheel vendoring or Python-ABI problems.** The maintainers added this type because Python bundles include pydantic, which requires the exact Python version the bundle was built with. That is the problem your dependency list would have hit.
+- **Your `&gt;=3.12` pin lives in `pyproject.toml`**, so it&#x27;s handled there.
+
+```
+Option 3: uv-type bundle (new lead)
+-----------------------------------
+.mcpb contains:
+  manifest.json   (server.type = &quot;uv&quot;, user_config: 2 keys + URL)
+  pyproject.toml  (depends on cascade-cms-rest-mcp==X.Y.Z, requires-python &gt;=3.12)
+  server entry file (tiny: imports and runs your package&#x27;s main)
+
+Desktop on install:
+  reads pyproject -&gt; creates env -&gt; pulls from PyPI -&gt; launches
+```
+
+Your PyPI pipeline stays the source of truth, and the bundle is a few KB.
+
+**Caveats I couldn&#x27;t confirm:**
+- The type launched as experimental in manifest v0.4. The docs I found now list it as a standard option, but I didn&#x27;t see a current stability statement.
+- I didn&#x27;t find a clear statement on whether `user_config` values map into env vars or args for `uv` bundles the same way they do for other types. That decides whether you need any shim at all, so it&#x27;s the first thing to test.
+- Pinning to one exact version means every release needs a rebuilt bundle. That&#x27;s fine, since you&#x27;re already cutting GitHub releases.
+
+```
+ Prototype (before any release work)
+ -----------------------------------
+ Write manifest + pyproject
+        |
+        v
+ mcpb validate -&gt; mcpb pack
+        |
+        v
+ Install in YOUR Desktop
+        |
+   Does user_config reach the MCP?
+     yes -&gt; ship it
+     no  -&gt; add small entry shim, retest
+```
+
+**Proposed files (nothing created yet):**
+1. `manifest.json` (uv type, `sensitive` credential fields)
+2. `pyproject.toml` (bundle-level, pinned dependency)
+3. `server/main.py` (minimal entry point or shim)
+4. `build.md` or script (validate, pack, release steps)
+5. `SETUP.md` (install, skills, credential rotation, troubleshooting) in your wiki markdown format
+
+Do you want me to draft these five as a preview first, or trim the list? And what do you currently name the CLI entry point in the MCP package (the `[project.scripts]` name)? The entry file depends on it.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">The config for the `mcp/`:
+
+```toml
+[build-system]
+requires = [&quot;hatchling&quot;]
+build-backend = &quot;hatchling.build&quot;
+
+[project]
+name = &quot;cascade-cms-rest-mcp&quot;
+version = &quot;0.4.8&quot;
+description = &quot;Read-only MCP server exposing a Hannon Hill Cascade CMS server to MCP clients&quot;
+readme = &quot;README.md&quot;
+license = &quot;MIT&quot;
+requires-python = &quot;&gt;=3.12&quot;
+authors = [{ name = &quot;Keith Shark&quot; }]
+dependencies = [
+    &quot;cascade-cms-rest&gt;=3.9.1&quot;,
+    &quot;mcp&gt;=2.1.0,&lt;3&quot;,
+]
+
+[project.scripts]
+cascade-cms-rest-mcp = &quot;cascade_cms_rest_mcp.server:main&quot;
+
+[project.optional-dependencies]
+dev = [&quot;pytest&quot;, &quot;mypy&quot;, &quot;ruff&quot;]
+
+[tool.hatch.build.targets.wheel]
+packages = [&quot;src/cascade_cms_rest_mcp&quot;]
+```</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">That config makes the entry file trivial. Your script target is `cascade_cms_rest_mcp.server:main`, so the bundle can be a thin wrapper around your published package.
+
+**Draft of the bundle&#x27;s two small files (preview only, nothing created):**
+
+```toml
+# bundle pyproject.toml
+[project]
+name = &quot;cascade-cms-bundle&quot;
+version = &quot;0.4.8&quot;
+requires-python = &quot;&gt;=3.12&quot;
+dependencies = [&quot;cascade-cms-rest-mcp==0.4.8&quot;]
+```
+
+```python
+# server/main.py
+from cascade_cms_rest_mcp.server import main
+
+if __name__ == &quot;__main__&quot;:
+    main()
+```
+
+```
+ Bundle (a few KB)                 Desktop, on install
+ -----------------                 -------------------
+ pyproject pins MCP 0.4.8   ---&gt;   uv builds env (Python &gt;=3.12)
+ main.py calls main()              pulls cascade-cms-rest-mcp
+ manifest: user_config form        + cascade-cms-rest + mcp from PyPI
+        |                                   |
+        v                                   v
+ colleague fills form  --------&gt;   values reach your MCP as ???
+```
+
+Three notes on this draft:
+- **Your `&gt;=` ranges are fine for dev but loose for a release.** I&#x27;d generate a `uv.lock` at build time and include it in the bundle. Colleagues then get the exact dependency versions you tested, not whatever is newest on install day.
+- **The bundle pyproject has no `[build-system]`.** `uv` may try to treat it as an installable package. If it complains in the prototype, a `[tool.uv] package = false` setting fixes it.
+- **Your MCP is read-only.** That helps the security section of the guide: a leaked key still can&#x27;t be used through this server to modify content, though the key itself may have broader rights in Cascade.
+
+The `???` in the diagram is the one thing I still need. You said earlier the MCP takes &quot;MCP config parameters&quot; in `~/.claude.json`. In Claude Code those are usually either `env` entries or CLI `args`. **What are the exact names for the two API keys and the server URL, and are they read as env vars or as command-line args?** The manifest&#x27;s `user_config` mapping has to match, and if they&#x27;re args, we may need the shim after all.
+
+Once you answer, should I create the five files (manifest, bundle pyproject, `server/main.py`, build steps, `SETUP.md`) as drafts for your review?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">In the CLI i use them as environment variables. The required variables are:
+`CASCADE_API_KEY` and `CASCADE_URL`</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Env vars are the easy case, since the manifest&#x27;s `user_config` form values can be mapped straight into environment variables.
+
+**Draft manifest (preview only, nothing created):**
+
+```json
+{
+  &quot;manifest_version&quot;: &quot;0.4&quot;,
+  &quot;name&quot;: &quot;cascade-cms-rest-mcp&quot;,
+  &quot;version&quot;: &quot;0.4.8&quot;,
+  &quot;display_name&quot;: &quot;Cascade CMS (read-only)&quot;,
+  &quot;description&quot;: &quot;Read-only MCP server for a Hannon Hill Cascade CMS server&quot;,
+  &quot;author&quot;: { &quot;name&quot;: &quot;Keith Shark&quot; },
+  &quot;server&quot;: {
+    &quot;type&quot;: &quot;uv&quot;,
+    &quot;entry_point&quot;: &quot;server/main.py&quot;,
+    &quot;mcp_config&quot;: {
+      &quot;env&quot;: {
+        &quot;CASCADE_API_KEY&quot;: &quot;${user_config.cascade_api_key}&quot;,
+        &quot;CASCADE_URL&quot;: &quot;${user_config.cascade_url}&quot;
+      }
+    }
+  },
+  &quot;user_config&quot;: {
+    &quot;cascade_api_key&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;title&quot;: &quot;Cascade API key&quot;,
+      &quot;description&quot;: &quot;Your personal Cascade API key&quot;,
+      &quot;sensitive&quot;: true,
+      &quot;required&quot;: true
+    },
+    &quot;cascade_url&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;title&quot;: &quot;Cascade server URL&quot;,
+      &quot;description&quot;: &quot;Base URL of your Cascade instance&quot;,
+      &quot;required&quot;: true
+    }
+  }
+}
+```
+
+```
+ Settings form              Desktop launches MCP
+ -------------              --------------------
+ API key (hidden)   ----&gt;   CASCADE_API_KEY
+ Server URL         ----&gt;   CASCADE_URL
+```
+
+**Prototype checks:**
+- I couldn&#x27;t confirm that `mcp_config.env` is honored for `uv` bundles, since the spec makes `mcp_config` optional for that type. If the vars don&#x27;t arrive, the fallback is a small `main.py` shim. Validate this first, before writing any guide text that depends on it.
+- The `sensitive` flag should keep the key out of plaintext config, but verify in your own Desktop where it actually gets stored before the guide makes any security claim.
+
+**Open item:** earlier you mentioned two API keys plus the URL, but only `CASCADE_API_KEY` and `CASCADE_URL` are listed as required. Is there a second, optional variable, or did I misread you?
+
+If it&#x27;s just those two, I&#x27;ll create the five draft files (manifest, bundle `pyproject.toml`, `server/main.py`, build steps, `SETUP.md`) for your review. Should I go ahead?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I think I&#x27;ll reject the `.mcpb` implementation. I revisit with my supervisor, on whether or not they use Claude Code or Desktop. They said Code so I don&#x27; think there is a good justification for implementing that. Although, I do want to shift our conversation slightly toward QoL improvements for more user-friendly credential inputs. Right now, I rotate credentials like API keys manually by editing the `home/usr/.claude.json` file. However, I want a single source of input that handles all of this for me maybe a simple bash script that creates a environment file that can easily be passed into Cluade Code CLI with minimal implementation friction.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Agreed, dropping `.mcpb` until you&#x27;ve talked to your supervisor is the right call. Claude Code is the target, and the manifest work would only serve Desktop.
+
+The credential-rotation problem is a good one to shift to. Before I sketch the script, a few questions so it fits how you actually work:
+
+**1. Where should the credentials live?**
+- A single file outside your home config, e.g. `~/.config/cascade-cms/env` (chmod 600), that the script writes and Claude Code reads
+- Or keep the file inside the repo, git-ignored
+
+**2. How does Claude Code consume it?**
+Your `~/.claude.json` currently holds the values inline under `env`. Two options:
+- **Script rewrites the `env` block** in `~/.claude.json` from the env file each time you rotate. Claude Code needs no changes, but you still have secrets in that JSON, just generated.
+- **Script only writes the env file**, and you launch Claude Code through a wrapper that sources it (e.g. `cascade-env claude`). Secrets never touch `~/.claude.json`, but you must always launch through the wrapper.
+
+Which trade-off matters more to you?
+
+**3. Rotation flow:** should the script prompt interactively for the key and URL (hidden input for the key), accept flags, or both?
+
+**4. Scope:** is this for you alone, or should colleagues be able to run the same script? Colleagues would change the answer on paths and on whether the script should touch `~/.claude.json` at all.
+
+**Rough shape, pending your answers:**
+
+```
+ ./cascade-creds set          (prompts; key input hidden)
+        |
+        v
+ ~/.config/cascade-cms/env    (chmod 600: CASCADE_API_KEY, CASCADE_URL)
+        |
+        +--&gt; option A: rewrite &quot;env&quot; block in ~/.claude.json
+        +--&gt; option B: `cascade-env claude` sources file, then launches
+```
+
+Once you pick a path for questions 2 and 4, I can draft the script for your review before creating anything. Also, is the `mcp` config under `~/.claude.json` keyed per project or global? That changes where option A writes.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">My question: How should the automation be packaged? Primarily I will be using it, but my colleagues need to be able to understand it without too much configuration complexity.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Good framing. Since you&#x27;re the main user but colleagues must understand it, I&#x27;d optimize for **one file they can read top to bottom, with no install step**. Here are three packaging options:
+
+**Option 1: Single bash script in your repo**
+```
+cascade-cms-tools/
+└── scripts/
+    └── cascade-creds        (one file, executable)
+```
+- Colleagues copy or clone it, run `./cascade-creds set`
+- No dependencies beyond bash (WSL is fine; Windows users use WSL or Git Bash)
+- Easiest to read, lowest friction
+- Downside: Windows-native PowerShell users are out of luck
+
+**Option 2: Python script (stdlib only)**
+```
+cascade-cms-tools/
+└── scripts/
+    └── cascade_creds.py
+```
+- Works on Windows and WSL without a shell dependency
+- `getpass` handles hidden key input cleanly
+- Can safely edit `~/.claude.json` as JSON instead of fragile sed/jq
+- Slightly more code, but still readable
+
+**Option 3: Installable CLI (`pip install` / `uvx`)**
+- Most polished, but adds a packaging step you&#x27;ve just said you want to avoid for this
+- Overkill for a rotation helper
+
+**My lean: Option 2 (Python, stdlib only).** Your colleagues already have Python, your MCP already requires 3.12+, and editing `~/.claude.json` is safer in Python than in bash. Option 1 is a fine fallback if you want the smallest possible file.
+
+**Recommended layout for colleagues:**
+- One script, one short README section: &quot;run `python scripts/cascade_creds.py set` to save credentials, `... launch` to start Claude Code&quot;
+- Config path defined once at the top of the file, so it&#x27;s easy to find
+
+**Two questions before I draft anything:**
+1. Does the script need to edit `~/.claude.json` directly (rewriting the `env` block), or should it only write the env file and let you launch through a wrapper?
+2. Is `~/.claude.json` keyed per project or global for your `cascade-cms-rest-mcp` entry? That determines where the script writes.
+
+Once you answer, I&#x27;ll propose the script&#x27;s commands and file list for you to confirm before creating it.</div><hr class="div"><div class="part">```
+This block is not supported on your current device yet.
+```</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">It should be user dependent. I&#x27;ve included the steps in the current installation steps as the optional `[--scope user]` for the Claude Code CLI. Not sure if it&#x27;s out of scope but maybe the script automatically setups up on the first run any subsequent run can check whether the credentials need to be updated or not.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">I&#x27;ll check the screen recording first, since it may show the install steps you mentioned.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+The recording shows the current install block. It runs `uv` install, then `claude mcp add [--scope user] cascade-cms -e CASCADE_API_KEY=... -e CASCADE_URL=... -- uvx --no-cache cascade-cms-rest-mcp`. The `[--scope user]` is optional in the doc, so the script should make it the default.
+
+**Scope: user should be the default**
+
+Claude Code stores user-scoped MCP servers at the top level of `~/.claude.json`. The default local scope keys them under a per-project entry. A script that writes user scope gives you one credential set that works in every project, which matches what you described. I&#x27;d still verify this on your machine with `claude mcp list` and by checking where the entry lands in the file.
+
+**Rotation should go through the CLI, not hand-edited JSON**
+
+`claude mcp add` fails if `cascade-cms` already exists, so rotation becomes:
+
+```
+claude mcp remove cascade-cms -s user
+claude mcp add cascade-cms -s user -e CASCADE_API_KEY=... -e CASCADE_URL=... -- uvx cascade-cms-rest-mcp
+```
+
+This avoids depending on the internal JSON layout, which can change between Claude Code versions. It also means the script works the same for colleagues on Windows, where the config path differs.
+
+**First run vs. later runs**
+
+```
+ ./cascade-creds
+       |
+       v
+ MCP entry present? (claude mcp get cascade-cms)
+   no  --&gt; prompt for key + URL --&gt; claude mcp add -s user --&gt; done
+   yes --&gt; test credentials against Cascade
+              ok   --&gt; &quot;up to date&quot;, exit
+              fail --&gt; prompt for new key --&gt; remove + add -s user
+```
+
+Two limits to know about:
+- **&quot;Needs updating&quot; can only be detected by testing the key against the server.** A stored key can look fine but be revoked, so a presence check alone won&#x27;t catch rotation. The test call needs a read-only endpoint, and the script needs network access when it runs.
+- **Claude Code won&#x27;t run the script for you.** A &quot;check on every run&quot; behavior only happens when someone runs the script. Making it automatic would mean a SessionStart hook, which is possible but adds moving parts for your colleagues to understand.
+
+**Secrets still end up in `~/.claude.json`**
+
+The env-file idea doesn&#x27;t change this with the `-e` approach, because `claude mcp add` writes values into the config. The alternative is to register the server as a wrapper command, such as `bash -c &#x27;source ~/.config/cascade-cms/env &amp;&amp; exec uvx cascade-cms-rest-mcp&#x27;`. That keeps secrets out of `~/.claude.json` entirely, but the config entry becomes harder for colleagues to read.
+
+**Questions before I draft the script:**
+1. Should the script validate credentials with a live call on each check, or only confirm the entry exists? Live validation catches revoked keys but needs network access.
+2. Are you OK with secrets in `~/.claude.json` (simpler, matches the current setup), or do you want them kept out with the wrapper approach?
+3. Do you have a read-only Cascade endpoint you&#x27;d use for the test call, such as a site or user lookup?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">No, live validation. I meant the script will check whether the mcp already exists. If it does then it will simply update the credentials. No testing the credential&#x27;s validity.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Got it. No validation calls, so the script needs no network access and has no Cascade dependency.
+
+```
+ ./cascade-creds
+       |
+       v
+ claude mcp get cascade-cms -s user
+   exists?  no  --&gt; prompt key + URL --&gt; claude mcp add -s user
+            yes --&gt; prompt key + URL --&gt; claude mcp remove -s user, then add -s user
+```
+
+The update is a remove-then-add, because `claude mcp add` fails when the name is already taken. The end state is the same: the entry is replaced with the new values.
+
+Two details to settle:
+
+1. **Keep the existing values as defaults?** When the entry exists, the script could show the current URL and press Enter to keep it, so you only retype the key when it rotates. The key itself would never be displayed.
+2. **Should the script also set the scope flag automatically?** I&#x27;d hardcode `-s user` so colleagues can&#x27;t accidentally create a project-scoped entry. Tell me if you&#x27;d rather have it configurable.
+
+I still need your answer on secrets storage: keep them in `~/.claude.json` through `claude mcp add` (simpler, matches your current setup), or use the wrapper approach that keeps them out of that file?
+
+Once you answer, I&#x27;ll propose the script&#x27;s commands and file layout for your confirmation before creating anything.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. Keep the default URL value
+2. the scope should be automatically set to user scope for ease of use. However, optional to set it to project scope.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Got it. Here&#x27;s the behavior as you&#x27;ve described it:
+
+```
+ cascade_creds.py [--scope project]
+       |
+       v
+ entry exists in chosen scope? (default: user)
+   no  --&gt; prompt key (hidden) + URL --&gt; claude mcp add
+   yes --&gt; prompt key (hidden), URL defaults to current --&gt; remove, then add
+```
+
+- **URL default:** Enter keeps the current value. Only the key is retyped on rotation.
+- **Scope:** `user` by default. `--scope project` switches it. The check and the removal both use the chosen scope, so a project entry is never touched by a user-scope run, and vice versa.
+
+I still need one decision before drafting, since it changes what the script writes:
+
+**Where should the secrets live?**
+- **A. Inside `~/.claude.json`** through `claude mcp add -e`. Simplest, and it matches your current setup. Colleagues can read the entry directly.
+- **B. A separate env file** that the MCP entry sources at launch, so secrets never touch `~/.claude.json`. The script writes the file with restricted permissions. The downside is the registered command becomes a small wrapper, which is harder to read at a glance.
+
+Once you pick A or B, I&#x27;ll propose the file layout for your confirmation. The current plan is a single stdlib-only Python file, `scripts/cascade_creds.py`, in `cascade-cms-tools`, with no files created until you approve.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Inside the `claude.json` I think this keeps thing clear for the user. If anything should fail the safe fallback would be to edit the credentials manually like I&#x27;m doing now.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Option A it is. Keeping the secrets in `~/.claude.json` means the setup stays readable, and the manual edit you&#x27;re doing now remains a working fallback.
+
+**Proposed layout (nothing created yet):**
+
+```
+cascade-cms-tools/
+├── scripts/
+│   └── cascade_creds.py     (stdlib only, single file)
+└── README.md                (one new &quot;Credentials&quot; section)
+```
+
+**Command surface:**
+
+```
+python scripts/cascade_creds.py              # user scope (default)
+python scripts/cascade_creds.py --scope project
+```
+
+**Failure handling:**
+
+```
+ Run script
+   |
+   +-- claude CLI not on PATH --&gt; print the manual edit steps, exit 1
+   +-- add fails after remove --&gt; restore from backup, print error, exit 1
+   +-- success               --&gt; print scope + &quot;credentials updated&quot;
+```
+
+The main risk is the remove-then-add gap. If `add` fails after `remove` succeeds, the entry is gone. A backup of `~/.claude.json` taken before any change solves that, and it&#x27;s cheap to restore.
+
+Two questions before I draft:
+
+1. **Back up `~/.claude.json` before every change?** I recommend yes, to a timestamped file next to it, so the restore path is simple and nothing is lost on a failed run.
+2. **README section or separate doc?** A section in the existing README is the lower-friction option for colleagues. A separate `CREDENTIALS.md` would be easier to find if the README grows.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">* No backup the backed up file might become forgotten although it doesn&#x27;t immediately interfere with the actual `.claude.json` config. Making sure there are no orphaned files trapped in `~/` directory.
+* No separate README file. Keep everything together in 1 README.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Both decisions are clear. Without a backup file, the remove-then-add gap needs another fix. The script already reads the current entry from `~/.claude.json` to get the URL default, so it can also hold the previous values in memory. If `add` fails, it re-adds the old entry and exits with an error. No files are left behind.
+
+```
+ Run script
+   |
+   +-- read current entry into memory (URL, key)
+   +-- prompt for new key (URL defaults to current)
+   +-- claude mcp remove -s user
+   +-- claude mcp add -s user
+         |
+         +-- add fails --&gt; re-add in-memory old values --&gt; print error, exit 1
+         +-- success   --&gt; print scope + &quot;credentials updated&quot;
+```
+
+One limit: if the rollback add also fails, the entry stays removed. In that case the script prints the manual steps you&#x27;re using now, so the fallback is still there.
+
+**Final layout (nothing created yet):**
+
+```
+cascade-cms-tools/
+├── scripts/
+│   └── cascade_creds.py     (stdlib only, single file)
+└── README.md                (one new &quot;Credentials&quot; section)
+```
+
+**Behavior summary:**
+- No args: user scope, prompt for key (hidden), URL defaults to current value
+- `--scope project`: same flow, scoped to the project
+- Entry missing: prompt for both values and add
+- No backup files written anywhere
+
+Should I create the script and the README section now?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Those error on `add` should get echoed out to console for the user to fix and resolve. The objective of the script is automating credential rotation and document it&#x27;s steps only. Create both artifacts + the fallback method (1 bash script and 1 markdown file) containing only installation steps for easy copy and paste into the existing README.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Those error on `add` should get echoed out to console for the user to fix and resolve. The objective of the script is automating credential rotation and document it&#x27;s steps only. Create both artifacts + the fallback method (1 python script and 1 markdown file) containing only installation steps for easy copy and paste into the existing README.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">I&#x27;ll create both files now and check them before sending.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+The script compiles. The traceback came from my test: with no input attached, `input()` hit EOF. I&#x27;ll handle Ctrl-C and EOF cleanly so the user never sees a traceback.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+I created both files and sent them to you. I have only compiled the script and tested the no-input path. I have not run a real rotation, because that would change your live `~/.claude.json`.
+
+- **`scripts/cascade_creds.py`**: stdlib only. Defaults to user scope, and `--scope project` is optional.
+- **`credentials-readme-section.md`**: installation steps only, plus the manual fallback. Paste it into the existing README.
+
+**How it behaves**
+- If the `claude` CLI is missing, it prints the manual-steps pointer and exits.
+- It reads the current URL and uses it as the default. The key prompt is hidden.
+- If the entry exists, it removes it and adds the new one. If the entry is absent, it only adds.
+- If `add` fails, the CLI&#x27;s own error output is echoed to the console. The script then re-adds the previous entry from values already in memory, so nothing is left behind.
+- Ctrl-C or EOF exits cleanly, with no traceback.
+
+**Things to check before you rely on it**
+1. **Verify the scope location.** The script assumes user-scope servers live under top-level `mcpServers` in `~/.claude.json`. Run `claude mcp list` after a test rotation to confirm.
+2. **Project scope puts the key in `.mcp.json`.** That file is often committed. The script warns and asks for confirmation, but the risk is real. Consider dropping `--scope project` entirely.
+3. **The key is passed as a command-line argument** to `claude mcp add`. Other local users on the same machine could briefly see it in the process list.
+4. **The `--no-cache` flag** in the default args matches your current install doc. It forces `uvx` to re-resolve from PyPI each launch, which can slow startup.
+
+Next step: run the script once on your machine, first with a throwaway key if you have one, and tell me what `claude mcp list` shows afterward.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Can you clarify? looking at `.claude.json` the project scope gets stored in `projects.&lt;project-path&gt;.mcpServers`. However, information on the internet says this `.mcp.json` that I&#x27;ve never seen before.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Let me check the CLI&#x27;s own scope definitions before answering.
+```
+This block is not supported on your current device yet.
+```
+
+You&#x27;re right, and my script has the wrong mapping. The CLI has three scopes, and I mixed up two of them:
+
+- **`user`**: stored at the top level of `~/.claude.json` under `mcpServers`. Available in every project. This is what the script does by default.
+- **`local`** (the CLI default): stored in `~/.claude.json` under `projects.&lt;project-path&gt;.mcpServers`. Available only in that one project, and never committed. This is the entry you&#x27;re seeing.
+- **`project`**: stored in `.mcp.json` in the project folder. Shared with anyone who clones the repo, and usually committed.
+
+My `--scope project` option wrote to `.mcp.json`, which is the shared, committable file. The warning I added was correct, but that&#x27;s the wrong option to offer. You described project-level use, and what you actually have is `local`.
+
+```
+ --scope user    -&gt; ~/.claude.json  mcpServers              (default, all projects)
+ --scope local   -&gt; ~/.claude.json  projects.&lt;path&gt;.mcpServers  (this project only)
+ --scope project -&gt; ./.mcp.json     mcpServers              (shared; avoid for secrets)
+```
+
+**Proposed fix:** make `local` the project option and drop `project` from the script entirely. Your existing entry would then be handled by the same rotation flow. The script would read `projects.&lt;cwd&gt;.mcpServers` for the URL default and existence check, and pass `-s local` to the CLI.
+
+Should I make that change? I&#x27;d also update the README section so it doesn&#x27;t mention `.mcp.json`, and I&#x27;d remove the commit warning. If you&#x27;d rather keep a shared option for the team, I can keep `project` as a third choice with its warning.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Okay, I think that also needs to be clarified in the installation instructions. Sorry for the confusion I was not aware of the specific terminologies.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">I&#x27;ll make the fix now, since the script and README both need the same change. First I&#x27;ll read the current files.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+No need to apologize. The terms are easy to mix up, and the CLI help text doesn&#x27;t explain them well.
+
+I&#x27;ve updated both files:
+
+- **`scripts/cascade_creds.py`**: `--scope project` is replaced with `--scope local`. The script reads and writes your existing `projects.&lt;folder&gt;.mcpServers` entry, so it matches what you&#x27;re seeing in `~/.claude.json`. No `.mcp.json` handling remains.
+- **`credentials-readme-section.md`**: adds a short Scopes table, with `user` as the default and `local` as the per-folder option. It explains that the script should be run from the folder you use with Claude Code. The manual fallback has both versions. The `.mcp.json` warning is gone.
+
+I checked that the script compiles and that `--help` shows the new options. I haven&#x27;t run a real rotation yet.
+
+Two things to confirm on your machine:
+- Run the script from the folder you normally launch Claude Code in. The `local` lookup uses the current folder path as its key, so a different folder won&#x27;t find your entry. The script would then try to add a new one, and the CLI would report that the entry already exists.
+- The script doesn&#x27;t check the folder path separator. If the path key in `~/.claude.json` differs from the one the script generates, for example on Windows, `local` will miss the entry. Please check that the first run finds your existing URL as the default.</div></div></div></article></div></main></body></html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LastPublishedBy in detailed page read</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>LastPublishedBy in detailed page read</h1>
+<p class="meta">2026-10-13 &middot; cascade-cms-tools &middot; claude-code &middot; 11 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude-code</span></span></div><div class="item"><b>Active time</b><span>8m</span></div><div class="item"><b>Date</b><span>2026-10-13</span></div><div class="item"><b>Tokens</b><span>In 3.3K · Out 5.3K · Cache read 1.2M · Cache write 37.8K</span></div></div><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:00 UTC</span></span></div><div class="body"><div class="part">Read a published page in detailed format and show lastPublishedBy.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:01 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">ToolSearch</span><span class="ts">select:mcp__cascade-cms__cascade_list_sites,mcp__cascade-cms__cascade_search,mcp__cascade-...</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;select:mcp__cascade-cms__cascade_list_sites,mcp__cascade-cms__cascade_search,mcp__cascade-cms__cascade_read_asset,mcp__cascade-cms__cascade_query_asset&quot;, &quot;max_results&quot;: 4}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_list_sites (MCP)</span><span class="ts"></span><span class="td">&lt;1s</span></summary><pre class="si">{}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_search (MCP)</span><span class="ts">index</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;index&quot;, &quot;site&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;, &quot;asset_types&quot;: [&quot;page&quot;], &quot;limit&quot;: 5}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_search (MCP)</span><span class="ts">cybersecurity</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;cybersecurity&quot;, &quot;site&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;, &quot;asset_types&quot;: [&quot;page&quot;], &quot;limit&quot;: 5}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_read_asset (MCP)</span><span class="ts">detailed</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;identifier&quot;: {&quot;id&quot;: &quot;009f65f3ac1001060492c2fe57c9acad&quot;, &quot;type&quot;: &quot;page&quot;}, &quot;format&quot;: &quot;detailed&quot;}</pre></details><hr class="div"><div class="part">Pulling `lastPublishedBy` out of the saved detailed read.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -oE &#x27;&quot;(lastPublished(By|Date)|path|lastModifiedBy|lastModifiedDate|shouldBePublished)&quot;:(&quot;[^&quot;]*&quot;|true|fals...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -oE &#x27;&quot;(lastPublished(By|Date)|path|lastModifiedBy|lastModifiedDate|shouldBePublished)&quot;:(&quot;[^&quot;]*&quot;|true|false|null)&#x27; /home/&lt;user&gt;/.claude/projects/-mnt-c-Users-&lt;user&gt;-Documents-Projects-cascade-cms-tools/fcb15974-0590-4c50-87be-d7ecbec72a04/tool-results/toolu_01EVpwJ9GPostoDiDAmES9W4.txt | head -20</pre></details><hr class="div"><div class="part">I read the page `csi-cybersecurity-mission` on `<span class="red">[redacted: internal-host]</span>` in detailed format. The user who last published it was **tjensen9**.
+
+You didn&#x27;t name a page, so I picked this one. The detailed payload is about 54 KB, so I read just the publish fields from the saved output.
+
+| Field | Value |
+|---|---|
+| `lastPublishedBy` | `tjensen9` |
+| `lastPublishedDate` | 2025-03-26T18:06:20.917Z |
+| `shouldBePublished` | true |
+| `lastModifiedDate` | 2023-10-13T21:22:02.857Z |
+| `lastModifiedBy` | `[REDACTED]` |
+
+`lastModifiedBy` comes back as `[REDACTED]` from the MCP server. I haven&#x27;t checked whether that redaction is deliberate.
+
+The full payload is saved at `/home/&lt;user&gt;/.claude/projects/-mnt-c-Users-&lt;user&gt;-Documents-Projects-cascade-cms-tools/fcb15974-0590-4c50-87be-d7ecbec72a04/tool-results/toolu_01EVpwJ9GPostoDiDAmES9W4.txt`. If you meant a different page, give me the site and path.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:03 UTC</span></span></div><div class="body"><div class="part">Read site `<span class="red">[redacted: internal-host]</span>` in detailed format and show roleAssignments.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:03 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">cascade_query_asset (MCP)</span><span class="ts">find(&quot;roleAssignments&quot;)</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;identifier&quot;: {&quot;id&quot;: &quot;4a8e4126ac10010f1c30bf181c420eb3&quot;, &quot;type&quot;: &quot;site&quot;}, &quot;query&quot;: &quot;find(\&quot;roleAssignments\&quot;)&quot;, &quot;format&quot;: &quot;detailed&quot;}</pre></details><hr class="div"><div class="part">`<span class="red">[redacted: internal-host]</span>` has eight role assignments. I read the site in detailed format and pulled out `roleAssignments`:
+
+| Role ID | Role | Groups |
+|---|---|---|
+| 8 | Site Administrator | Administrators |
+| 9 | Site Contributor | PIO Contributors, Program Contributors, Contributors, Ext-res Canvas Managers |
+| 17 | Site Approver | Academic Program Approvers, Technical Reviewers, Institutional Effectiveness, PIO Approvers, Approvers |
+| 18 | Site Publisher | Publishers, PIO Approvers |
+| 19 | Site Viewer | Viewer, <span class="red">[redacted: internal-host]</span> |
+| 20 | Site Homepage Publisher | Homepage Publishers |
+| 21 | Site Zip Contributor | Ext-res Canvas Managers |
+| 23 | Site By-pass Workflow | Bypass Workflow, PIO Approvers |
+
+- **Query used:** I queried the detailed payload for `roleAssignments` instead of dumping the whole site, so I didn&#x27;t look at the other site fields.
+- **Groups in several roles:** PIO Approvers appears in Approver, Publisher and By-pass Workflow. Ext-res Canvas Managers appears in Contributor and Zip Contributor.
+- **Users:** This shows groups only. The role assignments here list no individual users.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:06 UTC</span></span></div><div class="body"><div class="part">Read a checked-out or locked page and look for any field naming who holds the lock.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:06 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -oiE &#x27;&quot;[A-Za-z]*(lock|checkout|checkedout|checked)[A-Za-z]*&quot;:(&quot;[^&quot;]*&quot;|true|false|null|[0-9]+)&#x27; /home/&lt;use...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -oiE &#x27;&quot;[A-Za-z]*(lock|checkout|checkedout|checked)[A-Za-z]*&quot;:(&quot;[^&quot;]*&quot;|true|false|null|[0-9]+)&#x27; /home/&lt;user&gt;/.claude/projects/-mnt-c-Users-&lt;user&gt;-Documents-Projects-cascade-cms-tools/fcb15974-0590-4c50-87be-d7ecbec72a04/tool-results/toolu_01EVpwJ9GPostoDiDAmES9W4.txt | sort | uniq -c | head; grep -rniE &#x27;lock|checkout|checked.out&#x27; /mnt/c/Users/&lt;user&gt;/Documents/Projects/cascade-cms-tools/skill/cascade-script-writer/references/*.md 2&gt;/dev/null | head -15</pre></details><hr class="div"><div class="part">I didn&#x27;t find a lock field, but I haven&#x27;t read a page that is actually locked. The MCP tools can&#x27;t search by lock state, so I had no way to find one.
+
+- **What I checked:** the detailed payload of `csi-cybersecurity-mission`, which I read earlier. Searching its keys for `lock`, `checkout` and `checked` matched only `blockId`, `blockPath`, `blockRecycled` and `noBlock`. Those are region and block fields, not lock fields. That page probably wasn&#x27;t locked, so this doesn&#x27;t rule out a lock field on a locked page.
+- **The skill docs:** `skill/cascade-script-writer/references/` has no mention of lock or checkout fields. The only `lock` hits there are the word &quot;block&quot;.
+- **What I recall:** the Cascade REST asset payload doesn&#x27;t carry a &quot;locked by&quot; field. As far as I know, checkout and lock state is shown in the web UI and isn&#x27;t exposed on the asset itself. I haven&#x27;t confirmed that against a locked page.
+
+If you give me the site and path of a page that is currently checked out, I&#x27;ll read it in detailed format and search every key for a lock holder. Then we&#x27;d know for certain.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:07 UTC</span></span></div><div class="body"><div class="part">Read it from the `<span class="red">[redacted: internal-host]</span>` site `/_dev/for-parents` page.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:07 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">cascade_read_asset (MCP)</span><span class="ts">detailed</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;identifier&quot;: {&quot;path&quot;: &quot;/_dev/for-parents&quot;, &quot;asset_type&quot;: &quot;page&quot;, &quot;siteName&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;}, &quot;format&quot;: &quot;detailed&quot;}</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">F=/home/&lt;user&gt;/.claude/projects/-mnt-c-Users-&lt;user&gt;-Documents-Projects-cascade-cms-tools/fcb15974-0590-4c50-87...</span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">F=/home/&lt;user&gt;/.claude/projects/-mnt-c-Users-&lt;user&gt;-Documents-Projects-cascade-cms-tools/fcb15974-0590-4c50-87be-d7ecbec72a04/tool-results/mcp-cascade-cms-cascade_read_asset-1791932874469.txt
+jq -c &#x27;keys&#x27; &quot;$F&quot;
+echo ---
+jq -c &#x27;[paths | map(tostring) | select(any(.[]?; test(&quot;lock|check|out|hold|user|by$|Owner|owner&quot;;&quot;i&quot;)) or (last|test(&quot;lock|check|hold|owner|By$&quot;;&quot;i&quot;)))] | map(join(&quot;.&quot;)) | map(select(test(&quot;structuredData|pageConfigurations&quot;)|not)) | unique&#x27; &quot;$F&quot;
+echo ---
+jq -c &#x27;del(.structuredData,.pageConfigurations,.metadata) &#x27; &quot;$F&quot;</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">F=/home/&lt;user&gt;/.claude/projects/-mnt-c-Users-&lt;user&gt;-Documents-Projects-cascade-cms-tools/fcb15974-0590-4c50-87...</span><span class="td">&lt;1s</span></summary><pre class="si">F=/home/&lt;user&gt;/.claude/projects/-mnt-c-Users-&lt;user&gt;-Documents-Projects-cascade-cms-tools/fcb15974-0590-4c50-87be-d7ecbec72a04/tool-results/mcp-cascade-cms-cascade_read_asset-1791932874469.txt
+python3 -I - &quot;$F&quot; &lt;&lt;&#x27;EOF&#x27;
+import json,re,sys
+d=json.load(open(sys.argv[1]))
+if isinstance(d,dict) and &quot;asset&quot; in d and len(d)&lt;4: print(&quot;wrapper keys&quot;,list(d))
+print(&quot;top keys:&quot;,list(d))
+hits=set()
+def walk(o,p=&quot;&quot;):
+    if isinstance(o,dict):
+        for k,v in o.items():
+            if re.search(r&quot;lock|check|hold|owner|by$&quot;,k,re.I): hits.add((p+&quot;.&quot;+k,str(v)[:80]))
+            walk(v,p+&quot;.&quot;+k)
+    elif isinstance(o,list):
+        for i,v in enumerate(o): walk(v,p+&quot;[]&quot;)
+walk(d)
+for h in sorted(hits): print(h)
+print({k:v for k,v in d.items() if k not in(&quot;structuredData&quot;,&quot;pageConfigurations&quot;,&quot;metadata&quot;)})
+EOF</pre></details><hr class="div"><div class="part">I read `<span class="red">[redacted: internal-host]</span>` `_dev/for-parents` in detailed format (id `eea968cbac10010f2319434d4f0669b2`). The payload has no field naming who holds a lock, and no lock or checkout flag at all.
+
+I parsed the whole 74.6 KB JSON with Python, since `jq` isn&#x27;t installed. These are the top-level keys:
+
+`contentTypeId`, `contentTypePath`, `structuredData`, `pageConfigurations`, `linkRewriting`, `shouldBePublished`, `shouldBeIndexed`, `expirationFolderRecycled`, `metadata`, `reviewOnSchedule`, `reviewEvery`, `parentFolderId`, `parentFolderPath`, `lastModifiedDate`, `lastModifiedBy`, `createdDate`, `createdBy`, `path`, `siteId`, `siteName`, `tags`, `name`, `id`
+
+I then walked every nested key looking for names containing `lock`, `check`, `hold`, `owner` or ending in `by`. The only matches were:
+
+- **`createdBy` and `lastModifiedBy`:** both come back as `[REDACTED]` from the MCP.
+- **`blockId`, `blockPath`, `blockRecycled` and `noBlock`:** these sit in the page regions. They are block-assignment fields, not lock fields.
+
+- **Lock state:** I haven&#x27;t confirmed that this page is locked. If it is, the REST payload doesn&#x27;t expose that. This matches what I said earlier: lock state seems to live only in the Cascade UI.
+- **Last editor:** `lastModifiedBy` is redacted, so the MCP can&#x27;t tell you who last edited it either. The page was last modified 2026-09-30T18:51:03Z. If you need the lock holder, check the page in the Cascade UI.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:09 UTC</span></span></div><div class="body"><div class="part">Read the page /does-not-exist&quot;, and &quot;read a page that is checked out by someone</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 23:09 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">cascade_read_asset (MCP)</span><span class="ts">detailed</span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">{&quot;identifier&quot;: {&quot;path&quot;: &quot;/does-not-exist&quot;, &quot;asset_type&quot;: &quot;page&quot;, &quot;siteName&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;}, &quot;format&quot;: &quot;detailed&quot;}</pre></details><hr class="div"><div class="part">**`/does-not-exist`:** the read failed, as expected. I assumed `<span class="red">[redacted: internal-host]</span>`, since you didn&#x27;t name a site. The error was:
+
+&gt; Unable to identify an entity based on provided entity path &#x27;does-not-exist&#x27; and type &#x27;page&#x27;.
+
+The tool returns a clear not-found error and suggests running `cascade_search` first.
+
+**A page checked out by someone:** I can&#x27;t do this one. The MCP has no way to search or filter by lock or checkout state, and the two pages I&#x27;ve read had no lock field, so I can&#x27;t find a locked page myself. If you give me the site and path of a page you know is checked out, I&#x27;ll read it and compare its payload with `_dev/for-parents`. That would settle whether a locked page exposes a lock holder.</div></div></div></article></div></main></body></html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Page createdBy and lastModifiedBy on [REDACTED: internal-host]</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>Page createdBy and lastModifiedBy on [REDACTED: internal-host]</h1>
+<p class="meta">2026-10-13 &middot; cascade-cms-tools &middot; claude-code &middot; 12 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude-code</span></span></div><div class="item"><b>Active time</b><span>9m</span></div><div class="item"><b>Date</b><span>2026-10-13</span></div><div class="item"><b>Tokens</b><span>In 2.8K · Out 3.7K · Cache read 965.2K · Cache write 34.2K</span></div></div><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:40 UTC</span></span></div><div class="body"><div class="part">Read the page at `/default` on site `<span class="red">[redacted: internal-host]</span>` in detailed format and show me createdBy and lastModifiedBy.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:40 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">ToolSearch</span><span class="ts">select:mcp__cascade-cms__cascade_read_asset,mcp__cascade-cms__cascade_search</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;select:mcp__cascade-cms__cascade_read_asset,mcp__cascade-cms__cascade_search&quot;, &quot;max_results&quot;: 5}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_read_asset (MCP)</span><span class="ts">detailed</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;identifier&quot;: {&quot;path&quot;: &quot;/default&quot;, &quot;asset_type&quot;: &quot;page&quot;, &quot;siteName&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;}, &quot;format&quot;: &quot;detailed&quot;}</pre></details><hr class="div"><div class="part">I read `/default` on `<span class="red">[redacted: internal-host]</span>` in detailed format. The server returned both fields as `[REDACTED]`, so I can&#x27;t tell you who created or last modified the page.
+
+| Field | Value | Date |
+|---|---|---|
+| `createdBy` | `[REDACTED]` | 2017-11-27T22:32:31.708Z |
+| `lastModifiedBy` | `[REDACTED]` | 2026-02-10T00:18:46.474Z |
+
+The MCP server&#x27;s redaction is hiding the usernames. The `author` metadata field was redacted the same way. The other user field, `lastPublishedBy`, was not redacted. It shows `tjensen9`, who last published the page on 2026-06-10. Publishing is a different action from editing, so that doesn&#x27;t tell you who created or modified it.
+
+To see the actual usernames, check the page&#x27;s Properties or History in the Cascade UI.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:43 UTC</span></span></div><div class="body"><div class="part">Search site `<span class="red">[redacted: internal-host]</span>` for createdBy.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:43 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">cascade_search (MCP)</span><span class="ts">createdBy</span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">{&quot;query&quot;: &quot;createdBy&quot;, &quot;site&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;}</pre></details><hr class="div"><div class="part">The search was refused. The MCP server blocks `createdBy` as a search term, and `lastModifiedBy` and other identity fields are blocked the same way. The block is deliberate, to protect confidential information, so I haven&#x27;t tried to get around it.
+
+This matches the `[REDACTED]` values on the `/default` page. The server hides who created or edited an asset.
+
+I can search `<span class="red">[redacted: internal-host]</span>` by content instead, such as names, titles or text. For authorship, check the Cascade UI.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:44 UTC</span></span></div><div class="body"><div class="part">Search `<span class="red">[redacted: internal-host]</span>` for &#x27;staff&#x27; with asset_types [&quot;users&quot;].&quot; Then try [&quot;Users&quot;], [&quot; user &quot;], [&quot;groups&quot;] and [&quot;activities&quot;].</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:44 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">cascade_search (MCP)</span><span class="ts">staff</span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">{&quot;query&quot;: &quot;staff&quot;, &quot;site&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;, &quot;asset_types&quot;: [&quot;users&quot;]}</pre></details><hr class="div"><div class="part">I ran the first search, and the server refused it. It blocks the `users` asset type, along with groups, roles, messages and audit/activity records. It does this to protect usernames, hashed passwords, permission matrices and records of who did what.
+
+I haven&#x27;t run `[&quot;Users&quot;]` or `[&quot; user &quot;]`. Those only change the case or spacing of the same blocked type, so they would be attempts to slip past a restriction that is there on purpose. I also skipped `[&quot;groups&quot;]` and `[&quot;activities&quot;]`, because the error names those categories as restricted too.
+
+If you want to confirm the block covers them, I can run those two. For user or group lookups, use the Cascade UI under Administration, or ask a Cascade admin.
+
+I can still search `<span class="red">[redacted: internal-host]</span>` for &quot;staff&quot; in content, such as pages, folders and blocks. Tell me if you want that.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:46 UTC</span></span></div><div class="body"><div class="part">Read the user with id `&lt;user&gt;`, type user.&quot; Then repeat with a site+path identifier instead of the id.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:46 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">cascade_read_asset (MCP)</span><span class="ts"></span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">{&quot;identifier&quot;: {&quot;id&quot;: &quot;&lt;user&gt;&quot;, &quot;type&quot;: &quot;user&quot;}}</pre></details><hr class="div"><div class="part">The read failed on input validation, not because the server blocked it. `identifier.id` has to be a UUID, and `&lt;user&gt;` is a username, so the `id` form can&#x27;t work for a user. I didn&#x27;t try other values to get past that.
+
+I haven&#x27;t run the site+path version. The server has already said users are restricted and that user lookups should be done manually, so a different identifier shape would just be another way around that block. Users also aren&#x27;t tied to a site, so a site+path identifier doesn&#x27;t fit them anyway.
+
+If you want to see the account&#x27;s details, check them in the Cascade UI under Administration &gt; Users. The MCP server won&#x27;t expose them.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:48 UTC</span></span></div><div class="body"><div class="part">Get the root container id for folders, using &lt;user&gt;/Administrators as the site identifier.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:48 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">ToolSearch</span><span class="ts">select:mcp__cascade-cms__cascade_root_container_id</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;query&quot;: &quot;select:mcp__cascade-cms__cascade_root_container_id&quot;, &quot;max_results&quot;: 1}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_root_container_id (MCP)</span><span class="ts">folder</span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">{&quot;site_identifier&quot;: {&quot;path&quot;: &quot;/&quot;, &quot;asset_type&quot;: &quot;site&quot;, &quot;siteName&quot;: &quot;&lt;user&gt;/Administrators&quot;}, &quot;asset_type&quot;: &quot;folder&quot;}</pre></details><hr class="div"><div class="part">I ran the call as you wrote it, and it failed. Cascade doesn&#x27;t have a site called `&lt;user&gt;/Administrators`. It read the value as a site named `Administrators` and found no match, so there was no root folder id to return.
+
+`&lt;user&gt;` looks like a username, and `Administrators` looks like a group. Neither is a site, and the server doesn&#x27;t expose users or groups. This tool only takes a site.
+
+To get the root folder id, I need a real site name. We&#x27;ve used `<span class="red">[redacted: internal-host]</span>` and `<span class="red">[redacted: internal-host]</span>` so far. I can run it for either of those, or I can call `cascade_list_sites` to show the full list.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:49 UTC</span></span></div><div class="body"><div class="part">Run it for <span class="red">[redacted: internal-host]</span></div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Sonnet 5.5 <span class="sep">&middot;</span> <span class="mode m-auto">Auto</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-10-13 22:49 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">cascade_root_container_id (MCP)</span><span class="ts">folder</span><span class="td">&lt;1s</span><span class="err">failed</span></summary><pre class="si">{&quot;site_identifier&quot;: {&quot;path&quot;: &quot;/&quot;, &quot;asset_type&quot;: &quot;site&quot;, &quot;siteName&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;}, &quot;asset_type&quot;: &quot;folder&quot;}</pre></details><hr class="div"><details class="step"><summary><span class="tn">cascade_root_container_id (MCP)</span><span class="ts">folder</span><span class="td">&lt;1s</span></summary><pre class="si">{&quot;site_identifier&quot;: {&quot;path&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;, &quot;asset_type&quot;: &quot;site&quot;, &quot;siteName&quot;: &quot;<span class="red">[redacted: internal-host]</span>&quot;}, &quot;asset_type&quot;: &quot;folder&quot;}</pre></details><hr class="div"><div class="part">The root folder id for `<span class="red">[redacted: internal-host]</span>` is `ff9c2246ac1001065466b179f53988fc`.
+
+My first attempt used `/` as the site path and failed with &quot;The requested asset does not exist&quot;. Using the site name as the path, `<span class="red">[redacted: internal-host]</span>`, worked.
+
+The id matches the `parentFolderId` on the `/default` page we read earlier, so it&#x27;s the site&#x27;s top-level folder.</div></div></div></article></div></main></body></html>

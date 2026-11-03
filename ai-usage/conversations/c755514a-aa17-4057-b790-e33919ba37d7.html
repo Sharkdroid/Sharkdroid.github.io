@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>[Wiki Dev] Code-to-Doc Discussion</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>[Wiki Dev] Code-to-Doc Discussion</h1>
+<p class="meta">2026-08-11 &middot; sharkdroid-github-io &middot; claude.ai &middot; 38 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude.ai</span></span></div><div class="item"><b>Last updated</b><span>2026-09-02</span></div></div><details class="sum"><summary>Summary</summary><div class="part">Conversation Overview
+
+This conversation focused on designing and implementing an automated code-to-docs pipeline for the user&#x27;s Python library (`py-cascade-cms`) that syncs signature changes into their GitHub Pages wiki (`Sharkdroid/Sharkdroid.github.io`). The user already had a Gemini API key and a scaffolded but incomplete `check-docs-drift.yml` workflow. Through a series of scoped questions, the design was settled: a stateless AST signature diff (comparing `HEAD~1` vs `HEAD` via git blob, no snapshot file) watching `operations.py` and `cmstypes.py`, Gemini flash-lite drafting only the affected doc section plus one changelog line, and a PR opened on the wiki repo for manual review — no auto-merge, no issue creation, errors logged via print and workflow failure only.
+
+The final deliverables were two files: a consolidated single-file `docs-drift.yml` (replacing `check-docs-drift.yml` entirely, with all AST diff, Gemini call, and PR logic inline as Python heredocs) and a hand-maintained `doc_mapping.yml` at the `py-cascade-cms` repo root mapping each operation method to its doc heading and payload model. The mapping file was cross-verified against actual class names in `cmstypes.py` and type annotations in `operations.py`, correcting several mismatches (`search` → `SearchInformation`, `checkIn` → `Comment`, `readAudits` → `auditParameters`, `siteCopy` → `SiteCopyParameter`, `editWorkflowSettings` → `workflowSettingsPayload`). The user confirmed and set up two secrets on `py-cascade-cms`: `GEMINI_API_KEY` and `DOCS_PR_TOKEN` (fine-grained PAT scoped to `Sharkdroid.github.io` with contents and pull-requests write access only). A CI matrix issue (3.11 vs 3.12 Python support) was resolved by dropping the 3.11 matrix entry since the codebase intentionally uses Python 3.12+ native syntax. The workflow ran successfully on first execution, reporting no drift detected as expected.
+
+A thorough staleness audit of fresh repo zips was conducted after Claude Code flagged the wiki as unreliable. The audit confirmed four categories of pre-existing staleness: (1) 20 of 25 operation headings in `all-operations.md` are missing the `parser=` kwarg — predating docs-drift.yml so never detectable by it; (2) `fluent-pattern.md` documents a renamed parameter (`_result_type` vs actual `result_type`) and omits the `executor` kwarg entirely, with `wrapper.py` not watched by the workflow at all; (3) `logging/index.md` incorrectly states debug config keys are all required when `OperationLogger` uses `.get()` with defaults throughout; (4) `maintenance/index.md` still says &quot;not yet implemented&quot; and describes a different broader workflow than what actually exists. `advanced/concurrency-caching.md` and the payload code examples were confirmed accurate. A `SyntaxWarning` from an invalid escape sequence (`\``) in the Gemini prompt string was also identified as a real but harmless bug. All findings, root causes, and deferred next steps were saved to memory. The user also confirmed that `doc_mapping.yml` should stay in `py-cascade-cms` because all edit triggers (payload model renames, method additions, future `driver.py`/`wrapper.py` coverage) originate library-side, and co-location prevents the silent cross-repo sync failures that caused the original staleness. The user&#x27;s stated likelihood of change order is: `cmstypes.py` most frequent, then `driver.py`, `wrapper.py`, and `operations.py` least likely.
+
+Key design decisions saved to memory: the AST-signature-only (not docstring/logic) rationale for drift detection, the single running `CHANGELOG.md` with archiving when it grows large, and the full wiki staleness audit with deferred fixes to be tackled in a separate conversation.</div></details><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I need some help configuring my docs. I want to sync changes on my library repo into my GitHub Pages. I would like an easy process code-to-docs workflow that will automatically create PR for my GitHub Pages. I&#x27;m thinking about using the Gemini. I already have the API key I just don&#x27;t know how to implement everything else to make it work.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Nice — this actually lines up with something already on your roadmap: the `Maintenance/` section in `cascade-cms-wiki` is a placeholder for exactly this kind of auto-update workflow. Let&#x27;s sketch the shape of it before we write any YAML.
+
+Here&#x27;s roughly how a &quot;push code → Gemini drafts docs → PR opens on Pages repo&quot; pipeline usually looks:
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+This maps really well onto the `Maintenance/` placeholder you already left in `cascade-cms-wiki` for auto-updates — this is that workflow taking shape.
+
+A few things worth pinning down before we write the YAML, since each choice changes the implementation quite a bit:
+
+**Where does Gemini actually plug in?** Two very different builds hide behind &quot;use Gemini&quot;:
+- *Docstring → wiki page generator*: Gemini reads your Python source (or just the diff) and writes/updates markdown pages in the wiki repo. Good fit for keeping API reference pages current.
+- *Changelog / diff summarizer*: Gemini reads a git diff and writes a short human-readable summary into a &quot;what changed&quot; doc. Lighter-weight, less likely to hallucinate structure.
+
+**Cross-repo or same-repo?** Is your library code and the `cascade-cms-wiki` docs project in the *same* repo, or two separate repos? If separate, the Action needs a PAT (not the default `GITHUB_TOKEN`) with push/PR rights on the docs repo — that&#x27;s the trickiest part to get right.
+
+**How much do you trust the output?** Auto-merge is fast but risky with an LLM writing prose into your docs; PR-for-review is safer but means you&#x27;re still the bottleneck.
+
+Rather than me guessing, want to knock these out quickly?
+```
+This block is not supported on your current device yet.
+```</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Q: What should Gemini generate?
+A: Gemini should make changes to the language of the docs. For example, if an operation were to be renamed or completed change in logic. I want Gemini to communicate that clearly in the docs page. Providing users with the most up-to-date information. I still would like Gemini to follow the same style as the current doc. Should be changelogs and docstrings
+
+Q: Are the library code and cascade-cms-wiki in the same repo?
+A: Separate repos
+
+Q: How should the PR be handled?
+A: Open PR, I review and merge manually</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Got it — that&#x27;s a much more precise job for Gemini than a blanket doc rewrite: it&#x27;s a **semantic diff watcher** that catches renames/logic changes and edits only the relevant prose, in your existing voice, plus logs it to a changelog. That&#x27;s a good scope — much safer than &quot;regenerate everything.&quot;
+
+Here&#x27;s how the pieces click together given &quot;separate repos&quot; + &quot;manual review&quot;:
+
+- **Trigger scope** — since it&#x27;s watching for renamed operations / changed logic, you probably don&#x27;t want this firing on every commit (README typos, test tweaks). It should watch specific paths: `operations.py`, `cmstypes.py`, `wrapper.py`, `driver.py` — the files where operation signatures/docstrings actually live.
+- **Style matching** — the trick to &quot;same style as current docs&quot; is feeding Gemini the *existing* wiki page alongside the diff, not just the diff alone. Otherwise it drifts toward generic LLM prose. So the Action needs to check out both repos: the library (for the diff) and `cascade-cms-wiki` (for the target page as style reference).
+- **Mapping code → doc page** — Gemini needs to know *which* wiki page corresponds to the changed code. Either (a) you keep a small mapping file (`operations.py` → `Operations.md`) that the workflow reads, or (b) Gemini searches the wiki repo itself and picks the best match. (a) is more predictable; (b) is more flexible but riskier for a flash-tier prompt... though Gemini API calls here would presumably use a frontier-tier Gemini model, not the flash-tier IDE constraint from your skill work.
+- **Output shape** — worth having Gemini return structured JSON (`{&quot;file&quot;: &quot;...&quot;, &quot;updated_markdown&quot;: &quot;...&quot;, &quot;changelog_entry&quot;: &quot;...&quot;}`) rather than freeform text, so the workflow can write it straight to disk without you writing a fragile parser.
+- **Cross-repo auth** — since the repos are separate, the default `GITHUB_TOKEN` won&#x27;t have write access to `cascade-cms-wiki`. You&#x27;ll need a fine-grained PAT (contents + pull-requests scopes on that repo) stored as a secret in the library repo, alongside your Gemini key.
+- **PR creation** — `peter-evans/create-pull-request` is the usual tool for this; it handles branch creation, commit, and PR open in one step, and since you want manual merge, no auto-merge flag.
+
+Two things I&#x27;d want to know before sketching the YAML:
+
+1. For the **code → doc page mapping** — do you want a simple mapping file you maintain by hand (safer, more predictable), or should Gemini be trusted to search the wiki and infer the right page on its own?
+2. Should the changelog be a **single running `CHANGELOG.md`** in the wiki (chronological entries), or per-page &quot;last updated&quot; notes at the top of each doc?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. Yes, manual mapping.
+2. For now, just keep it a single file. If there are too many version, then I create archives</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Good — manual mapping is the right call here, especially with operations that map cleanly (e.g. `Operations.performWorkflowTransition` → a specific page/section, not a whole file to a whole page).
+
+For the mapping file, something like this would work — small, human-editable, and something Gemini reads as *context* rather than something Gemini has to infer:
+
+```yaml
+# doc_mapping.yml (lives in the library repo)
+mappings:
+  - source: operations.py
+    doc_page: Operations/Operations-Reference.md
+  - source: cmstypes.py
+    doc_page: Types/CMS-Types-Reference.md
+  - source: driver.py
+    doc_page: Architecture/Driver-and-Executor.md
+  - source: wrapper.py
+    doc_page: Getting-Started/Wrapper-Usage.md
+```
+
+And a single `CHANGELOG.md` in the wiki repo that Gemini prepends new entries to (newest on top), something like:
+
+```md
+## 2026-08-11 — `performWorkflowTransition`
+`transition_comment` is now required (was optional). Docs updated in
+`Operations-Reference.md` to reflect this.
+```
+
+A few things this raises before I draft the actual workflow file:
+
+1. **Granularity of the mapping** — is file-level (`operations.py` → one big reference page) close enough, or do operations map to *sections within* a page that Gemini needs to target precisely (e.g. only touch the `## performWorkflowTransition` heading, not the whole file)? This affects whether Gemini gets the whole doc page as context or just a chunk of it.
+2. **Diff granularity** — should the Action send Gemini the full git diff of the changed file(s), or just the function/class that changed (so it isn&#x27;t tempted to comment on unrelated changes in the same file)?
+3. **Repo names/secrets** — what are the two repo names (library repo and `cascade-cms-wiki`), so I can write the actual PAT/secret references correctly in the workflow?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. Mapping should be granular. In order to keep cost down
+2. Just narrow down to function/class
+3. I don&#x27;t think that you can read the github repos so here are the `zip` files preserving the structure of each repo in the current state</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">```
+This block is not supported on your current device yet.
+```
+
+There&#x27;s already a `check-docs-drift.yml` workflow scaffolded in the library repo, and the wiki has that `maintenance/index.md` placeholder plus an `operations/all-operations.md` reference page. Let me see what&#x27;s already there before designing anything new.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+This is a great find — the drift *detection* half already exists as a scaffold (`check-docs-drift.yml`), it just references a `scripts/check_docs_drift.py` that was never written, and today it only opens a tracking issue rather than fixing anything. Confirms the two repos: `Sharkdroid/py-cascade-cms` and `Sharkdroid/Sharkdroid.github.io`.
+
+Let me check the actual doc page structure so the mapping file lines up with real section headings.
+```
+This block is not supported on your current device yet.
+```
+
+These line up 1:1 — every `Operations` method has an `### method(...)` heading with anchor-able ID (`### \`performWorkflowTransition(identifier, payload)\``). That&#x27;s exactly what makes function-level mapping cheap: each method name maps to one markdown heading in one file, so the mapping file is just a lookup table, not a search problem.
+
+Two design decisions this reveals:
+
+1. **All operations currently point to one file** (`all-operations.md`) — so the &quot;granular&quot; mapping isn&#x27;t file→file, it&#x27;s *method→heading-within-a-file*. Gemini&#x27;s context window then needs: the specific `def method(...)` block (not the whole `operations.py`), and the specific `### method(...)` section (not the whole `all-operations.md`), so it edits in place without touching neighboring sections.
+2. **`cmstypes.py` payload changes matter too** — e.g. if `workflowTransitionInformation`&#x27;s fields change, that affects the `performWorkflowTransition` doc section even though the diff is in a different file. Worth deciding now: does the mapping only watch `operations.py`, or also `cmstypes.py` payload/response models that operations reference?
+
+Here&#x27;s the mapping file shape I&#x27;d propose, keyed by method name so it&#x27;s a single source of truth for both the drift-detector script and the Gemini step:
+
+```yaml
+# doc_mapping.yml — lives in py-cascade-cms
+operations_doc: wiki/cascade-cms-wiki/docs/operations/all-operations.md
+changelog: CHANGELOG.md   # in Sharkdroid.github.io, per your earlier answer
+
+methods:
+  read: {heading: &quot;read(identifiers, parser=parse_assets)&quot;}
+  create: {heading: &quot;create(payload)&quot;}
+  performWorkflowTransition: {heading: &quot;performWorkflowTransition(identifier, payload)&quot;}
+  # ... one entry per method, generated once, hand-edited after
+```
+
+Question before I draft `check_docs_drift.py` and the Gemini step: **should the drift check compare method *signatures* (arg names/defaults, easy to diff mechanically) or full *docstring content* (catches logic-change language, but needs Gemini to judge &quot;did the meaning change&quot; rather than a plain diff)?** That decision determines whether the detector is a cheap AST diff or an LLM call itself.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">It should include `cmstypes.py` butI&#x27;ll go with the &quot;should the drift check compare method signatures (arg names/defaults, easy to diff mechanically)&quot;. The logics should already be sorted using a higher tier agentic model during development of the library. I think this should be documented later on in the `Maintenance` page in the `Sharkdroid/sharkdroid.github.io`. The last part can be saved to memory for later.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">```
+This block is not supported on your current device yet.
+```
+
+Saved that rationale for later.
+
+Signature-only diffing is the right call — it&#x27;s cheap, deterministic, and doesn&#x27;t need Gemini just to *detect* drift; Gemini only gets involved once, to translate a confirmed signature change into prose. That also means `check_docs_drift.py` can be pure AST, no API calls, no cost, run on every push.
+
+Extending to `cmstypes.py` raises one wrinkle: operations reference payload models *indirectly*. `performWorkflowTransition(identifier, payload: workflowTransitionInformation)` — if `workflowTransitionInformation` gains a field, the drift is really &quot;this operation&#x27;s effective signature changed,&quot; even though the literal `def performWorkflowTransition(...)` line in `operations.py` didn&#x27;t move. So the mapping needs a second layer: method → payload class it consumes, so the detector knows to watch both.
+
+```yaml
+methods:
+  performWorkflowTransition:
+    heading: &quot;performWorkflowTransition(identifier, payload)&quot;
+    payload_model: workflowTransitionInformation   # in cmstypes.py — also watched
+  read:
+    heading: &quot;read(identifiers, parser=parse_assets)&quot;
+    payload_model: null   # takes identifiers directly, no payload class
+```
+
+Two follow-ups this raises:
+
+1. **How to diff &quot;current vs previous&quot;** — should the Action `git show HEAD~1:src/cascade_cms/operations.py` and AST-parse both old and new blobs (stateless, no extra files to maintain), or keep a committed `signatures_snapshot.json` that gets updated each run (more explicit/inspectable, but another file to keep in sync)? I&#x27;d lean toward the git-blob approach since it needs zero upkeep — want me to go with that?
+2. **Field-level granularity for `cmstypes.py`** — a payload model like `workflowTransitionInformation` (`SimplePayload` subclass) has typed fields with aliases. Should the AST diff compare just field *names*, or names + types + defaults? Aliases matter for docs since they&#x27;re what appears in Cascade&#x27;s actual JSON — worth including those too.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">1. Yes, AST-parse
+2.  Only field names + types + defaults should work the alias part doesn&#x27;t matter as much because that is the abstracted part of the library.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Good — that keeps the diff cheap and avoids alias noise, since aliases are an implementation detail of the wire format, not something the docs describe.
+
+At this point the design is basically settled:
+
+- **Detector**: stateless AST diff, `git show HEAD~1:&lt;file&gt;` vs current, on `operations.py` + `cmstypes.py`, scoped by the mapping file (method name → doc heading → payload model). Compares signature (args/types/defaults) and payload field (name/type/default) — no docstring/prose comparison.
+- **On drift found**: Gemini gets *only* the specific changed `def`/class block (old + new) plus the specific doc section as style reference, and returns structured output (updated section markdown + one changelog line).
+- **Output**: opens a PR on `Sharkdroid.github.io` via a PAT, into `wiki/cascade-cms-wiki/docs/operations/all-operations.md` (targeted section only) + prepends to `CHANGELOG.md`. No auto-merge — you review.
+
+A few loose ends before I write the actual script + workflow:
+
+1. **Which Gemini model?** You mentioned frontier-tier for this kind of work earlier — since it&#x27;s per-section edits (small context), even a mid-tier Gemini model should handle it fine and keep cost down. Any preference, or should I just pick a sensible current one?
+2. **If Gemini&#x27;s output looks wrong** (e.g. malformed JSON, or it touches something outside the target section) — should the workflow fail loudly (no PR, just an Action failure you see in logs), or fall back to the current behavior (open a tracking issue, like `check-docs-drift.yml` already does today)?
+3. **Should the PR run your existing `ci.yml` checks** before you review it, so you&#x27;re not manually verifying the library still builds when it&#x27;s just a docs change? (Probably yes, just confirming since it&#x27;s a docs-only PR.)</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I was thinking about using flash-lite model. If it&#x27;s wrong, then I should fail the workflow and output error. Yes, it should pass the `ci.yml` first before running.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Makes sense — gating on `ci.yml` passing first means you only spend a Gemini call on commits that are actually known-good, which also avoids drafting docs for code that might get reverted.
+
+One flag on flash-lite: it&#x27;s a solid pick for cost given the narrow per-section scope, but it can be less reliable at strictly-formed structured JSON output than the bigger Gemini tiers. Since you already said &quot;fail loudly on bad output,&quot; that pairs well — I&#x27;d suggest one cheap safety net: ask Gemini for JSON, and if `json.loads()` fails, retry once with a &quot;your last output wasn&#x27;t valid JSON, try again&quot; follow-up before failing the workflow. Costs one extra call only on the rare bad response, not on the happy path.
+
+Here&#x27;s the full shape now, gated end-to-end:
+
+```
+push to operations.py/cmstypes.py
+        │
+        ▼
+   ci.yml passes? ──fail──► stop (no docs action taken)
+        │ pass
+        ▼
+AST signature diff (stateless, git blob compare)
+        │
+   drift found?  ──no───► stop, nothing to do
+        │ yes
+        ▼
+Gemini flash-lite: old/new signature + target doc section → structured JSON
+        │
+   valid JSON, right shape? ──no (after 1 retry)──► fail workflow, no PR
+        │ yes
+        ▼
+open PR on Sharkdroid.github.io (section edit + CHANGELOG.md entry)
+        │
+        ▼
+   you review &amp; merge manually
+```
+
+Two small things to pin down and I can draft the actual `check_docs_drift.py` + workflow YAML:
+
+1. **Secrets** — the existing `check-docs-drift.yml` already uses `secrets.DOCS_ISSUE_TOKEN` for opening issues. Should the new PR-opening step reuse that same PAT (if it already has `contents`/`pull-requests` write on the docs repo), or do you want a separate token so &quot;open issue&quot; and &quot;open PR&quot; permissions stay distinct? And what should I call the Gemini key secret — `GEMINI_API_KEY`?
+2. **New workflow or extend existing?** — should this replace `check-docs-drift.yml`&#x27;s issue-opening behavior entirely (drift now always tries the Gemini/PR path), or keep the issue path as what happens when Gemini fails the retry (instead of a bare workflow failure)?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I want it try to PR only no Open Issues errors should be logged instead. I should share similar variables/secrets but be a complete rewrite. I also want it consolidated into a single file if possible to minimize file footprint.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Got it — &quot;single file&quot; then means folding the AST diff + Gemini call + PR logic *into* the workflow YAML itself (inline Python under `run:` steps), rather than a separate `scripts/check_docs_drift.py`. That fully replaces the current two-piece setup (`check-docs-drift.yml` + a script that was never actually written).
+
+Quick gut-check on that approach before I write it, since inline-in-YAML has real tradeoffs:
+
+- **Pro**: one file to look at, matches your &quot;minimize footprint&quot; goal, no separate script to keep in sync.
+- **Con**: harder to unit-test the AST diff logic in isolation (can&#x27;t just `pytest scripts/check_docs_drift.py` anymore), and the YAML gets long/dense since it&#x27;s carrying Python heredocs for AST parsing, JSON parsing of Gemini&#x27;s response, and PR construction all in one place.
+
+Given your test suite already covers the library itself (`tests/test_operations.py`, etc.), I&#x27;m guessing the drift-checker not being unit-tested is an acceptable tradeoff for a maintenance-only script — but flagging it since it&#x27;s a real cost, not a free win.
+
+Two things to lock in and then I&#x27;ll draft the full file:
+
+1. **Secret names** — reusing the *shape* but rewritten: `DOCS_PR_TOKEN` (PAT with contents+PR write on `Sharkdroid.github.io`, replacing `DOCS_ISSUE_TOKEN` since we&#x27;re not opening issues anymore) and `GEMINI_API_KEY`. Good, or do you have names you&#x27;d rather use?
+2. **&quot;Errors logged instead&quot;** — just confirming the mechanic: workflow step fails → shows red X in the Actions tab with the error in the step&#x27;s log output (standard GitHub Actions behavior), no separate issue/notification. That&#x27;s the full extent of &quot;logged,&quot; correct? Or did you want something like a `::error::` annotation so it also surfaces in the PR checks / commit status specifically?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Just a simple try/catch and printing is okay. the secret names are also good.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">```
+This block is not supported on your current device yet.
+```
+
+Current GA pick is `gemini-3.5-flash-lite` — it&#x27;s designed for both low-latency tasks and high-throughput developer workflows like agentic search and document processing, which fits this use case well and keeps cost down. I&#x27;ll pin that as a variable at the top of the workflow so swapping it later is a one-line change.
+
+Let me write the two files now.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+Let me verify these payload model names actually match what&#x27;s in `cmstypes.py` rather than guessing.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+Good — confirms `search` uses `SearchInformation` and `checkIn` uses `Comment`. Fixing the mapping file with these corrections.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+Good, confirms `editWorkflowSettings` uses `workflowSettingsPayload`. Fixing that too.
+```
+This block is not supported on your current device yet.
+```
+
+Now the consolidated workflow file with the AST diff, Gemini call, and PR logic all inline.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+Two files, matching what your CI names its workflow (&quot;CI&quot;) to trigger on `workflow_run`:
+
+**`docs-drift.yml`** — drop in `py-cascade-cms/.github/workflows/`, replacing `check-docs-drift.yml`. Everything&#x27;s inline: AST signature diff (stateless, `git show HEAD~1` vs `HEAD`, no snapshot file), Gemini call with the one-retry-on-bad-JSON safety net, and the PR step. On any failure it prints `::error::...` and exits — no PR, no issue.
+
+**`doc_mapping.yml`** — the one small companion data file, goes in `py-cascade-cms` repo root. I cross-checked every `payload_model` against the actual class names in `cmstypes.py` and the actual argument types in `operations.py` (caught and fixed a few I&#x27;d guessed wrong — `search` → `SearchInformation`, `checkIn` → `Comment`, `readAudits` → `auditParameters`, `siteCopy` → `SiteCopyParameter`, `editWorkflowSettings` → `workflowSettingsPayload`), so it should be accurate to the current source rather than a template you have to hand-verify.
+
+Two things you&#x27;ll need to do outside the file itself before this runs:
+1. Delete the old `check-docs-drift.yml` (superseded).
+2. Add `DOCS_PR_TOKEN` (fine-grained PAT, `contents` + `pull-requests` write on `Sharkdroid.github.io`) and `GEMINI_API_KEY` as secrets on `py-cascade-cms`.
+
+One thing worth testing before trusting it: does your `ci.yml`&#x27;s `name:` field actually say `CI`? The `workflow_run: workflows: [&quot;CI&quot;]` trigger matches by that display name, not the filename — worth a quick check since a mismatch there means this workflow silently never fires.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Yes, it is CI</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Perfect. Then the workflow trigger is wired correctly — when CI finishes successfully on master, this fires immediately.
+
+**Here&#x27;s the full flow once deployed:**
+
+```
+push to operations.py or cmstypes.py
+         │
+         ▼
+CI workflow runs → success
+         │
+         ▼
+docs-drift.yml fires (workflow_run trigger)
+         │
+         ▼
+AST diff operations.py + cmstypes.py (HEAD~1 vs HEAD)
+         │
+    drift? ──no──► exit 0, no PR
+         │ yes
+         ▼
+Gemini flash-lite drafts updated section(s) + changelog entry
+(retry once if JSON parse fails)
+         │
+    valid? ──no (after retry)──► fail job, print error, no PR
+         │ yes
+         ▼
+write updated all-operations.md + prepended CHANGELOG.md
+         │
+         ▼
+open PR on Sharkdroid.github.io (you review &amp; merge manually)
+```
+
+**Setup checklist before committing:**
+
+- [ ] Delete `py-cascade-cms/.github/workflows/check-docs-drift.yml` (this replaces it entirely)
+- [ ] Move `docs-drift.yml` to `py-cascade-cms/.github/workflows/`
+- [ ] Move `doc_mapping.yml` to `py-cascade-cms/` root
+- [ ] Add `DOCS_PR_TOKEN` secret to `Sharkdroid/py-cascade-cms` (fine-grained PAT with `contents` + `pull-requests` write on `Sharkdroid/Sharkdroid.github.io`)
+- [ ] Add `GEMINI_API_KEY` secret to `Sharkdroid/py-cascade-cms`
+
+Once those are in place, the next successful CI run on master (or any push to a watched file after CI passes) will trigger it.
+
+Want to commit these, or want to walk through any part of the inline Python logic first before you integrate?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I need some help with the secrets. Can you give a detailed instruction for how to set those up?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">```
+This block is not supported on your current device yet.
+```
+
+I&#x27;ll break this into two parts — one for the **Gemini key** (quick) and one for the **GitHub token** (more involved).
+
+## 1. Add GEMINI_API_KEY (you already have the key)
+
+**On GitHub:**
+1. Go to `https://github.com/Sharkdroid/py-cascade-cms/settings/secrets/actions`
+2. Click **New repository secret**
+3. Name: `GEMINI_API_KEY`
+4. Value: paste your Gemini API key (the one you already have)
+5. Click **Add secret**
+
+Done. The workflow will read it as `secrets.GEMINI_API_KEY`.
+
+---
+
+## 2. Create DOCS_PR_TOKEN (the more involved part)
+
+This is a fine-grained Personal Access Token (PAT) with limited permissions. GitHub now recommends these over classic tokens because you can scope them tightly.
+
+**Step A — Create the token on GitHub:**
+
+1. Go to `https://github.com/settings/tokens/new?type=github_app`
+   (This opens &quot;Generate new fine-grained personal access token&quot;)
+
+2. **Token name:** `docs-pr-token` (or whatever you like)
+
+3. **Expiration:** Pick a timeframe. 90 days is reasonable for a token you&#x27;ll review annually.
+
+4. **Resource owner:** Select `Sharkdroid` (your account/org)
+
+5. **Repository access:** 
+   - Select &quot;Only select repositories&quot; 
+   - Search for and select **`Sharkdroid.github.io`** (the wiki repo, where the PR will be opened)
+
+6. **Permissions** — expand &quot;Repository permissions&quot;:
+   - **Contents**: Read and write (so the workflow can push commits to the branch)
+   - **Pull requests**: Read and write (so the workflow can open PRs)
+   - Leave everything else at default (no access)
+
+   Screenshot sketch:
+   ```
+   ✓ Contents: Read and write
+   ✓ Pull requests: Read and write
+   ○ Issues: No access
+   ○ Workflows: No access
+   ... (all others default/no access)
+   ```
+
+7. Click **Generate token**
+
+8. **Copy the token immediately** — it only displays once. If you miss it, delete and regenerate.
+
+**Step B — Add it to py-cascade-cms secrets:**
+
+1. Go to `https://github.com/Sharkdroid/py-cascade-cms/settings/secrets/actions`
+
+2. Click **New repository secret**
+
+3. Name: `DOCS_PR_TOKEN`
+
+4. Value: paste the token you just created
+
+5. Click **Add secret**
+
+---
+
+**Why this setup?**
+
+- **Scoped to one repo** — even if the token leaks, it can only touch `Sharkdroid.github.io`, not all your repos
+- **Limited permissions** — it can only read/write contents and open PRs; can&#x27;t delete the repo, modify settings, etc.
+- **Readable in logs** — when the workflow runs, it&#x27;ll show `***` where the token appears, never the actual value
+
+Both secrets are now in place. The next time CI passes on master (or you manually push to operations.py/cmstypes.py after a passing CI), `docs-drift.yml` will fire, detect drift, call Gemini, and open a PR on `Sharkdroid.github.io`.
+
+Want to do a dry run first to make sure the secrets are wired correctly, or ready to commit?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Sure show me how. I&#x27;ve uploaded screenshot proof of the steps completed already.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Perfect — you&#x27;re all set! The screenshots confirm:
+
+✅ **Fine-grained PAT created** (`docs-pr-token`)
+- Scoped to `Sharkdroid/Sharkdroid.github.io` only
+- Contents: Read and write
+- Pull requests: Read and write
+
+✅ **Both secrets added to `py-cascade-cms`**
+- `GEMINI_API_KEY` (8 minutes ago)
+- `DOCS_PR_TOKEN` (just now)
+
+You&#x27;re ready to deploy. Two final steps:
+
+1. **Delete the old workflow:**
+   - Remove `.github/workflows/check-docs-drift.yml` from `py-cascade-cms`
+
+2. **Add the new files:**
+   - Move `docs-drift.yml` → `py-cascade-cms/.github/workflows/`
+   - Move `doc_mapping.yml` → `py-cascade-cms/` (repo root)
+
+3. **Commit and push to master**
+
+Once that hits master and CI passes, the next push to `operations.py` or `cmstypes.py` will fire the workflow. If there&#x27;s signature drift, it&#x27;ll call Gemini and open a PR on `Sharkdroid.github.io` automatically.
+
+Want to create a test commit to trigger it, or are you good to go?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">My `ci.yml` will fail because of some formatting issues. I&#x27;m not sure if its worth fixing. This is the last output I got.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">```
+This block is not supported on your current device yet.
+```
+
+**Yes, worth fixing.** Here&#x27;s why:
+
+The `docs-drift.yml` workflow is **gated on CI passing**:
+```yaml
+on:
+  workflow_run:
+    workflows: [&quot;CI&quot;]
+    types: [completed]
+    ...
+    if: github.event.workflow_run.conclusion == &#x27;success&#x27;
+```
+
+If CI fails, the workflow never fires. So you need CI to pass before docs-drift can run.
+
+Good news: **91 of the 110 errors are auto-fixable** with `ruff --fix`. The errors are all Python 3.9+ style linting (use `type[T]` not `Type[T]`, use `list[...]` not `List[...]`).
+
+**Quick fix:**
+
+```bash
+cd py-cascade-cms
+ruff check --fix src/
+```
+
+That&#x27;ll knock out ~91 errors automatically. The remaining ~19 are likely the `BLE001` (catch blind `Exception`) — you&#x27;ll need to look at those by hand, but they&#x27;re isolated to a few spots.
+
+**Then:**
+```bash
+ruff check src/  # verify it passes
+```
+
+Once that passes, commit and push. CI will pass, and then docs-drift can fire on the next eligible push.
+
+Want me to walk through what the `BLE001` errors look like, or are you good to tackle it?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">I&#x27;m getting this error:
+
+```text
+
+```</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">These are **mypy errors** (type checking), different from the ruff linting errors from before.
+
+The main issue: **`operation_logger.py` has 9 errors** all the same pattern:
+```
+dict[Any, Any] | None has no attribute &quot;get&quot;
+```
+
+This means the code is calling `.get()` on a dict that *could* be `None`, and mypy is catching it.
+
+**Quick assessment:**
+
+Does your CI run mypy? (Check `ci.yml` — look for a `mypy` or `type-check` step.) If yes, mypy errors block CI, which blocks docs-drift. If no, you can ignore these for now.
+
+Given that `operation_logger.py` is still listed as &quot;pending implementation&quot; in your memory, I&#x27;m guessing this file was just written and hasn&#x27;t been type-checked yet.
+
+**Two options:**
+
+1. **Fix the type issues now** — mostly straightforward. The `operation_logger.py` issues need None checks before accessing the dict (e.g., `if self._context_stack is not None: self._context_stack.get(...)`).
+
+2. **Skip docs-drift for now, revisit when operation_logger is stabilized** — if you want to focus on getting the library tests passing first, you can defer the workflow setup.
+
+Which direction makes sense for you? Or should I walk through the operation_logger fixes?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">My test (3.12) task runs good but the 3.11 test is bad because the pytest cant use `typing.&lt;type&gt;` instead it wants `typing_extension` but I don&#x27;t really care about &lt;3.12 support I only want it to be &gt;=3.12 versions.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Perfect — that&#x27;s the right call. Your code uses Python 3.12+ syntax natively (`type[T]`, `list[...]`, `X | Y` unions), so dropping 3.11 support makes sense.
+
+**Edit `ci.yml`:**
+
+Find the test matrix (looks something like this):
+```yaml
+strategy:
+  matrix:
+    python-version: [&quot;3.11&quot;, &quot;3.12&quot;]
+```
+
+Change it to:
+```yaml
+strategy:
+  matrix:
+    python-version: [&quot;3.12&quot;]
+```
+
+**Or if it&#x27;s a list:**
+```yaml
+python-version:
+  - &quot;3.12&quot;
+```
+
+Once you commit that, CI will only run on 3.12, the ruff/mypy errors will pass (since 3.12 supports the syntax natively), and then docs-drift can fire.
+
+Also worth updating your `pyproject.toml` (or wherever you declare minimum Python version) to officially say `python = &quot;&gt;=3.12&quot;` if you haven&#x27;t already — that way pip won&#x27;t try to install it on older versions.
+
+Ready to push all this?</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Okay the `Doc Drift` workflow ran successfully. 
+
+```text
+&lt;stdin&gt;:158: SyntaxWarning: invalid escape sequence &#x27;\`&#x27;
+&lt;stdin&gt;:157: SyntaxWarning: invalid escape sequence &#x27;\`&#x27;
+No signature or payload-model drift detected. Nothing to do.
+```
+
+The above is the output. Although when I was about to update my library&#x27;s agent SKILL Clade Code told me the wiki was stale and not a reliable source of truth. So, I downloaded both repos fresh as zips, and I want you to thoroughly inspect the contents. To make if whether or not its actually stale or not. 
+
+Note: ignore the python version in the `.toml` saying `&gt;=3.11` I&#x27;m aware of that, I have a staged commit where I edited it. But everything else needs searching</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+This is a strong lead. Let me verify precisely — comparing full signatures (not just names) between the live source and both the doc and the mapping file.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+Found something bigger. The Maintenance page describes an entirely different, larger workflow than what actually exists — let me check the remaining pages against source before drawing conclusions.
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+
+```
+This block is not supported on your current device yet.
+```
+
+Claude Code was right — the wiki is stale, but not uniformly. Here&#x27;s what I verified by diffing the actual source against every doc page, not just skimming:
+
+## Confirmed stale
+
+**1. Operations reference (`all-operations.md`) — 20 of 25 methods are missing a real parameter**
+
+Every operation&#x27;s actual signature includes a `parser=...` kwarg (e.g. `create(payload, parser=None)`, `checkOut(identifier, parser=parse_checked_out_asset)`), but the doc headings only show `create(payload)`, `checkOut(identifier)`, etc. Only 5 methods (`read`, `editAccessRights`, `editPreference`, `markMessage`, `deleteMessage`) have accurate headings.
+
+**Root cause, and why docs-drift didn&#x27;t catch it:** the detector only diffs `HEAD~1` vs `HEAD` — it has no concept of &quot;was this ever correct.&quot; This gap predates docs-drift.yml entirely, so there was never a commit for it to react to. I also built `doc_mapping.yml`&#x27;s `heading` field by copying the doc&#x27;s existing (stale) headings, so the mapping file inherited the same gap — though that doesn&#x27;t break detection itself, since the AST diff compares code-to-code, not code-to-doc.
+
+**2. `getting-started/fluent-pattern.md` is stale on `submit_requests()`**
+
+The doc calls the parameter `_result_type`; the current source has renamed it to `result_type` and made it positional, with `executor` now keyword-only and undocumented entirely:
+```python
+def submit_requests(self, result_type: type[T] | None = None, *, executor: Executor | None = None) -&gt; ...
+```
+This one&#x27;s structural, not just stale text: `wrapper.py` isn&#x27;t in `doc_mapping.yml` at all — docs-drift only watches `operations.py` and `cmstypes.py`. Any future change to `submit_requests()`, `then()`, or the context manager will silently go undetected too.
+
+**3. `logging/index.md` makes a factually wrong claim**
+
+It says *&quot;Pass a `debug` dict to `CascadeWrapperBase`. All keys are required.&quot;* The actual `OperationLogger` reads every key with `.get()` and a fallback default (`self._config.get(&quot;log_dir&quot;, &quot;./logs&quot;)`, etc.) — keys are optional. This could actively mislead someone into over-specifying config that isn&#x27;t needed.
+
+**4. `maintenance/index.md` describes a workflow that doesn&#x27;t exist**
+
+It documents a *different, broader* planned workflow — one that watches for new Cascade CMS API **versions**, regenerates a `.skill/` snapshot, and lives at `auto-update.yml` — none of which matches what `docs-drift.yml` actually does (internal signature drift → Gemini draft → PR). It still says &quot;Status: Not yet implemented,&quot; even though `docs-drift.yml` is live. This is the page I&#x27;d flagged to update with the AST-vs-logic rationale — that never got written back.
+
+## Confirmed accurate
+`advanced/concurrency-caching.md` checks out exactly — `MAX_REQUESTS = 50`, the semaphore pattern, and the `ProcessPoolExecutor` tuning guidance all match current `driver.py`. The `create()` and `performWorkflowTransition()` code examples in the operations reference also construct their payloads correctly against current `cmstypes.py` fields.
+
+## One more thing I found
+Your run output&#x27;s `SyntaxWarning: invalid escape sequence &#x27;\`&#x27;` is a real bug in `docs-drift.yml` itself — I wrote `\`{item[&#x27;method&#x27;]}\`` inside a regular (non-raw) Python string in the Gemini prompt. Harmless today (it&#x27;s just a warning), but worth cleaning up.
+
+---
+
+Given this, the honest framing is: **docs-drift.yml works correctly for what it&#x27;s scoped to do — it just was scoped narrower than the wiki&#x27;s actual staleness.** Two separate problems: (a) a backlog of pre-existing drift it&#x27;ll never retroactively catch, (b) `wrapper.py` isn&#x27;t watched at all.
+
+How do you want to prioritize?
+```
+This block is not supported on your current device yet.
+```</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Q: Which should we tackle first?
+A: Note in memory of this project. I&#x27;ll open a new conversation to tackle the bugs. Keeping this conversation free of clutter.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">```
+This block is not supported on your current device yet.
+```
+
+Saved. Full audit findings are in memory — root causes, which pages are stale vs. accurate, the escape-sequence bug, and the deferred next steps. Whenever you open that new conversation to tackle it, I&#x27;ll have all of this available.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">Okay, should the `doc mapping.yml` be living in the repo or the GItHub Pages?</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">I&#x27;d keep it in `py-cascade-cms` (where it already lives) — but here&#x27;s the actual tradeoff, since it&#x27;s a legitimate either-way decision:
+
+**Argument for staying in `py-cascade-cms` (current setup):**
+The mapping needs updating whenever a *new operation* is added to `operations.py` — that&#x27;s the far more common change than a full wiki restructuring. Keeping the mapping in the same repo means &quot;add a method, add its mapping entry&quot; happens in **one PR, one review** — no cross-repo sync to remember. If it lived in the docs repo, adding a new library method would silently have no mapping entry until someone separately remembers to go update the *other* repo — a more likely failure mode than the reverse.
+
+It&#x27;s also just conventional: the workflow that defines the trigger (`workflow_run` off `py-cascade-cms`&#x27;s CI) and consumes the mapping lives there — keeping a pipeline&#x27;s config next to the pipeline itself.
+
+**Argument for moving it to `Sharkdroid.github.io`:**
+The mapping is really &quot;which doc page/heading does this map to&quot; — that&#x27;s arguably docs-site metadata (similar to a nav config or redirect map), which normally lives with the content it describes. If you ever restructure the wiki (split `all-operations.md` into per-method pages, rename headings), you&#x27;d be editing the mapping in the *same* repo as the pages you&#x27;re touching, reviewed by the same context.
+
+**My take:** stay with `py-cascade-cms`, because operation additions (library-side) will happen far more often than wiki restructuring (docs-side), and the failure mode of &quot;forgot to update the other repo&quot; is worse when it silently drops new methods from doc coverage than when a rare restructuring requires an extra cross-repo touch.
+
+Does that match how often you expect to restructure the wiki vs. add operations? If wiki restructuring turns out to be frequent, the calculus flips.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith</div><div class="body"><div class="part">The follow is the order of likelihood of things getting changed:
+
+1. cmstypes.py
+2. driver.py
+3. wrapper.py
+4. operations.py
+
+The operations is least likely to change. However, there might be something that change elsewhere making some rewiring necessary.
+On the off chance that something does get changed logic or renaming I want the docs to describe the reflected state of the current library.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Claude</div><div class="body"><div class="part">Good correction to factor in — and it actually strengthens the case for keeping it in `py-cascade-cms`, just for a different reason than I gave before.
+
+Here&#x27;s the reasoning with your ranking applied:
+
+**What actually triggers an edit to `doc_mapping.yml`?** Not every source change does. cmstypes.py churns the most, but that churn is mostly *field-level* (a payload model gains/loses/retypes a field) — which the AST diff catches automatically without anyone touching the mapping file. The mapping only needs a hand-edit when:
+
+1. A payload model gets **renamed or swapped** on a method (e.g. `workflowTransitionInformation` → something else) — cmstypes.py-driven, but still a py-cascade-cms-side event
+2. An operation method is **added, removed, or renamed** — operations.py-driven (rare, per your ranking)
+3. Eventually, if you extend watching to `driver.py`/`wrapper.py` (the gap from the audit) — those entities would need mapping entries too, and driver.py/wrapper.py are #2 and #3 most likely to change
+
+Every one of those triggers originates from something changing *inside* `py-cascade-cms`. None of them are wiki-restructuring events. So even with cmstypes.py as your most volatile file, the mapping&#x27;s actual edit frequency is still library-side, not docs-side.
+
+**The part that matters most for your stated goal** — &quot;docs should reflect current library state, even on renames&quot; — is really an argument for **co-location, not separation**: if a rename happens in `driver.py` or `wrapper.py`, whoever makes that commit should update the mapping *in the same PR, same repo*. If the mapping lived in `Sharkdroid.github.io` instead, a rename in the library would require a second, easy-to-forget commit in a different repo just to keep detection wired correctly — which is exactly the kind of silent gap that caused the staleness you just found.
+
+So: **keep `doc_mapping.yml` in `py-cascade-cms`.** It&#x27;s not really a &quot;docs concern&quot; living in the wrong place — it&#x27;s a source-entity registry that happens to point *at* docs, and it should move in lockstep with the source it describes.</div></div></div></article></div></main></body></html>

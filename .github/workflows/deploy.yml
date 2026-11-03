@@ -51,6 +51,8 @@ jobs:
               cp -r "$project_dir/site/"* "combined-site/wiki/$project_name/"
             fi
           done
+          # Static AI conversation hub (plain HTML, no build step)
+          if [ -d "ai-usage" ]; then cp -r ai-usage "combined-site/ai-usage"; fi
 
       - name: Upload combined artifact
         uses: actions/upload-pages-artifact@v3

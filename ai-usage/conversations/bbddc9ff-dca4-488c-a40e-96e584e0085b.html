@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asset get method error handling</title><style>
+:root{--bg:#faf9f5;--fg:#1f1e1d;--muted:#73726c;--line:#e5e2d9;--card:#ffffff;--user:#f0eee6;--accent:#c96442;--red-bg:#fbe7c6;--red-fg:#7a4b00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}}
+:root[data-theme="dark"]{--bg:#262624;--fg:#f0eee6;--muted:#9c9a92;--line:#3a3936;--card:#30302e;--user:#3a3936;--accent:#d97757;--red-bg:#4a3a10;--red-fg:#ffd98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:920px;margin:0 auto;padding:32px 16px 72px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.banner{background:var(--red-bg);color:var(--red-fg);padding:8px 12px;border-radius:8px;font-size:14px;margin-bottom:20px}
+h1{font-size:1.5rem;font-weight:600;margin:.4rem 0 .3rem;line-height:1.3}
+h2{font-size:1.05rem;font-weight:600;margin:2rem 0 .5rem}
+.meta{color:var(--muted);font-size:14px}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.controls input,.controls select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.controls input{flex:1 1 220px;min-width:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;white-space:nowrap}
+td.num{text-align:right;white-space:nowrap}
+td.nw{white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td a{font-weight:500}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--user);color:var(--muted);white-space:nowrap}
+.tag[class*=" t-"]{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);font-weight:500}
+.t-py-cascade-cms{--c:#1d6fd1}
+.t-cascade-cms-tools{--c:#0e8a7d}
+.t-sharkdroid-github-io{--c:#8250df}
+.t-general{--c:#6b6a64}
+.t-claude-code{--c:#2f8f3a}
+.t-claude-ai{--c:#c2561f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-py-cascade-cms{--c:#6cb0ff}:root:not([data-theme="light"]) .t-cascade-cms-tools{--c:#4fd1c1}:root:not([data-theme="light"]) .t-sharkdroid-github-io{--c:#b69cff}:root:not([data-theme="light"]) .t-general{--c:#b5b3aa}:root:not([data-theme="light"]) .t-claude-code{--c:#6fd47b}:root:not([data-theme="light"]) .t-claude-ai{--c:#ff9a63}}
+:root[data-theme="dark"] .t-py-cascade-cms{--c:#6cb0ff}:root[data-theme="dark"] .t-cascade-cms-tools{--c:#4fd1c1}:root[data-theme="dark"] .t-sharkdroid-github-io{--c:#b69cff}:root[data-theme="dark"] .t-general{--c:#b5b3aa}:root[data-theme="dark"] .t-claude-code{--c:#6fd47b}:root[data-theme="dark"] .t-claude-ai{--c:#ff9a63}
+.convo{max-width:768px;margin:0 auto}
+.msg{margin:22px 0;display:flex}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.stack{display:flex;flex-direction:column;min-width:0;max-width:88%}
+.msg.user .stack{align-items:flex-end}
+.msg.assistant .stack{align-items:flex-start;max-width:94%}
+.name{font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin:0 8px 4px}
+.msg .body{white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;min-width:0;border-radius:20px;padding:10px 18px}
+.msg.user .body{background:var(--user)}
+.msg.assistant .body{background:var(--card);border:1px solid var(--line)}
+.part{white-space:pre-wrap}
+.note{border-left:3px solid var(--line);padding-left:10px;color:var(--muted)}
+.note summary{font-size:13px;cursor:pointer}
+.note .part{margin-top:6px;font-size:14px}
+.div{border:none;border-top:1px solid var(--line);margin:10px -4px}
+.red{background:var(--red-bg);color:var(--red-fg);padding:0 4px;border-radius:4px;font-size:14px}
+.convo-head{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+.rule{border:0;border-top:1px solid var(--line);margin:16px 0}
+.tsw{display:inline-block;vertical-align:bottom;overflow:hidden;white-space:nowrap;max-width:0;opacity:0;transform:translateX(-8px);transition:max-width .28s ease,opacity .22s ease,transform .28s ease}
+.msg:hover .tsw{max-width:20em;opacity:1;transform:translateX(0)}
+@media (hover:none){.tsw{max-width:20em;opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tsw{transition:none}}
+.ts{font-weight:400;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.edit{font-weight:400;letter-spacing:0;text-transform:none;font-style:italic}
+.name.cn{font-size:13px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+.sep{margin:0 2px}
+.step{margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.step>summary{cursor:pointer;padding:6px 10px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;color:var(--muted)}
+.step .tn{font-weight:600;color:var(--fg)}
+.step .ts{font-family:ui-monospace,Consolas,monospace;overflow-wrap:anywhere;min-width:0;font-size:12px}
+.step .td{margin-left:auto;font-size:12px}
+.step .err{color:#d9435e;font-size:12px;font-weight:600}
+.step pre.si{margin:0;padding:8px 10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,Consolas,monospace}
+.gitchip{background:color-mix(in srgb,#e8590c 16%,transparent);color:#c2410c;border-radius:999px;padding:0 7px;font-size:11px;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gitchip{color:#ff9a5c}}
+.mode{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.6;color:var(--mc);background:color-mix(in srgb,var(--mc) 16%,transparent)}
+.m-plan{--mc:#3f8f84}.m-acceptEdits{--mc:#8b6ee8}.m-auto{--mc:#b7860b}.m-default{--mc:var(--muted)}.m-bypassPermissions{--mc:#d9435e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-plan{--mc:#5fb8ab}:root:not([data-theme="light"]) .m-acceptEdits{--mc:#b69cff}:root:not([data-theme="light"]) .m-auto{--mc:#f0bd45}:root:not([data-theme="light"]) .m-bypassPermissions{--mc:#ff7a90}}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
+.metabar .item{min-width:0}
+.metabar .item b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted);margin-bottom:2px}
+.metabar .item span{color:var(--fg);overflow-wrap:anywhere}
+.sum{margin-top:12px;font-size:14px}
+.sum summary{cursor:pointer;color:var(--muted);font-size:13px}
+.sum .part{margin-top:8px}
+@media (max-width:640px){th:nth-child(4),td:nth-child(4){display:none}.stack{max-width:96%}}
+</style></head>
+<body><main><div class="convo"><p><a href="../index.html">&larr; Back to hub</a></p>
+
+<h1>Asset get method error handling</h1>
+<p class="meta">2026-09-02 &middot; py-cascade-cms &middot; claude-code &middot; 25 messages</p>
+<hr class="rule"><div class="metabar"><div class="item"><b>Source</b><span><span class="tag">claude-code</span></span></div><div class="item"><b>Active time</b><span>9m</span></div><div class="item"><b>Date</b><span>2026-09-02</span></div><div class="item"><b>Tokens</b><span>In 2.5K · Out 13.6K · Cache read 1.7M · Cache write 44.8K</span></div></div><hr class="rule">
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-02 04:30 UTC</span></span></div><div class="body"><div class="part">Add a functionality to `Asset` get method so that it throws an error if the get value doesn&#x27;t exist. Apply this to all `get` methods the `get_data_structure` and `get_page_configuration`.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Haiku 4.5 <span class="sep">&middot;</span> <span class="mode m-default">Default</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-02 04:30 UTC</span></span></div><div class="body"><div class="part">I&#x27;ll help you add error handling to the `Asset` get method and apply it to related methods. Let me start by examining the current code structure.</div><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Looking at the code, I can see the `Asset.get` method and the two methods that need updating. Let me examine the current implementation and then add error-throwing functionality.</div><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">I&#x27;ll modify the `Asset.get` method to add error-throwing functionality and update the related methods. I&#x27;ll add a `required` parameter to the `get` method that throws a `KeyError` when a key is missing.</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">3m 48s</span><span class="err">failed</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-02 04:34 UTC</span></span></div><div class="body"><div class="part">I want it to be default behavior not a configuration</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Haiku 4.5 <span class="sep">&middot;</span> <span class="mode m-default">Default</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-02 04:34 UTC</span></span></div><div class="body"><div class="part">Got it. Let me check where `Asset.get()` is being called throughout the codebase so I can update all usages appropriately.</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -rn &quot;\.get(&quot; /mnt/D/py-cascade-cms/src/cascade_cms/ --include=&quot;*.py&quot; | grep -E &quot;(asset|self)\.get\(&quot; | he...</span><span class="td">&lt;1s</span></summary><pre class="si">grep -rn &quot;\.get(&quot; /mnt/D/py-cascade-cms/src/cascade_cms/ --include=&quot;*.py&quot; | grep -E &quot;(asset|self)\.get\(&quot; | head -20</pre></details><hr class="div"><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><div class="part">Now I&#x27;ll modify the `Asset.get()` method to throw an error by default, and update all the related methods. I&#x27;ll need to handle the cases where fields might legitimately be missing by using direct dict access where appropriate.</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">8.7s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Now I need to add the `_MISSING` sentinel at the top of the file:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">12s</span><span class="err">failed</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-02 04:35 UTC</span></span></div><div class="body"><div class="part">Just make it raise an error no need for type hinting</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Haiku 4.5 <span class="sep">&middot;</span> <span class="mode m-default">Default</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-02 04:35 UTC</span></span></div><div class="body"><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">18s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Now I need to update the usages. Let me start with `identifier_from_asset`:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">8.3s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Now let me update the `get_data_structure` method to throw errors for missing keys:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">8.2s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Now let me update the operations.py file to handle the new error-throwing behavior:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/operations.py</span><span class="td">4.6s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/operations.py</pre></details><hr class="div"><div class="part">Let me verify the changes work correctly by running the tests:</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">python -m pytest tests/ -xvs 2&gt;&amp;1 | head -100</span><span class="td">2.8s</span></summary><pre class="si">python -m pytest tests/ -xvs 2&gt;&amp;1 | head -100</pre></details><hr class="div"><div class="part">I see the issue - some fields are optional. Let me fix `identifier_from_asset` to use direct dict access for optional fields:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">3.1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">python -m pytest tests/ -xvs 2&gt;&amp;1 | tail -50</span><span class="td">2.0s</span></summary><pre class="si">python -m pytest tests/ -xvs 2&gt;&amp;1 | tail -50</pre></details><hr class="div"><div class="part">Let me check the test to understand the expected behavior:</div><details class="step"><summary><span class="tn">Read</span><span class="ts">py-cascade-cms/tests/test_cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_cmstypes.py</pre></details><hr class="div"><div class="part">I need to update the test to expect KeyError instead of TypeError since we&#x27;re now throwing KeyError for missing required fields:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">py-cascade-cms/tests/test_cmstypes.py</span><span class="td">7.9s</span></summary><pre class="si">/mnt/D/py-cascade-cms/tests/test_cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">python -m pytest tests/ -x 2&gt;&amp;1 | tail -30</span><span class="td">6.5s</span></summary><pre class="si">python -m pytest tests/ -x 2&gt;&amp;1 | tail -30</pre></details><hr class="div"><div class="part">Perfect! All tests pass. Let me verify the changes are complete by checking the git diff:</div><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git diff src/cascade_cms/cmstypes.py | head -100</span><span class="td">&lt;1s</span></summary><pre class="si">git diff src/cascade_cms/cmstypes.py | head -100</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git diff src/cascade_cms/operations.py</span><span class="td">&lt;1s</span></summary><pre class="si">git diff src/cascade_cms/operations.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git diff tests/test_cmstypes.py | head -50</span><span class="td">&lt;1s</span></summary><pre class="si">git diff tests/test_cmstypes.py | head -50</pre></details><hr class="div"><div class="part">Perfect! All changes are complete and tests pass. Here&#x27;s a summary of what was implemented:
+
+## Changes Made
+
+1. **Modified `Asset.get()` method** to throw `KeyError` by default when a field is missing, instead of returning `None`:
+   ```python
+   def get(self, key: str):
+       &quot;&quot;&quot;Access _data fields, raising KeyError if missing.&quot;&quot;&quot;
+       if key not in self._data:
+           raise KeyError(f&quot;Field &#x27;{key}&#x27; not found&quot;)
+       return self._data[key]
+   ```
+
+2. **Updated `identifier_from_asset()` function** to handle both required and optional fields:
+   - Uses `asset.get()` for required fields (`path`, `id`) - now throws KeyError if missing
+   - Uses `asset._data.get()` for optional fields (`siteName`, `siteId`) - can still be None
+
+3. **Updated `get_data_structure()` method** to throw errors for missing required keys:
+   - Changed `node.get(&quot;identifier&quot;)` → `node[&quot;identifier&quot;]`
+   - Changed `group_node.get(&quot;structuredDataNodes&quot;, [])` → `group_node[&quot;structuredDataNodes&quot;]`
+
+4. **Updated `operations.py`** to handle the new KeyError exceptions:
+   - Changed from checking `if asset.get(&quot;id&quot;) is None` to catching `KeyError`
+
+5. **Updated test** to expect `KeyError` instead of `TypeError` for missing required fields
+
+All 87 tests pass successfully. The implementation now enforces required fields with proper error handling.</div></div></div></article>
+<article class="msg user"><div class="stack"><div class="name">Keith<span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-02 04:38 UTC</span></span></div><div class="body"><div class="part">Can you can sure the same guard is applied to the `get_data_structure` and `get_page_configuration`.</div></div></div></article>
+<article class="msg assistant"><div class="stack"><div class="name cn">Haiku 4.5 <span class="sep">&middot;</span> <span class="mode m-default">Default</span> <span class="sep">&middot;</span> <span class="mode m-acceptEdits">Accept edits</span><span class="tsw"><span class="ts">&nbsp;&middot; 2026-09-02 04:38 UTC</span></span></div><div class="body"><div class="part">Let me check both methods to ensure they have consistent error-throwing behavior for required fields:</div><details class="step"><summary><span class="tn">Read</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Let me check if there are tests for these methods to understand the expected behavior:</div><details class="step"><summary><span class="tn">Bash</span><span class="ts">grep -n &quot;get_data_structure\|get_page_configuration&quot; /mnt/D/py-cascade-cms/tests/*.py</span><span class="td">&lt;1s</span></summary><pre class="si">grep -n &quot;get_data_structure\|get_page_configuration&quot; /mnt/D/py-cascade-cms/tests/*.py</pre></details><hr class="div"><div class="part">Let me add explicit error handling to both methods to ensure they handle missing required fields consistently. I&#x27;ll wrap the key operations in try-except blocks:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">51s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><div class="part">Now let me update `get_page_configuration` to add consistent error handling:</div><details class="step"><summary><span class="tn">Edit</span><span class="ts">src/cascade_cms/cmstypes.py</span><span class="td">&lt;1s</span></summary><pre class="si">/mnt/D/py-cascade-cms/src/cascade_cms/cmstypes.py</pre></details><hr class="div"><details class="step"><summary><span class="tn">Bash</span><span class="ts">python -m pytest tests/ -x 2&gt;&amp;1 | tail -30</span><span class="td">7.7s</span></summary><pre class="si">python -m pytest tests/ -x 2&gt;&amp;1 | tail -30</pre></details><hr class="div"><div class="part">Perfect! All tests pass. Let me verify the changes are consistent:</div><details class="step"><summary><span class="tn">Bash</span><span class="gitchip">git</span><span class="ts">git diff src/cascade_cms/cmstypes.py | grep -A5 -B5 &quot;KeyError\|structuredDataNodes\|pageRegions&quot;</span><span class="td">&lt;1s</span></summary><pre class="si">git diff src/cascade_cms/cmstypes.py | grep -A5 -B5 &quot;KeyError\|structuredDataNodes\|pageRegions&quot;</pre></details><hr class="div"><div class="part">Excellent! I&#x27;ve ensured consistent error-throwing guards are applied to all three methods. Here&#x27;s the summary:
+
+## Updated Error-Throwing Guards
+
+1. **`Asset.get()` method**: Throws `KeyError` if a required field is missing
+
+2. **`get_data_structure()` method**: 
+   - Throws `KeyError` for missing required `identifier` field in nodes
+   - Throws `KeyError` for missing required `structuredDataNodes` field in group nodes
+   - Wrapped in try-except with descriptive error messages
+
+3. **`get_page_configuration()` method**:
+   - Throws `KeyError` for missing required `name` field in PageConfiguration models
+   - Throws `KeyError` for missing required `pageRegions` field when searching for regions
+   - Wrapped in try-except with descriptive error messages
+
+All 87 tests pass successfully. The methods now have consistent, explicit error handling that throws `KeyError` when required fields are missing, making it clear what data is expected and failing fast when it&#x27;s not available.</div></div></div></article></div></main></body></html>
