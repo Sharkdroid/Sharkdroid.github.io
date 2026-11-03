@@ -13,26 +13,29 @@ skeleton as the main patterns, just applied to two unrelated features.
 ## Messages: list, mark, delete
 
 ```python
-from cascade_cms.wrapper import Cascade
-from cascade_cms.cmstypes import CascadeSuccess, ListElements
+from cascade_cms import CascadeCMS, CascadeError
 
-with Cascade(env) as cascade:
-    # Phase 1: List inbox messages
-    listed = cascade.operations.listMessages().submit_requests(ListElements)
+# 1. List inbox messages
+cascade.operations.listMessages()
+results = cascade.submit_requests()
+messages_result = results[0]
 
-    # Pick a message from the list elements
-    message = listed.success[0].flat[0]
-
-    # Phase 2: Mark as read and then delete
-    results = (
-        cascade.operations
-        .markMessage(message)
-        .deleteMessage(message)
-        .submit_requests(CascadeSuccess)
-    )
-
-for failure in results.failed:
-    print(f"[{failure.category}] {failure.step_name}: {failure.message}")
+if isinstance(messages_result, CascadeError):
+    print(f"Failed to list messages: {messages_result.message}")
+else:
+    # flat returns a list of Message objects
+    inbox = messages_result.flat
+    if inbox:
+        msg = inbox[0]
+        
+        # 2. Mark the message as read/unread and then delete it
+        cascade.operations.markMessage(msg)
+        cascade.operations.deleteMessage(msg)
+        action_results = cascade.submit_requests()
+        
+        for res in action_results:
+            if isinstance(res, CascadeError):
+                print(f"Operation failed: {res.message}")
 ```
 
 !!! note
@@ -44,22 +47,22 @@ for failure in results.failed:
 ## Preferences: read, edit
 
 ```python
-from cascade_cms.wrapper import Cascade
-from cascade_cms.cmstypes import CascadeSuccess, SimplePayload, preference
+from cascade_cms import CascadeCMS, CascadeError, preference
 
-with Cascade(env) as cascade:
-    # Read current preferences
-    prefs = cascade.operations.readPreferences().submit_requests(SimplePayload)
+# 1. Read current preferences
+cascade.operations.readPreferences()
+results = cascade.submit_requests()
+pref_result = results[0]
 
-    # Update a user preference
-    results = (
-        cascade.operations
-        .editPreference(preference(name="pref_name", value="new_value"))
-        .submit_requests(CascadeSuccess)
-    )
-
-for failure in results.failed:
-    print(f"[{failure.category}] {failure.step_name}: {failure.message}")
+if isinstance(pref_result, CascadeError):
+    print(f"Failed to read preferences: {pref_result.message}")
+else:
+    # 2. Update a preference
+    cascade.operations.editPreference(preference(name="example_pref", value="new_value"))
+    edit_results = cascade.submit_requests()
+    
+    if isinstance(edit_results[0], CascadeError):
+        print(f"Failed to update preference: {edit_results[0].message}")
 ```
 
 !!! note
@@ -71,4 +74,4 @@ for failure in results.failed:
 See [Core Patterns](main-patterns.md) for `read`, `delete`, and `search` — the
 primary asset-management workflow and response-shape conventions.
 
-<!-- synthesized-for: 3.9.1 -->
+<!-- synthesized-for: 3.9.2 -->

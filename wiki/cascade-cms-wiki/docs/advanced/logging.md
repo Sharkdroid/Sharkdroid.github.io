@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- 8 unfilled placeholder(s) remain: ['[PLACEHOLDER: Two output modes exist for the cascade_cms library: normal mode fo...', '[PLACEHOLDER: Normal mode logs lifecycle markers ([INIT], [RUNNING], [DONE], [EX...', '[PLACEHOLDER: [INIT]: Connecting to localhost [LOG]: logs/localhost_2026-04-01T1...', '[PLACEHOLDER: wrapper = CascadeWrapperBase("localhost", debug_config={"log_dir":...', '[PLACEHOLDER: Recognized debug_config keys control the logging behavior and outp...', '[PLACEHOLDER: The debug logfile uses the filename format {SERVER}_debug_{timesta...', '[PLACEHOLDER: >>>> START REQUEST <<<< [GET] http://localhost:9120/api/v1/read/pa...', '[PLACEHOLDER: Errors in debug mode are rendered using the v marker and !ERROR: b...']
+-->
+
 # Logging & Debugging
 
 Operation logger owns all console, logfile, and (verbose mode) request/response file output for the cascade_cms library. Two output modes exist: normal mode for everyday use and debug mode for diagnosing failures, controlled solely by whether `debug_config` is `None`. Both produce logfiles; debug mode adds a verbose nested call-chain log alongside a quieter console output.
