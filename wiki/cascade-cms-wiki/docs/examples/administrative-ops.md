@@ -13,26 +13,25 @@ skeleton as the main patterns, just applied to two unrelated features.
 ## Messages: list, mark, delete
 
 ```python
-from cascade_cms.wrapper import Cascade
-from cascade_cms.cmstypes import CascadeSuccess, ListElements
+from cascade_cms import CascadeCMS
+from cascade_cms.cmstypes import CascadeError
 
-with Cascade(env) as cascade:
-    # Phase 1: List inbox messages
-    listed = cascade.operations.listMessages().submit_requests(ListElements)
+cms = CascadeCMS(url="...", username="...", password="...")
 
-    # Pick a message from the list elements
-    message = listed.success[0].flat[0]
+# Phase 1: List inbox messages
+cms.operations.listMessages()
+messages_result = cms.submit_requests()
 
-    # Phase 2: Mark as read and then delete
-    results = (
-        cascade.operations
-        .markMessage(message)
-        .deleteMessage(message)
-        .submit_requests(CascadeSuccess)
-    )
+if isinstance(messages_result, CascadeError):
+    raise RuntimeError(messages_result.message)
 
-for failure in results.failed:
-    print(f"[{failure.category}] {failure.step_name}: {failure.message}")
+# Assume we found a message to process
+message = messages_result.flat[0]
+
+# Phase 2: Mark read and delete the message
+cms.operations.markMessage(message)
+cms.operations.deleteMessage(message)
+results = cms.submit_requests()
 ```
 
 !!! note
@@ -44,22 +43,24 @@ for failure in results.failed:
 ## Preferences: read, edit
 
 ```python
-from cascade_cms.wrapper import Cascade
-from cascade_cms.cmstypes import CascadeSuccess, SimplePayload, preference
+from cascade_cms import CascadeCMS
+from cascade_cms.cmstypes import CascadeError, preference
 
-with Cascade(env) as cascade:
-    # Read current preferences
-    prefs = cascade.operations.readPreferences().submit_requests(SimplePayload)
+cms = CascadeCMS(url="...", username="...", password="...")
 
-    # Update a user preference
-    results = (
-        cascade.operations
-        .editPreference(preference(name="pref_name", value="new_value"))
-        .submit_requests(CascadeSuccess)
-    )
+# Read current preferences
+cms.operations.readPreferences()
+prefs_result = cms.submit_requests()
 
-for failure in results.failed:
-    print(f"[{failure.category}] {failure.step_name}: {failure.message}")
+if isinstance(prefs_result, CascadeError):
+    raise RuntimeError(prefs_result.message)
+
+# Update a user preference
+cms.operations.editPreference(preference(name="my-pref", value="new-value"))
+edit_result = cms.submit_requests()
+
+if isinstance(edit_result, CascadeError):
+    raise RuntimeError(edit_result.message)
 ```
 
 !!! note
@@ -71,4 +72,4 @@ for failure in results.failed:
 See [Core Patterns](main-patterns.md) for `read`, `delete`, and `search` — the
 primary asset-management workflow and response-shape conventions.
 
-<!-- synthesized-for: 3.9.1 -->
+<!-- synthesized-for: 3.9.2 -->
