@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- Potentially invented field names: ["'get' (near: ...else:\n        \n        print(result.get())\n        pri...)"]
+-->
+
 # Main Patterns
 
 Common usage patterns for `cascade-cms-rest` 3.9.1.
