@@ -1,3 +1,15 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- Model call failed: litellm.UnsupportedParamsError: gemini does not support parameters: ['temperature'], for model=gemini-3.5-flash-lite. To drop these, set `litellm.drop_params=True` or for proxy:
+
+`litellm_settings:
+ drop_params: true`
+. 
+ If you want to use these params dynamically send allowed_openai_params=['temperature'] in your request.
+-->
+
 # CPU-Intensive Tasks
 
 By default `.then()` callbacks run on the async event loop, which is fine for I/O-bound work (string manipulation, dict transforms) but blocks the loop for CPU-heavy work. `ProcessPoolExecutor` offloads callbacks to separate worker processes to keep the event loop free.
