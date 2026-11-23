@@ -1,48 +1,63 @@
+<!-- purpose: Explain the library's mental model to someone who has finished Getting Started: one session object, an operations builder, operation chains that run only when submitted, and results returned as values. Conceptual page; each section gets a short explanation plus one small, runnable example. -->
+<!-- focus: Cascade, EnvironmentVars, Operations, OperationChain, ChainGroup, ChainResults, ChainFailure, submit_requests, then, edit, script_log, to_identifier, to_identifiers -->
 # Core Concepts
 
-[PLACEHOLDER: 1–2 sentence intro that bridges from Getting Started — what this page adds on top of the quick-start guide. Should reference the library's "mental model": wrapper → operations → chains → submit.]
+[PLACEHOLDER: 1–2 sentence intro bridging from Getting Started: this page explains the pieces every script is built from and how they fit together (session → operations → chains → submit → results).]
 
 ---
 
-## Basic Operation Calls
+## The session entry point
 
-[PLACEHOLDER: Short paragraph explaining how every script follows the same skeleton — open the wrapper as a context manager, queue operations on `cascade.operations`, chain callbacks with `.then()`, then call `submit_requests()` once to execute all chains concurrently. Keep it to 3–4 sentences.]
+[PLACEHOLDER: Explain the class every script opens as a context manager, what it sets up (logger, REST driver, operations builder), and what happens when the `with` block exits, including the exit-on-failure behaviour and how to turn it off for long-lived processes. If the code facts list an older alias for this class, mention it in one sentence and use the current name everywhere else. Follow with a minimal code block that builds the environment dict and opens a session.]
 
-### Example
+### Constructor
 
-[PLACEHOLDER: Code block showing a minimal `read` call — `CascadeWrapperBase` context manager, `cascade.operations.read(identifier)`, `cascade.submit_requests()`, and a `isinstance(result, CascadeError)` guard. Source from the `read` docstring example in operations.md. Include inline `# comments` explaining each line.]
-
-### Expected Output
-
-[PLACEHOLDER: Code block or annotated console output showing what the `read` result looks like — the `Asset` wrapper with `.displayName`, `.metadata`, etc. referenced. Use the example output from the `read` docstring if present, otherwise describe the shape concisely.]
+[PLACEHOLDER: The constructor signature exactly as the code facts give it, in a code block, followed by a table of the required environment keys (key and description) and one sentence per optional parameter.]
 
 ---
 
-## Payload Models
+## Operations
 
-[PLACEHOLDER: 2–3 sentence explanation of what payload models are and why they exist — typed objects (e.g. `SearchInformation`) that pair with specific operations to ensure the API endpoint receives the expected fields. Explain the type-safety/clarity benefit without being verbose.]
-
-### Example: `SearchInformation` paired with `search`
-
-[PLACEHOLDER: Code block showing `SearchInformation` constructed with its fields (`siteName`, `searchTerms`, `searchFields`, `searchTypes`) and passed to `cascade.operations.search(payload)`. Source from the `SearchInformation` and `search` docstrings in cmstypes.md and operations.md. Include a brief comment on what each field does.]
-
-[PLACEHOLDER: 1–2 sentence explanation below the code block — what the model enforces, why passing a raw dict would not work, and that other operations follow the same pattern (`deleteParameters`, `auditParameters`, etc.).]
+[PLACEHOLDER: Explain the operations builder: every call on it starts a new chain and returns it instead of a result. Follow with a table of the available operations (method and a one-line description) taken from the builder class in the code facts. List them all, grouped as asset operations, workflow and access operations, and messages/preferences, and do not guess signatures in the table. End with a link to [the API reference](../operations/operations.md) for full signatures.]
 
 ---
 
-## CPU-Intensive Operations
+## Operation chains
 
-For operations involving heavy computation in `.then()` callbacks — image processing, data transformation, bulk string manipulation — offload work to a `ProcessPoolExecutor` rather than running it on the async event loop.
+[PLACEHOLDER: Explain that a chain is an ordered list of steps (operations and callbacks), that each step receives the previous step's result, that nothing runs until the batch is submitted, and that a callback returning None passes the previous result through. Show one code block with a read, a transforming callback and a write-back, submitted once. Build identifiers with the identifier types from the code facts, not bare strings.]
 
-[PLACEHOLDER: 4–6 line code snippet showing the `ProcessPoolExecutor` context manager wrapping a `CascadeWrapperBase` block, with a module-level callback function passed to `.then()`. Source from the `CascadeWrapperBase` or `then` docstring examples if present.]
+---
 
-!!! note "Module-level functions only"
-    Callbacks passed to `ProcessPoolExecutor` must be defined at module level — lambdas and nested functions are not picklable and will raise at runtime.
+## Editing with callbacks
 
-See [Advanced: CPU-Intensive Tasks](../advanced/cpu-intensive.md) for full configuration details, performance trade-offs, and `ThreadPoolExecutor` comparison.
+[PLACEHOLDER: Explain the forms the edit step accepts (from its signature in the code facts), why the callable form is the usual one, and how the edited asset's identity is determined. Show a short code block with a module-level callback that changes one field and returns the asset.]
+
+---
+
+## Batch execution
+
+[PLACEHOLDER: Explain what happens when an identifier-taking operation receives a list: one independent chain per identifier, with any further steps applied to every chain. Explain that chains run concurrently while steps inside a chain stay sequential, and that one chain's failure does not stop the others. Short code block.]
+
+---
+
+## Result handling
+
+[PLACEHOLDER: Explain what submitting returns: one result per chain in creation order, plus the success and failed views, and what a failure record tells you. State, as the code facts' docstrings do, whether callers need isinstance checks or try/except. Short code block iterating successes and failures, then link to [Result Handling](../getting-started/result-handling.md).]
+
+---
+
+## Script logging
+
+[PLACEHOLDER: Explain the helper for writing your own notes into the run's log: where it can be called from, what happens outside a session, and that secrets are redacted. Show a short code block, importing it from the module the code facts list.]
+
+---
+
+## Identifiers
+
+[PLACEHOLDER: Explain the two ways to address an asset (by id and type, or by site and path) and the helpers that turn raw identifier dicts from API responses into identifier objects. Short code block, importing every name from the module the code facts list for it.]
 
 ---
 
 ## Next Steps
 
-Ready to go deeper? The [Advanced](../advanced/index.md) section covers configuration topics for power users: debug logging and CPU-intensive workload patterns.
+[PLACEHOLDER: 1–2 sentences pointing to [Examples](../examples/main-patterns.md) for task-oriented recipes and [Advanced](../advanced/index.md) for logging and CPU-heavy callbacks.]

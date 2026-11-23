@@ -1,6 +1,7 @@
+<!-- purpose: Landing page for the Advanced section. Assumes the reader has worked through Core Concepts. No code. -->
 # Advanced
 
-[PLACEHOLDER: 2–3 sentence intro for power users. This section covers configuration and performance topics that go beyond the defaults — debug logging and CPU-intensive callback patterns. Tone: assumes reader has already worked through Core Concepts.]
+[PLACEHOLDER: 2–3 sentence intro for power users: this section covers diagnosing runs with debug logging and keeping CPU-heavy callbacks off the event loop. Mention only the topics listed in the table below.]
 
 ---
 
@@ -8,5 +9,5 @@
 
 | Page | What it covers |
 |------|----------------|
-| [Logging & Debugging](logging.md) | Enabling debug mode, configuring the debug dict, reading log output, and walking through a sample logfile |
-| [CPU-Intensive Tasks](cpu-intensive.md) | When to use `ProcessPoolExecutor`, pickling constraints, and performance trade-offs vs `ThreadPoolExecutor` |
+| [Logging & Debugging](logging.md) | Normal and debug output, enabling and configuring debug mode, and reading log files |
+| [CPU-Intensive Tasks](cpu-intensive.md) | Running heavy callbacks in worker processes, pickling rules, and trade-offs against threads |

@@ -80,6 +80,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write        # dispatch deploy.yml after committing [OUTDATED] banners to main
     steps:
       - name: Checkout wiki repo
         uses: actions/checkout@v4
@@ -102,14 +103,27 @@ jobs:
       - name: Install synthesis dependencies
         run: pip install litellm PyGithub beautifulsoup4
 
+      # Code facts are extracted from the *installed* library (griffe comes
+      # with mkdocstrings[python]), so pin it to the exact version being
+      # synthesized — the footer stamp and the facts then always agree.
+      - name: Pin library to the version being documented
+        env:
+          LIBRARY_VERSION: ${{ needs.detect-drift.outputs.version }}
+        run: pip install "cascade-cms-rest==${LIBRARY_VERSION}"
+
       - name: Run synthesis
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           DOCS_SYNTHESIS_MODEL: ${{ vars.DOCS_SYNTHESIS_MODEL }}
           LIBRARY_VERSION: ${{ needs.detect-drift.outputs.version }}
+          # facts (default) | html (previous behaviour) | both
+          DOCS_GROUNDING_MODE: ${{ vars.DOCS_GROUNDING_MODE }}
+          DOCS_FACTS_TOKEN_BUDGET: ${{ vars.DOCS_FACTS_TOKEN_BUDGET }}
+          DOCS_SYNTHESIS_REPAIR_ATTEMPTS: ${{ vars.DOCS_SYNTHESIS_REPAIR_ATTEMPTS }}
+          DOCS_SYNTHESIS_MAX_TOKENS: ${{ vars.DOCS_SYNTHESIS_MAX_TOKENS }}
         run: python scripts/synthesize_docs.py
 
-      - name: Create PR
+      - name: Create PR (filled pages) / mark failed pages outdated on main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python scripts/create_pr.py
