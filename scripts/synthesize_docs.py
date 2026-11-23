@@ -2,16 +2,33 @@
 """
 Synthesize AI-generated narrative documentation.
 
-For each template skeleton in wiki-templates/, loads grounding data extracted
-from the Phase 1 built docs site (properdocs build output, run earlier in the
-same job), calls Gemini Flash-Lite to fill [PLACEHOLDER: ...] blocks,
-validates the output, appends a version footer, and writes filled files
-to a staging directory for PR creation.
+For each template skeleton in wiki-templates/, builds grounding for the
+model, calls Gemini Flash-Lite to fill [PLACEHOLDER: ...] blocks, validates
+the output, appends a version footer, and writes filled files to a staging
+directory for PR creation.
+
+Grounding (DOCS_GROUNDING_MODE):
+  facts (default)  A compact digest of source-code facts extracted from the
+                   installed library (see code_facts.py): import paths,
+                   aliases, signatures, overloads, pydantic fields + aliases,
+                   constants, call graph, raises, and the library's own
+                   current usage examples — prioritised by what the template
+                   mentions and trimmed to DOCS_FACTS_TOKEN_BUDGET.
+  html             The previous behaviour: text of the Phase 1 built
+                   mkdocstrings HTML pages (properdocs build output).
+  both             Facts digest followed by the HTML text.
+If facts extraction fails for any reason, the run falls back to html.
 
 Validation checks:
   1. No unfilled placeholders remain
   2. Markdown structure (headings) preserved
   3. No invented field names in code blocks
+  4. (facts mode) Code blocks only import names from modules that export
+     them, only call real `operations.<op>()` methods, and only pass keyword
+     arguments the target callable accepts
+
+A page that fails validation gets DOCS_SYNTHESIS_REPAIR_ATTEMPTS (default 1)
+follow-up call(s) quoting the validation errors before it is marked failed.
 """
 
 import os
@@ -22,13 +39,23 @@ import time
 import litellm
 from bs4 import BeautifulSoup
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import code_facts
+except Exception as e:  # griffe missing/broken → html grounding only
+    code_facts = None
+    _CODE_FACTS_IMPORT_ERROR = e
+
 # ============================================================================
 # Configuration
 # ============================================================================
 
 TEMPLATES_DIR = "wiki-templates"
 REF_DOCS_DIR  = "wiki/cascade-cms-wiki/site/operations"  # built HTML, not the docs/operations stubs
+REF_STUBS_DIR = "wiki/cascade-cms-wiki/docs/operations"  # `::: module` stubs → which modules to digest
 STAGING_DIR   = "/tmp/filled-docs"
+
+GROUNDING_MODES = ("facts", "html", "both")
 
 # Maps template filename → which built reference pages to use as grounding.
 # Kept here in the wiki repo — not in the library.
@@ -80,14 +107,21 @@ Rules — follow all of them exactly:
 2. Do NOT modify any text outside a [PLACEHOLDER: ...] block — copy all \
    headings, admonition blocks (!!!), tables, cross-page links, and fixed \
    code blocks character-for-character, including exact heading wording.
-3. Source ALL code examples and field names ONLY from the reference docs \
-   provided below. Do NOT invent field names, method signatures, or parameters \
-   that do not appear in the reference docs.
+3. Source ALL code examples, imports and field names ONLY from the reference \
+   material provided below. Do NOT invent field names, method signatures, or \
+   parameters that do not appear in it.
 4. Code examples must use the actual signatures and field names from the \
-   reference docs. Do not paraphrase or rename them.
+   reference material. Do not paraphrase or rename them.
 5. Do NOT leave any [PLACEHOLDER: ...] markers in the output.
 6. Return ONLY the completed markdown — no preamble, no commentary, no \
    markdown fences wrapping the output.
+7. When CODE FACTS are provided they describe the exact library version \
+   being documented and override anything you remember about older \
+   versions. Import every name from a module the facts list for it, prefer \
+   canonical names over aliases, and model examples on the facts' usage \
+   examples. If a placeholder's instructions assume an API the facts \
+   contradict (a renamed class, a moved module, a changed return type), \
+   write what the facts say.
 """
 
 # ============================================================================
@@ -139,7 +173,7 @@ def extract_reference_text(html_path: str) -> str:
     return text
 
 
-def load_grounding(template_name: str) -> str:
+def load_html_grounding(template_name: str) -> str:
     """Load grounding text for a template from the built reference HTML."""
     docs = TEMPLATE_TO_REF_DOCS.get(template_name, [])
     if not docs:
@@ -151,11 +185,54 @@ def load_grounding(template_name: str) -> str:
     return "\n\n".join(sections)
 
 
-def fill_template(template_text: str, grounding_text: str, model: str) -> str:
-    """Call Gemini to fill template placeholders. Retries once on a rate
-    limit — a single run makes 7 sequential calls with large grounding
-    payloads, which free-tier keys can plausibly exceed mid-run."""
-    if grounding_text:
+def load_facts_grounding(template_name: str, template_text: str, facts, budget: int) -> str:
+    """Token-budgeted code-facts digest for a template (see code_facts.py).
+    Templates with no reference docs (pure TOC pages) get none, as before."""
+    docs = TEMPLATE_TO_REF_DOCS.get(template_name, [])
+    if not docs:
+        return ""
+    modules = code_facts.modules_for_ref_docs(docs, REF_STUBS_DIR)
+    return code_facts.build_digest(facts, modules, template_text, budget)
+
+
+def load_grounding(template_name: str, template_text: str = "", facts=None,
+                   mode: str = "html", budget: int = 0) -> str:
+    """Grounding for one template in the requested mode."""
+    if mode == "html" or facts is None:
+        return load_html_grounding(template_name)
+    digest = load_facts_grounding(template_name, template_text, facts, budget)
+    if mode == "both" and digest:
+        return digest + "\n\n--- RENDERED REFERENCE PAGES ---\n\n" + load_html_grounding(template_name)
+    return digest
+
+
+def _completion(messages: list[dict], model: str) -> str:
+    """One model call. Retries once on a rate limit — a single run makes
+    several sequential calls, which free-tier keys can plausibly exceed."""
+    for attempt in range(2):
+        try:
+            response = litellm.completion(
+                model=model,
+                messages=messages,
+                temperature=0,
+                max_tokens=3000,
+            )
+            return response.choices[0].message.content.strip()
+        except litellm.RateLimitError:
+            if attempt == 1:
+                raise
+            print("  ! Rate limited, waiting 30s before one retry...")
+            time.sleep(30)
+
+
+def build_messages(template_text: str, grounding_text: str) -> list[dict]:
+    if grounding_text.startswith("# CODE FACTS"):
+        reference_section = (
+            "REFERENCE — CODE FACTS (source all imports, field names and "
+            "examples from here only):\n\n"
+            f"{grounding_text}"
+        )
+    elif grounding_text:
         reference_section = (
             "REFERENCE DOCS (source all field names and examples from here only):\n\n"
             f"{grounding_text}"
@@ -178,23 +255,32 @@ def fill_template(template_text: str, grounding_text: str, model: str) -> str:
         "TEMPLATE (fill every [PLACEHOLDER: ...] block, touch nothing else):\n\n"
         f"{template_text}"
     )
-    for attempt in range(2):
-        try:
-            response = litellm.completion(
-                model=model,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user",   "content": user_prompt},
-                ],
-                temperature=0,
-                max_tokens=3000,
-            )
-            return response.choices[0].message.content.strip()
-        except litellm.RateLimitError:
-            if attempt == 1:
-                raise
-            print("  ! Rate limited, waiting 30s before one retry...")
-            time.sleep(30)
+    return [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user",   "content": user_prompt},
+    ]
+
+
+def fill_template(template_text: str, grounding_text: str, model: str) -> str:
+    """Call Gemini to fill template placeholders."""
+    return _completion(build_messages(template_text, grounding_text), model)
+
+
+def repair_template(template_text: str, grounding_text: str, model: str,
+                    previous: str, errors: list[str]) -> str:
+    """Follow-up call: show the model its own output and the validation
+    errors, ask for a corrected full page. Only paid for on failure."""
+    messages = build_messages(template_text, grounding_text) + [
+        {"role": "assistant", "content": previous},
+        {"role": "user", "content": (
+            "Your output failed automated validation:\n"
+            + "\n".join(f"- {e}" for e in errors)
+            + "\n\nReturn the complete corrected markdown for the whole template, "
+            "following every rule above. Change only what is needed to fix these "
+            "errors."
+        )},
+    ]
+    return _completion(messages, model)
 
 
 def append_version_footer(content: str, version: str) -> str:
@@ -202,9 +288,10 @@ def append_version_footer(content: str, version: str) -> str:
     return content.rstrip() + f"\n\n<!-- synthesized-for: {version} -->\n"
 
 
-def validate_output(filled: str, template: str) -> tuple[bool, list[str]]:
-    """Validate filled template against three checks."""
+def validate_output(filled: str, template: str, facts=None) -> tuple[bool, list[str]]:
+    """Validate a filled template (checks 1-3, plus 4 when facts are given)."""
     errors = []
+    known_fields = KNOWN_FIELDS | (facts.known_names if facts is not None else set())
 
     # Check 1: No unfilled placeholders remain
     if "[PLACEHOLDER:" in filled:
@@ -256,7 +343,10 @@ def validate_output(filled: str, template: str) -> tuple[bool, list[str]]:
         code = re.sub(r'#.*$', '', code, flags=re.M)
         return code
 
-    code_blocks = re.findall(r'```(?:python)?(.*?)```', filled, re.S)
+    if code_facts is not None:
+        code_blocks = code_facts.python_code_blocks(filled)
+    else:
+        code_blocks = re.findall(r'```(?:python)?(.*?)```', filled, re.S)
     invented = {}
     for block in code_blocks:
         cleaned = strip_strings_and_comments(block)
@@ -264,12 +354,16 @@ def validate_output(filled: str, template: str) -> tuple[bool, list[str]]:
             r'(?:result|asset|cascade|response|msg|pref)\.(\w+)', cleaned
         ):
             attr = m.group(1)
-            if attr not in KNOWN_FIELDS and not attr.startswith("_") and attr not in invented:
+            if attr not in known_fields and not attr.startswith("_") and attr not in invented:
                 start = max(0, m.start() - 30)
                 invented[attr] = cleaned[start:m.end() + 15].strip()
     if invented:
         details = [f"{attr!r} (near: ...{ctx}...)" for attr, ctx in sorted(invented.items())]
         errors.append(f"Potentially invented field names: {details}")
+
+    # Check 4: imports / operations / keyword arguments exist in the real API
+    if facts is not None:
+        errors.extend(code_facts.check_code_against_facts(filled, facts))
 
     return len(errors) == 0, errors
 
@@ -285,14 +379,50 @@ def main():
     # GitHub Actions repo variable still defines the env var, just as "".
     model   = os.getenv("DOCS_SYNTHESIS_MODEL") or "gemini/gemini-3.5-flash-lite"
 
+    mode    = (os.getenv("DOCS_GROUNDING_MODE") or "facts").lower()
+    budget  = int(os.getenv("DOCS_FACTS_TOKEN_BUDGET") or 0) or (
+        code_facts.DEFAULT_TOKEN_BUDGET if code_facts else 0)
+    repairs = int(os.getenv("DOCS_SYNTHESIS_REPAIR_ATTEMPTS") or 1)
+    if mode not in GROUNDING_MODES:
+        print(f"[synthesize_docs] Unknown DOCS_GROUNDING_MODE={mode!r}, using 'facts'")
+        mode = "facts"
+
     print(f"[synthesize_docs] cascade_cms {version}")
     print(f"[synthesize_docs] Model: {model}")
+
+    # Extract source-code facts once for the whole run.
+    facts = None
+    facts_version = None
+    if mode != "html":
+        if code_facts is None:
+            print(f"[synthesize_docs] ! code_facts unavailable ({_CODE_FACTS_IMPORT_ERROR}); "
+                  f"falling back to html grounding")
+            mode = "html"
+        else:
+            try:
+                facts = code_facts.extract()
+                facts_version = facts.version
+                print(f"[synthesize_docs] Code facts: {len(facts.objects)} objects, "
+                      f"{len(facts.examples)} usage examples, from installed "
+                      f"{code_facts.DISTRIBUTION} {facts.version}")
+                if facts.version != version:
+                    print(f"[synthesize_docs] ! WARNING: installed {code_facts.DISTRIBUTION} is "
+                          f"{facts.version} but LIBRARY_VERSION is {version} — facts may not "
+                          f"match the version being stamped", file=sys.stderr)
+            except Exception as e:
+                print(f"[synthesize_docs] ! Code facts extraction failed ({e!r}); "
+                      f"falling back to html grounding", file=sys.stderr)
+                mode = "html"
+    print(f"[synthesize_docs] Grounding: {mode}"
+          + (f" (budget ~{budget} tokens/template)" if mode != "html" else ""))
     print(f"[synthesize_docs] Processing {len(TEMPLATE_TO_REF_DOCS)} templates\n")
 
     os.makedirs(STAGING_DIR, exist_ok=True)
 
     filled_files = {}
     failed_files = {}
+    grounding_tokens = {}
+    repaired = []
 
     for template_name in sorted(TEMPLATE_TO_REF_DOCS.keys()):
         print(f"[synthesize_docs] {template_name} ...")
@@ -306,13 +436,15 @@ def main():
             print(f"  ✗ Template not found")
             continue
 
-        # Load grounding from Phase 1 built reference docs
+        # Load grounding (code facts digest and/or Phase 1 built reference docs)
         try:
-            grounding = load_grounding(template_name)
+            grounding = load_grounding(template_name, template, facts, mode, budget)
         except (FileNotFoundError, ValueError) as e:
             failed_files[template_name] = [str(e)]
             print(f"  ✗ {e}")
             continue
+        grounding_tokens[template_name] = (len(grounding) + 3) // 4
+        print(f"  · grounding ~{grounding_tokens[template_name]} tokens")
 
         # Call Gemini
         try:
@@ -322,8 +454,23 @@ def main():
             print(f"  ✗ Model error: {e}")
             continue
 
-        # Validate
-        ok, errors = validate_output(filled, template)
+        # Validate, with up to `repairs` corrective follow-up calls
+        ok, errors = validate_output(filled, template, facts)
+        for attempt in range(repairs):
+            if ok:
+                break
+            print(f"  ! Validation failed, repair attempt {attempt + 1}:")
+            for err in errors:
+                print(f"    - {err}")
+            try:
+                candidate = repair_template(template, grounding, model, filled, errors)
+            except Exception as e:
+                print(f"  ! Repair call failed: {e}")
+                break
+            filled = candidate
+            ok, errors = validate_output(filled, template, facts)
+            if ok:
+                repaired.append(template_name)
         if ok:
             filled = append_version_footer(filled, version)
             filled_files[template_name] = filled
@@ -342,6 +489,12 @@ def main():
         "model": model,
         "filled": list(filled_files.keys()),
         "failed": failed_files,
+        "grounding": {
+            "mode": mode,
+            "facts_version": facts_version,
+            "approx_tokens": grounding_tokens,
+        },
+        "repaired": repaired,
     }
     open(os.path.join(STAGING_DIR, "manifest.json"), "w").write(
         json.dumps(manifest, indent=2)

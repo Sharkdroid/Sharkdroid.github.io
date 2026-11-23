@@ -69,6 +69,8 @@ def main():
     model        = manifest["model"]
     filled_names = manifest["filled"]
     failed_files = manifest["failed"]
+    grounding    = manifest.get("grounding") or {}
+    repaired     = manifest.get("repaired") or []
 
     print(f"[create_pr] cascade_cms {version}")
     print(f"[create_pr] Filled: {len(filled_names)}  Failed: {len(failed_files)}")
@@ -126,6 +128,21 @@ def main():
         for n, errs in sorted(failed_files.items())
     ) if failed_files else ""
 
+    grounding_note = ""
+    if grounding:
+        tokens = grounding.get("approx_tokens") or {}
+        token_lines = "\n".join(f"- {n}: ~{t:,} tokens" for n, t in sorted(tokens.items()))
+        grounding_note = (
+            f"### Grounding\n"
+            f"Mode: `{grounding.get('mode')}`"
+            + (f" (code facts from installed `cascade-cms-rest {grounding['facts_version']}`)"
+               if grounding.get("facts_version") else "")
+            + "\n\n" + (token_lines or "_No grounding sizes recorded_")
+            + ("\n\nFixed after a validation-repair call: "
+               + ", ".join(f"`{n}`" for n in sorted(repaired)) if repaired else "")
+            + "\n"
+        )
+
     body = f"""\
 ## AI Documentation Synthesis — `cascade_cms {version}`
 
@@ -140,6 +157,7 @@ before synthesis ran.
 ### Model used
 `{model}`
 
+{grounding_note}
 ### To approve
 Merge this PR to publish updated documentation. The wiki deploys automatically on merge.
 
