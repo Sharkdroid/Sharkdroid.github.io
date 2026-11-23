@@ -3,9 +3,13 @@
 Create PR in wiki repo with synthesized documentation.
 
 Reads filled markdown files and failure log from the staging directory
-(written by synthesize_docs.py), creates a branch, writes files to their
-wiki paths, prepends [OUTDATED] banners to failed files, and opens a PR
-for manual review.
+(written by synthesize_docs.py).
+
+  * Failed pages: the [OUTDATED] banner is committed directly to main and
+    the Pages deploy is dispatched — no review needed to warn readers. (If
+    main refuses direct pushes, the banners go into the PR instead.)
+  * Filled pages: written to a new branch and opened as a PR for review.
+    If nothing was filled, no PR is created.
 """
 
 import json
@@ -14,7 +18,9 @@ from datetime import datetime, timezone
 
 from github import Github, GithubException
 
-STAGING_DIR = "/tmp/filled-docs"
+STAGING_DIR     = "/tmp/filled-docs"
+BASE_BRANCH     = "main"
+DEPLOY_WORKFLOW = "deploy.yml"
 
 TEMPLATE_TO_WIKI_PATH = {
     "core-concepts-index.md":    "wiki/cascade-cms-wiki/docs/core-concepts/index.md",
@@ -42,6 +48,49 @@ def write_file(repo, wiki_path: str, content: str, message: str, branch: str):
         if e.status != 404:
             raise
         repo.create_file(wiki_path, message, content, branch=branch)
+
+
+def mark_outdated(repo, template_name: str, errors: list[str], version: str,
+                  branch: str) -> bool:
+    """Prepend the [OUTDATED] banner to a failed page on `branch`. If the page
+    already exists, keep its previously-deployed content and just flag it
+    stale. If it doesn't exist yet (e.g. the very first run), write a stub so
+    the page — and the failure — is visible. Returns True if it wrote."""
+    wiki_path = TEMPLATE_TO_WIKI_PATH.get(template_name)
+    if not wiki_path:
+        return False
+    error_note = "\n".join(f"- {e}" for e in errors)
+    # `-->` inside an error would end the HTML comment early.
+    banner     = OUTDATED_BANNER + f"<!-- synthesis-failed\n{error_note.replace('-->', '- ->')}\n-->\n\n"
+    try:
+        existing = repo.get_contents(wiki_path, ref=branch)
+        current  = existing.decoded_content.decode()
+        if "synthesis-failed" in current:
+            print(f"[create_pr] {template_name} already marked outdated on {branch}")
+            return False
+        content = banner + current
+        message = f"docs({version}): mark {template_name} outdated (synthesis failed)"
+    except GithubException as e:
+        if e.status != 404:
+            raise
+        content = banner + f"# {template_name}\n\n_Content pending successful synthesis._\n"
+        message = f"docs({version}): stub {template_name} (synthesis failed)"
+    print(f"[create_pr] Marking {template_name} as outdated on {branch}")
+    write_file(repo, wiki_path, content, message, branch)
+    return True
+
+
+def redeploy_pages(repo):
+    """Commits made with the workflow's GITHUB_TOKEN don't trigger other
+    workflows, so the push above won't start deploy.yml by itself.
+    workflow_dispatch is exempt from that rule (needs `actions: write`)."""
+    try:
+        ok = repo.get_workflow(DEPLOY_WORKFLOW).create_dispatch(BASE_BRANCH)
+        print(f"[create_pr] Pages redeploy {'dispatched' if ok else 'NOT dispatched'} "
+              f"({DEPLOY_WORKFLOW} on {BASE_BRANCH})")
+    except GithubException as e:
+        print(f"[create_pr] ! Could not dispatch {DEPLOY_WORKFLOW} ({e.status}); "
+              f"banners are on {BASE_BRANCH} but Pages will update on the next deploy")
 
 
 def create_branch(repo, branch_name: str, base_sha: str) -> str:
@@ -77,11 +126,36 @@ def main():
 
     g    = Github(token)
     repo = g.get_repo(repo_name)
-    base = repo.get_branch("main")
+
+    # Failed pages skip review: their [OUTDATED] banner is committed straight
+    # to the base branch and Pages is redeployed, so readers are warned right
+    # away instead of only once someone merges a banner-only PR. If the base
+    # branch rejects direct pushes (branch protection), fall back to the old
+    # behaviour of carrying the banners in the PR.
+    failed_direct = []
+    failed_in_pr  = {}
+    if failed_files:
+        try:
+            for template_name, errors in failed_files.items():
+                if mark_outdated(repo, template_name, errors, version, BASE_BRANCH):
+                    failed_direct.append(template_name)
+        except GithubException as e:
+            if e.status not in (403, 409, 422):
+                raise
+            print(f"[create_pr] ! Direct push to {BASE_BRANCH} refused ({e.status}); "
+                  f"carrying [OUTDATED] banners in the PR instead")
+            failed_in_pr = {n: errs for n, errs in failed_files.items() if n not in failed_direct}
+        if failed_direct:
+            redeploy_pages(repo)
+
+    if not filled_names and not failed_in_pr:
+        print("[create_pr] Nothing to review — no PR created")
+        return
 
     # Branch name includes version and date for traceability
     datestamp   = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    branch_name = create_branch(repo, f"docs-synthesis/{version}-{datestamp}", base.commit.sha)
+    branch_name = create_branch(repo, f"docs-synthesis/{version}-{datestamp}",
+                                repo.get_branch(BASE_BRANCH).commit.sha)
 
     # Write successfully filled files
     for template_name in filled_names:
@@ -95,38 +169,22 @@ def main():
             branch_name,
         )
 
-    # Prepend OUTDATED banner to failed files. If the page already exists
-    # (a re-synthesis that failed), keep the previously-deployed content and
-    # just flag it stale. If it doesn't exist yet (e.g. the very first run),
-    # write a stub so the page — and the failure — is visible for review,
-    # rather than silently leaving nothing to commit.
-    for template_name, errors in failed_files.items():
-        wiki_path  = TEMPLATE_TO_WIKI_PATH.get(template_name)
-        if not wiki_path:
-            continue
-        error_note = "\n".join(f"- {e}" for e in errors)
-        banner     = OUTDATED_BANNER + f"<!-- synthesis-failed\n{error_note}\n-->\n\n"
-        print(f"[create_pr] Marking {template_name} as outdated")
-        try:
-            existing = repo.get_contents(wiki_path, ref=branch_name)
-            current  = existing.decoded_content.decode()
-            if "synthesis-failed" in current:
-                continue
-            content = banner + current
-            message = f"docs({version}): mark {template_name} outdated"
-        except GithubException as e:
-            if e.status != 404:
-                raise
-            content = banner + f"# {template_name}\n\n_Content pending successful synthesis._\n"
-            message = f"docs({version}): stub {template_name} (synthesis failed)"
-        write_file(repo, wiki_path, content, message, branch_name)
+    # Fallback only: banners the base branch refused
+    for template_name, errors in failed_in_pr.items():
+        mark_outdated(repo, template_name, errors, version, branch_name)
 
     # Build PR body
     success_list = "\n".join(f"- ✅ {n}" for n in sorted(filled_names))
     failed_list  = "\n".join(
-        f"- ❌ {n}\n  - " + "\n  - ".join(errs)
+        f"- ❌ {n}" + (" (banner already on main)" if n not in failed_direct and n not in failed_in_pr
+                       else "")
+        + "\n  - " + "\n  - ".join(errs)
         for n, errs in sorted(failed_files.items())
     ) if failed_files else ""
+    failed_heading = (
+        "### Generation failed (pages marked [OUTDATED] in this PR)" if failed_in_pr else
+        f"### Generation failed (pages marked [OUTDATED] directly on `{BASE_BRANCH}`, not part of this PR)"
+    )
 
     grounding_note = ""
     if grounding:
@@ -152,7 +210,7 @@ before synthesis ran.
 ### Generated successfully
 {success_list or "_None_"}
 
-{"### Generation failed (pages marked [OUTDATED])" + chr(10) + failed_list if failed_list else ""}
+{failed_heading + chr(10) + failed_list if failed_list else ""}
 
 ### Model used
 `{model}`
@@ -169,7 +227,7 @@ Close without merging. Any `[OUTDATED]` banners remain until the next synthesis 
         title=f"docs({version}): AI synthesis update",
         body=body,
         head=branch_name,
-        base="main",
+        base=BASE_BRANCH,
     )
 
     print(f"[create_pr] ✓ PR created: {pr.html_url}")

@@ -39,6 +39,12 @@ import time
 import litellm
 from bs4 import BeautifulSoup
 
+# Newer Gemini models reject some OpenAI-style params (gemini-3.5-flash-lite
+# raises UnsupportedParamsError on `temperature`). Drop whatever the target
+# model doesn't support instead of failing every call — the SDK equivalent
+# of the proxy's `litellm_settings: drop_params: true`.
+litellm.drop_params = True
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     import code_facts

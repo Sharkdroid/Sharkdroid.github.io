@@ -80,6 +80,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write        # dispatch deploy.yml after committing [OUTDATED] banners to main
     steps:
       - name: Checkout wiki repo
         uses: actions/checkout@v4
@@ -122,7 +123,7 @@ jobs:
           DOCS_SYNTHESIS_MAX_TOKENS: ${{ vars.DOCS_SYNTHESIS_MAX_TOKENS }}
         run: python scripts/synthesize_docs.py
 
-      - name: Create PR
+      - name: Create PR (filled pages) / mark failed pages outdated on main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python scripts/create_pr.py
