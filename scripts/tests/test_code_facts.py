@@ -96,3 +96,29 @@ def test_check_flags_stale_imports_and_bad_calls(facts):
 def test_check_accepts_readme_examples(facts):
     md = "\n".join(f"```python\n{code}\n```" for title, code in facts.examples if title.startswith("README"))
     assert cf.check_code_against_facts(md, facts) == []
+
+
+def test_check_flags_methods_chained_onto_operations_that_dont_exist(facts):
+    md = (
+        "```python\n"
+        "cascade.operations.read(ident).then(cb).edit(cb).submit_requests(Asset)\n"
+        "results = cascade.submit_requests(Asset)\n"
+        "```\n"
+    )
+    errors = cf.check_code_against_facts(md, facts)
+    assert len(errors) == 1 and "`.submit_requests()` cannot be chained" in errors[0]
+
+
+def test_templates_have_purpose_and_resolvable_focus(facts):
+    import glob
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    pytest.importorskip("litellm")
+    import synthesize_docs as sd
+    for path in sorted(glob.glob(os.path.join(TEMPLATES, "*.md"))):
+        body, purpose, focus = sd.parse_template(open(path).read())
+        assert purpose, f"{path} has no purpose comment"
+        assert "<!--" not in body, f"{path} metadata not stripped"
+        assert "[PLACEHOLDER:" in body
+        assert cf.unresolved_names(facts, focus) == [], path
+        # Fixed (non-placeholder) code in a template must be valid against the API.
+        assert cf.check_code_against_facts(body, facts) == [], path

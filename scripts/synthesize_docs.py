@@ -56,13 +56,31 @@ REF_STUBS_DIR = "wiki/cascade-cms-wiki/docs/operations"  # `::: module` stubs �
 STAGING_DIR   = "/tmp/filled-docs"
 
 GROUNDING_MODES = ("facts", "html", "both")
+DEFAULT_MAX_TOKENS = 6000  # templates are mostly placeholders now, so pages are fully generated
+
+# Template metadata comments (stripped before the template reaches the model
+# or the validator, so they never land in the published page):
+#   <!-- purpose: what the page is for, who reads it -->  → sent as PAGE PURPOSE
+#   <!-- focus: Name, Name, ... -->                         → code-facts relevance hints
+_META_RE = re.compile(r"^<!--\s*(purpose|focus)\s*:\s*(.*?)\s*-->\s*\n?", re.S | re.M)
+
+
+def parse_template(raw: str) -> tuple[str, str, set[str]]:
+    """Split a template into (body, purpose, focus names)."""
+    purpose, focus = "", set()
+    for kind, value in _META_RE.findall(raw):
+        if kind == "purpose":
+            purpose = " ".join(value.split())
+        else:
+            focus |= {n.strip() for n in value.split(",") if n.strip()}
+    return _META_RE.sub("", raw).lstrip("\n"), purpose, focus
 
 # Maps template filename → which built reference pages to use as grounding.
 # Kept here in the wiki repo — not in the library.
 TEMPLATE_TO_REF_DOCS = {
     "core-concepts-index.md":    ["operations.md", "cmstypes.md", "wrapper.md"],
     "advanced-index.md":         [],    # pure TOC — no grounding needed
-    "advanced-logging.md":       ["operation_logger.md"],
+    "advanced-logging.md":       ["operation_logger.md", "wrapper.md"],
     "advanced-cpu-intensive.md": ["wrapper.md", "operations.md"],
     "examples-main-patterns.md": ["operations.md", "cmstypes.md"],
     "examples-administrative.md":["operations.md", "cmstypes.md"],
@@ -115,7 +133,11 @@ Rules — follow all of them exactly:
 5. Do NOT leave any [PLACEHOLDER: ...] markers in the output.
 6. Return ONLY the completed markdown — no preamble, no commentary, no \
    markdown fences wrapping the output.
-7. When CODE FACTS are provided they describe the exact library version \
+7. Placeholders describe WHAT to cover, not which API to use: take every \
+   class, function, parameter, field and import path from the reference \
+   material. A PAGE PURPOSE line, when given, sets the page's audience and \
+   goal — keep every section consistent with it.
+8. When CODE FACTS are provided they describe the exact library version \
    being documented and override anything you remember about older \
    versions. Import every name from a module the facts list for it, prefer \
    canonical names over aliases, and model examples on the facts' usage \
@@ -185,28 +207,30 @@ def load_html_grounding(template_name: str) -> str:
     return "\n\n".join(sections)
 
 
-def load_facts_grounding(template_name: str, template_text: str, facts, budget: int) -> str:
+def load_facts_grounding(template_name: str, template_text: str, facts, budget: int,
+                         focus: set[str] | None = None) -> str:
     """Token-budgeted code-facts digest for a template (see code_facts.py).
     Templates with no reference docs (pure TOC pages) get none, as before."""
     docs = TEMPLATE_TO_REF_DOCS.get(template_name, [])
     if not docs:
         return ""
     modules = code_facts.modules_for_ref_docs(docs, REF_STUBS_DIR)
-    return code_facts.build_digest(facts, modules, template_text, budget)
+    return code_facts.build_digest(facts, modules, template_text, budget, focus=focus)
 
 
 def load_grounding(template_name: str, template_text: str = "", facts=None,
-                   mode: str = "html", budget: int = 0) -> str:
+                   mode: str = "html", budget: int = 0, focus: set[str] | None = None) -> str:
     """Grounding for one template in the requested mode."""
     if mode == "html" or facts is None:
         return load_html_grounding(template_name)
-    digest = load_facts_grounding(template_name, template_text, facts, budget)
+    digest = load_facts_grounding(template_name, template_text, facts, budget, focus)
     if mode == "both" and digest:
         return digest + "\n\n--- RENDERED REFERENCE PAGES ---\n\n" + load_html_grounding(template_name)
     return digest
 
 
 def _completion(messages: list[dict], model: str) -> str:
+    max_tokens = int(os.getenv("DOCS_SYNTHESIS_MAX_TOKENS") or DEFAULT_MAX_TOKENS)
     """One model call. Retries once on a rate limit — a single run makes
     several sequential calls, which free-tier keys can plausibly exceed."""
     for attempt in range(2):
@@ -215,7 +239,7 @@ def _completion(messages: list[dict], model: str) -> str:
                 model=model,
                 messages=messages,
                 temperature=0,
-                max_tokens=3000,
+                max_tokens=max_tokens,
             )
             return response.choices[0].message.content.strip()
         except litellm.RateLimitError:
@@ -225,7 +249,7 @@ def _completion(messages: list[dict], model: str) -> str:
             time.sleep(30)
 
 
-def build_messages(template_text: str, grounding_text: str) -> list[dict]:
+def build_messages(template_text: str, grounding_text: str, purpose: str = "") -> list[dict]:
     if grounding_text.startswith("# CODE FACTS"):
         reference_section = (
             "REFERENCE — CODE FACTS (source all imports, field names and "
@@ -249,9 +273,11 @@ def build_messages(template_text: str, grounding_text: str) -> list[dict]:
             "examples or field names to source. Fill its placeholder(s) using "
             "only the descriptive context already given in the template below."
         )
+    purpose_section = f"PAGE PURPOSE: {purpose}\n\n---\n\n" if purpose else ""
     user_prompt = (
         f"{reference_section}\n\n"
         "---\n\n"
+        f"{purpose_section}"
         "TEMPLATE (fill every [PLACEHOLDER: ...] block, touch nothing else):\n\n"
         f"{template_text}"
     )
@@ -261,16 +287,16 @@ def build_messages(template_text: str, grounding_text: str) -> list[dict]:
     ]
 
 
-def fill_template(template_text: str, grounding_text: str, model: str) -> str:
+def fill_template(template_text: str, grounding_text: str, model: str, purpose: str = "") -> str:
     """Call Gemini to fill template placeholders."""
-    return _completion(build_messages(template_text, grounding_text), model)
+    return _completion(build_messages(template_text, grounding_text, purpose), model)
 
 
 def repair_template(template_text: str, grounding_text: str, model: str,
-                    previous: str, errors: list[str]) -> str:
+                    previous: str, errors: list[str], purpose: str = "") -> str:
     """Follow-up call: show the model its own output and the validation
     errors, ask for a corrected full page. Only paid for on failure."""
-    messages = build_messages(template_text, grounding_text) + [
+    messages = build_messages(template_text, grounding_text, purpose) + [
         {"role": "assistant", "content": previous},
         {"role": "user", "content": (
             "Your output failed automated validation:\n"
@@ -430,7 +456,7 @@ def main():
         # Load template skeleton
         tmpl_path = os.path.join(TEMPLATES_DIR, template_name)
         try:
-            template = open(tmpl_path).read()
+            template, purpose, focus = parse_template(open(tmpl_path).read())
         except FileNotFoundError:
             failed_files[template_name] = [f"Template not found: {tmpl_path}"]
             print(f"  ✗ Template not found")
@@ -438,23 +464,29 @@ def main():
 
         # Load grounding (code facts digest and/or Phase 1 built reference docs)
         try:
-            grounding = load_grounding(template_name, template, facts, mode, budget)
+            grounding = load_grounding(template_name, template, facts, mode, budget, focus)
         except (FileNotFoundError, ValueError) as e:
             failed_files[template_name] = [str(e)]
             print(f"  ✗ {e}")
             continue
+        if facts is not None and focus:
+            stale = code_facts.unresolved_names(facts, focus)
+            if stale:
+                print(f"  ! focus names not found in {code_facts.DISTRIBUTION} {facts.version} "
+                      f"(update the template's focus comment): {', '.join(stale)}")
         grounding_tokens[template_name] = (len(grounding) + 3) // 4
         print(f"  · grounding ~{grounding_tokens[template_name]} tokens")
 
         # Call Gemini
         try:
-            filled = fill_template(template, grounding, model)
+            filled = fill_template(template, grounding, model, purpose)
         except Exception as e:
             failed_files[template_name] = [f"Model call failed: {e}"]
             print(f"  ✗ Model error: {e}")
             continue
 
         # Validate, with up to `repairs` corrective follow-up calls
+        filled = _META_RE.sub("", filled)
         ok, errors = validate_output(filled, template, facts)
         for attempt in range(repairs):
             if ok:
@@ -463,11 +495,11 @@ def main():
             for err in errors:
                 print(f"    - {err}")
             try:
-                candidate = repair_template(template, grounding, model, filled, errors)
+                candidate = repair_template(template, grounding, model, filled, errors, purpose)
             except Exception as e:
                 print(f"  ! Repair call failed: {e}")
                 break
-            filled = candidate
+            filled = _META_RE.sub("", candidate)
             ok, errors = validate_output(filled, template, facts)
             if ok:
                 repaired.append(template_name)

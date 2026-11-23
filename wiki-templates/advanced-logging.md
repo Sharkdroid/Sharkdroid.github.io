@@ -1,45 +1,43 @@
+<!-- purpose: Help a user understand what the library writes to the console and log files, turn on debug mode, and read a failing run's log. Describe only output formats, file names, markers and config keys that appear in the code facts (docstrings, literals, constants); if a detail isn't there, leave it out rather than guessing. -->
+<!-- focus: Cascade, OperationLogger, ChainLineBuilder, FailureCategory, debug, debug_config, log_dir, exit_on_failure, script_log -->
 # Logging & Debugging
 
-[PLACEHOLDER: 2–3 sentence intro — two output modes exist (normal mode for everyday use, debug mode for diagnosing failures). Mention that both produce logfiles; debug mode adds a verbose nested call-chain log alongside a quieter console output.]
+[PLACEHOLDER: 2–3 sentence intro: the two output modes (normal and debug), what decides which one is active, and that both write a logfile.]
 
 ---
 
 ## Normal Mode Output
 
-[PLACEHOLDER: Short paragraph explaining what normal mode logs — lifecycle markers (`[INIT]`, `[RUNNING]`, `[DONE]`, `[EXIT]`), per-operation progress lines (`Processed: N/total (X failed)`), and a normal logfile named `{SERVER}_{timestamp}.log` with one line per operation. Source from `OperationLogger` docstring in operation_logger.md.]
+[PLACEHOLDER: Paragraph on what normal mode prints and logs: lifecycle markers, the per-chain line, the batch tally, and the logfile's location and name pattern.]
 
 ### Normal Logfile Format
 
-[PLACEHOLDER: Code block showing a sample normal logfile — a few representative lines like `[READ]: mySite/blog/post-1`, one `CascadeError` line, and one Python error line. Source from operation_logger.md docstring examples if present.]
+[PLACEHOLDER: `text` code block with a short, representative normal logfile: start, one successful chain, one failed chain, the tally, and exit. Build each line from formats documented in the code facts.]
 
 ---
 
 ## Enabling Debug Mode
 
-[PLACEHOLDER: Code block showing how to pass the `debug` dict to `CascadeWrapperBase` to activate debug mode. Show the minimal required keys. Source from `CascadeWrapperBase` docstring in wrapper.md.]
+[PLACEHOLDER: Code block showing how to turn debug mode on when opening a session, using the constructor parameter names exactly as the code facts give them, and where the log directory is set. 1–2 sentences on what changes when it is on.]
 
 ---
 
 ## Debug Configuration Options
 
-[PLACEHOLDER: Table or bullet list of all keys in the debug config dict — what each controls (response body truncation via `response_line_limit`, granular toggles, etc.) and their defaults. Source from `CascadeWrapperBase` or `OperationLogger` docstring in wrapper.md / operation_logger.md.]
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| [PLACEHOLDER: key] | [PLACEHOLDER: type] | [PLACEHOLDER: default] | [PLACEHOLDER: description] |
+[PLACEHOLDER: Table with the columns Key, Type, Default and Description, with one row per debug configuration key documented in the code facts. If a key can also be set as a constructor parameter, say which one wins.]
 
 ---
 
 ## Debug Logfile Format
 
-[PLACEHOLDER: Paragraph explaining the debug logfile naming convention (`{SERVER}_debug_{timestamp}.log`) and the nested pipe-delimited call-chain format. Source from `OperationLogger` docstring.]
+[PLACEHOLDER: Paragraph on the debug logfile's name pattern, the extra request/response detail it records, and any per-request files written next to it.]
 
 ### Sample Debug Log
 
-[PLACEHOLDER: Code block showing a representative debug log excerpt — a few lines of the nested call-chain format, showing a read operation and a callback with `>>` separators. Source from operation_logger.md docstring examples if present.]
+[PLACEHOLDER: `text` code block with a short, representative debug log excerpt for one chain, built only from formats documented in the code facts.]
 
 ---
 
 ## Interpreting Errors in Debug Mode
 
-[PLACEHOLDER: Short explanation of how error blocks appear in debug mode — parsing the traceback's local frame to show only relevant variables, the distinction between `CascadeError` (includes asset path) and Python errors (type and message only). Source from operation_logger.md.]
+[PLACEHOLDER: Explain how a failed chain shows up in the log (which step failed, and its failure category), how API errors differ from Python exceptions and callback errors, and where to look first. Use the failure categories from the code facts.]

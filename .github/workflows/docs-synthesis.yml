@@ -119,6 +119,7 @@ jobs:
           DOCS_GROUNDING_MODE: ${{ vars.DOCS_GROUNDING_MODE }}
           DOCS_FACTS_TOKEN_BUDGET: ${{ vars.DOCS_FACTS_TOKEN_BUDGET }}
           DOCS_SYNTHESIS_REPAIR_ATTEMPTS: ${{ vars.DOCS_SYNTHESIS_REPAIR_ATTEMPTS }}
+          DOCS_SYNTHESIS_MAX_TOKENS: ${{ vars.DOCS_SYNTHESIS_MAX_TOKENS }}
         run: python scripts/synthesize_docs.py
 
       - name: Create PR

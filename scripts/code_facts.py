@@ -45,7 +45,12 @@ import re
 import sys
 from dataclasses import dataclass, field
 
+import logging
+
 import griffe
+
+# griffe logs every missing annotation it meets; mkdocs already reports those.
+logging.getLogger("griffe").setLevel(logging.ERROR)
 
 PACKAGE = "cascade_cms"
 DISTRIBUTION = "cascade-cms-rest"
@@ -770,10 +775,29 @@ def _rank_examples(facts: Facts, mentions: set[str]) -> list[tuple[int, str, str
     return [(s, t, c) for s, _, t, c in ranked]
 
 
+def unresolved_names(facts: Facts, names: set[str]) -> list[str]:
+    """Names (e.g. a template's `<!-- focus: -->` list) that match nothing in
+    the package — a sign the template's focus list has gone stale. Stdlib
+    names a template legitimately focuses on (ProcessPoolExecutor) count as
+    resolved when they appear in some signature or docstring."""
+    out = []
+    for name in sorted(names):
+        target = facts.aliases.get(name, name)
+        if target in facts.by_name or target in facts.params:
+            continue
+        if any(o.docstring and name in o.docstring.value
+               for o in facts.objects.values() if not o.is_alias):
+            continue
+        out.append(name)
+    return out
+
+
 def build_digest(facts: Facts, modules: list[str], template_text: str,
-                 token_budget: int = DEFAULT_TOKEN_BUDGET) -> str:
-    """Render the digest for one template, trimmed to `token_budget`."""
-    mentions = template_mentions(template_text)
+                 token_budget: int = DEFAULT_TOKEN_BUDGET,
+                 focus: set[str] | None = None) -> str:
+    """Render the digest for one template, trimmed to `token_budget`.
+    `focus` names (from the template's focus comment) count as mentions."""
+    mentions = template_mentions(template_text) | set(focus or ())
     detail = select_detail(facts, modules, mentions, template_text)
 
     def render(detail: dict[str, int], max_examples: int) -> str:
@@ -887,13 +911,32 @@ def python_code_blocks(markdown: str) -> list[str]:
 def check_code_against_facts(markdown: str, facts: Facts) -> list[str]:
     """Static checks on generated Python code blocks:
       * every `from cascade_cms... import X` / `import cascade_cms...` resolves
-      * every `<x>.operations.<op>(` is a real Operations method
+      * every `<x>.operations.<op>(` is a real Operations method, and every
+        method chained after it (`.then()`, `.edit()`, ...) is a real chain
+        method
       * keyword arguments passed to a known library callable exist on it
     Returns human-readable error strings (empty = OK)."""
     errors: list[str] = []
     operations_cls = next((facts.objects[q] for q in facts.by_name.get("Operations", ())
                            if facts.objects[q].is_class), None)
     op_methods = set(operations_cls.members) if operations_cls else set()
+    # Methods callable on what an operation returns (OperationChain, or a
+    # ChainGroup that forwards to it).
+    chain_methods: set[str] = set()
+    for cls_name in ("OperationChain", "ChainGroup"):
+        for q in facts.by_name.get(cls_name, ()):
+            if facts.objects[q].is_class:
+                chain_methods |= {m for m, o in facts.objects[q].members.items()
+                                  if not m.startswith("_") and not o.is_alias and o.is_function}
+
+    def rooted_at_operations(expr: ast.AST) -> bool:
+        """True for `<x>.operations.<op>(...)` and any chain built on it."""
+        while isinstance(expr, ast.Call) and isinstance(expr.func, ast.Attribute):
+            if isinstance(expr.func.value, ast.Attribute) and expr.func.value.attr == "operations":
+                return True
+            expr = expr.func.value
+        return False
+
     lib_callables = {n for n, qns in facts.by_name.items()
                      if any(facts.objects[q].is_function or facts.objects[q].is_class for q in qns)}
 
@@ -933,6 +976,12 @@ def check_code_against_facts(markdown: str, facts: Facts) -> list[str]:
                         and func.attr not in op_methods):
                     errors.append(f"`operations.{func.attr}()` does not exist "
                                   f"(Operations has no method {func.attr!r})")
+                # <anything>.operations.<op>(...).<method>(...)
+                elif (isinstance(func, ast.Attribute) and chain_methods
+                        and rooted_at_operations(func.value)
+                        and func.attr not in chain_methods):
+                    errors.append(f"`.{func.attr}()` cannot be chained onto an operation "
+                                  f"(operation chains have: {', '.join(sorted(chain_methods))})")
                 name = func.id if isinstance(func, ast.Name) else (
                     func.attr if isinstance(func, ast.Attribute) else None)
                 if not name or name in local_defs or name not in lib_callables:
