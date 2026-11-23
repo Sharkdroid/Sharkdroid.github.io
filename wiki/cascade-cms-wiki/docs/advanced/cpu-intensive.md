@@ -1,3 +1,10 @@
+!!! warning "Documentation may be out of date"
+    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
+
+<!-- synthesis-failed
+- Potentially invented field names: ["'keywords' (near: ...ade\n\n\ndef rewrite(asset):\n    asset.keywords = \n    return...)"]
+-->
+
 # CPU-Intensive Tasks
 
 By default `.then()` callbacks run on the async event loop, which is fine for I/O-bound work (string manipulation, dict transforms) but blocks the loop for CPU-heavy work. `ProcessPoolExecutor` offloads callbacks to separate worker processes to keep the event loop free.
