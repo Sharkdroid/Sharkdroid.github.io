@@ -1,22 +1,15 @@
-!!! warning "Documentation may be out of date"
-    This page was not successfully updated in the latest synthesis run. If you notice inaccuracies, please open an issue.
-
-<!-- synthesis-failed
-- Potentially invented field names: ["'keywords' (near: ...ade\n\n\ndef rewrite(asset):\n    asset.keywords = \n    return...)"]
--->
-
 # CPU-Intensive Tasks
 
-By default `.then()` callbacks run on the async event loop, which is fine for I/O-bound work (string manipulation, dict transforms) but blocks the loop for CPU-heavy work. `ProcessPoolExecutor` offloads callbacks to separate worker processes to keep the event loop free.
+Synchronous callbacks run by default on the thread pool executor (or the main event loop context depending on how the executor is provided). Running CPU-heavy tasks directly in these callbacks can block execution threads and slow down the entire batch of concurrent requests. Using a `ProcessPoolExecutor` offloads this heavy computational work to separate worker processes, freeing up concurrency.
 
 ---
 
 ## When to Use `ProcessPoolExecutor`
 
-- Image resizing, compression, or optimization
-- Parsing large XML/JSON structures or heavy data transformation
-- Running intensive regular expressions across large HTML bodies
-- Light callbacks like simple string replacements or metadata dictionary updates do not need it and perform better on the default thread pool or event loop.
+* Resizing or transcoding binary asset attachments (like images or PDFs)
+* Parsing very large XML/HTML data structures or files
+* Executing heavy regular expression matching and data transformations over large text bodies
+* Light callbacks (like simple property setting or logging) that execute instantly do not need a process pool and should remain on default threads.
 
 ---
 
@@ -25,18 +18,11 @@ By default `.then()` callbacks run on the async event loop, which is fine for I/
 ```python
 from concurrent.futures import ProcessPoolExecutor
 from os import cpu_count
-from cascade_cms import Cascade
+from cascade_cms.wrapper import Cascade
 
-env = {"SERVER": "prod", "API_KEY": "secret", "CASCADE_URL": "https://cascade.example.com"}
-
-def optimize_image(asset):
-    # CPU-bound image processing work here
-    return asset
-
-with Cascade(env, {}) as cascade:
-    with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
-        cascade.operations.read(id).then(optimize_image)
-        results = cascade.submit_requests(executor=executor)
+with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
+    cascade.operations.read(id).then(optimize_image)
+    results = cascade.submit_requests(executor=executor)
 ```
 
 ---
@@ -50,27 +36,26 @@ Callbacks executed in a `ProcessPoolExecutor` must be **defined at module level*
 - Closures that capture local variables
 
 ```python
-# ✗ Will raise PicklingError at runtime
-cascade.operations.read(id).then(lambda asset: asset)
+# ✗ Raises a pickling error at runtime:
+# cascade.operations.read(id).then(lambda asset: asset)
 
-# ✓ Module-level function — safe to pickle
-def transform(asset):
-    asset.displayName = asset.displayName.upper()
+# ✓ Correct module-level function:
+def my_callback(asset):
     return asset
 
-cascade.operations.read(id).then(transform)
+cascade.operations.read(id).then(my_callback)
 ```
 
 ---
 
 ## `ProcessPoolExecutor` vs `ThreadPoolExecutor`
 
-`ProcessPoolExecutor` provides true parallelism across multiple CPU cores in separate memory spaces, but requires all callback functions and data to be picklable and incurs inter-process communication overhead. `ThreadPoolExecutor` uses shared memory with minimal overhead and no pickling restrictions, but remains limited by Python's Global Interpreter Lock (GIL) for CPU-bound tasks. Use `ProcessPoolExecutor` for heavy CPU computation, and stick with `ThreadPoolExecutor` (the default) for I/O-bound work.
+The `ThreadPoolExecutor` shares memory and requires no function pickling, making it lightweight and fast for I/O-bound tasks, but the Global Interpreter Lock (GIL) prevents CPU-bound work from running in true parallelism. Conversely, the `ProcessPoolExecutor` provides true multi-core parallelism and separate memory spaces, but demands picklable module-level code and incurs serialization overhead. By default, the library uses a thread pool for I/O-bound work. Use thread pools for network and I/O tasks, and process pools for heavy CPU transformations.
 
 ---
 
 ## Performance Considerations
 
-Spawning and managing worker processes carries an initialization overhead, meaning extremely fast callbacks may run slower in a process pool than synchronously due to serialization costs. Additionally, offloading CPU work via the executor does not change the network concurrency rules; the driver's underlying `MAX_REQUESTS` semaphore still governs HTTP request limits.
+Worker process start-up and IPC serialization costs can sometimes outweigh the computational benefits for very fast callbacks. Furthermore, overall network concurrency is bounded by the driver's request limit (`MAX_REQUESTS = 50`) regardless of which executor you choose.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.10.1 -->
