@@ -1,22 +1,23 @@
 # Logging & Debugging
 
-Operation logger owns all console, logfile, and (verbose mode) request/response file output for the cascade_cms library. Two output modes exist: normal mode for everyday use and debug mode for diagnosing failures, controlled solely by whether `debug_config` is `None`. Both produce logfiles; debug mode adds a verbose nested call-chain log alongside a quieter console output.
+The library operates in two distinct output modes: normal mode and debug mode. The active mode is determined by the presence and contents of the `debug` dictionary passed to the session. Both modes record a persistent record of the session's execution in a logfile.
 
 ---
 
 ## Normal Mode Output
 
-Normal mode produces minimal console output and a simple logfile. It logs lifecycle markers such as `[INIT]`, `[RUNNING]`, `[DONE]`, and `[EXIT]`, along with batch tallies and operation progress lines. The normal logfile is named `{SERVER}_{timestamp}.log` and records one line per chain.
+In normal mode, the library prints lifecycle markers, a summary line for each executed operation chain, and a batch tally once requests are submitted. These details are written to a logfile located in the configured log directory (defaulting to the path specified in the debug configuration or context manager).
 
 ### Normal Logfile Format
 
 ```text
-[INIT]: Connecting to myserver.com
-[RUNNING]: myscript.py
-(uuid_or_path, asset_type) OP1 -> fn_name: Type -> ...
-1/1 succeeded
-[DONE]: 1 assets processed in 0.5s
-[EXIT]: Disconnecting from myserver.com
+[INIT] ...
+[BATCH-START]
+[RESULT]: ...
+v
+!ERROR: ...
+[BATCH-END]
+[EXIT-CODE]: success
 ```
 
 ---
@@ -24,43 +25,55 @@ Normal mode produces minimal console output and a simple logfile. It logs lifecy
 ## Enabling Debug Mode
 
 ```python
-wrapper = CascadeWrapperBase("myserver.com", debug_config={
+debug_config = {
     "log_dir": "./logs",
-    "show_network_headers": True
-})
+    "log_operations": True,
+    "log_callbacks": True,
+    "log_responses": True,
+    "show_payload_data": True,
+    "show_network_headers": False,
+    "show_error_variables": True,
+    "response_line_limit": 8,
+}
+
+with Cascade(environment_variables, debug=debug_config) as cascade:
+    ...
 ```
+
+Enabling debug mode activates verbose request tracking, writes individual request and response files for operations, and includes payload data in the logs according to the active configuration flags.
 
 ---
 
 ## Debug Configuration Options
 
-Recognized `debug_config` keys control the log directory and network header visibility.
-
 | Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| log_dir | str | "./logs" | Directory for the logfile and (verbose mode) request/response JSON files. |
-| show_network_headers | bool | False | Verbose mode only: also log request/response HTTP headers. |
+| :-- | :-- | :-- | :-- |
+| `log_dir` | str / os.PathLike | None | The directory where log files and request/response payloads are written. |
+| `log_operations` | bool | - | Toggles logging of operation steps. |
+| `log_callbacks` | bool | - | Toggles logging of user callbacks. |
+| `log_responses` | bool | - | Toggles logging of response bodies. |
+| `show_payload_data` | bool | - | Controls whether payload data is included in the log output. |
+| `show_network_headers` | bool | - | Controls whether network request and response headers are logged. |
+| `show_error_variables` | bool | - | Controls whether error variables are exposed in error logs. |
+| `response_line_limit` | int | - | Maximum lines of response body to log (-1 dumps the full response). |
 
 ---
 
 ## Debug Logfile Format
 
-The debug logfile uses the naming convention `{SERVER}_debug_{timestamp}.log`. It features a quiet console, a verbose logfile, and per-request JSON files. There is no longer a separate "log operations vs. callbacks vs. responses" toggle — `_is_debug` is the single on/off switch for verbose behavior.
+The debug logfile captures the full pipeline progression of each chain along with detailed method calls, request URLs, and network headers when enabled. Additionally, verbose mode writes `{uuid}_request.json` and `{uuid}_response.json` files to the logs folder for non-trivial operations.
 
 ### Sample Debug Log
 
 ```text
->>>> START REQUEST <<+
-(uuid_or_path, asset_type) OP1 -> fn_name: Type -> ...
-[GET] https://myserver.com/api/v1/read/site/path
-1/1 succeeded
->>>> END REQUEST <<<<
+[METHOD] GET ...
+[RESULT]: Read asset e868f539ac1001062cfa029c4c5df4d0
 ```
 
 ---
 
 ## Interpreting Errors in Debug Mode
 
-Error lines in debug mode utilize a `v` marker followed by an `!ERROR:` block indicating the failure at the specified step index. Chain-level failures go through `flush_chain_error` which has step-index context. `log_cascade_error` provides a thin wrapper to log a `CascadeError` (API-level failure) outside of chain context, while `log_python_error` logs an unhandled Python exception with traceback, file name, and line number.
+When a chain fails, the log records the exact step that encountered the issue accompanied by its failure category: `CASCADE` (when the API rejects a request with a `CascadeError`), `NETWORK` (for network-layer exceptions), `LIBRARY` (for internal parsing, request building, or gathering exceptions), or `CALLBACK` (for exceptions raised by user callback code). Examine the step index, the accompanying message, and the associated error details to trace the root cause.
 
-<!-- synthesized-for: 3.1.1 -->
+<!-- synthesized-for: 3.10.1 -->
