@@ -31,8 +31,13 @@ TEMPLATE_TO_WIKI_PATH = {
     "examples-administrative.md":"wiki/cascade-cms-wiki/docs/examples/administrative-ops.md",
 }
 
+# `danger` renders as a red admonition (needs the `admonition` extension in
+# properdocs.yml, otherwise the banner shows as literal "!!! ..." text).
+BANNER_HEAD     = '!!! danger "Documentation may be out of date"'
+OLD_BANNER_HEAD = '!!! warning "Documentation may be out of date"'
+
 OUTDATED_BANNER = """\
-!!! warning "Documentation may be out of date"
+!!! danger "Documentation may be out of date"
     This page was not successfully updated in the latest synthesis run. \
 If you notice inaccuracies, please open an issue.
 
@@ -66,6 +71,11 @@ def mark_outdated(repo, template_name: str, errors: list[str], version: str,
         existing = repo.get_contents(wiki_path, ref=branch)
         current  = existing.decoded_content.decode()
         if "synthesis-failed" in current:
+            # Upgrade banners written before they were switched to red.
+            if OLD_BANNER_HEAD in current:
+                write_file(repo, wiki_path, current.replace(OLD_BANNER_HEAD, BANNER_HEAD, 1),
+                           f"docs({version}): make {template_name} outdated banner red", branch)
+                return True
             print(f"[create_pr] {template_name} already marked outdated on {branch}")
             return False
         content = banner + current

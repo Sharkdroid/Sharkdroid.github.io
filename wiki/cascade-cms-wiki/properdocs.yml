@@ -30,6 +30,7 @@ plugins:
             members_order: source
 
 markdown_extensions:
+  - admonition
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.snippets
