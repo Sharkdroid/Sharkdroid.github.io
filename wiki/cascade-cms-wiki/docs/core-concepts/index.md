@@ -1,197 +1,189 @@
 # Core Concepts
 
-## The `Cascade` class
+Every cascade-cms-rest script is built around a cohesive session context that manages state, builds operation pipelines, and executes them concurrently while capturing structured results. This page breaks down the mental model behind session handling, operation chains, callbacks, and result processing.
 
-`Cascade` is the single entry point for all library interactions. Open a
-session with it as a [context manager](https://docs.python.org/3/reference/datamodel.html#context-managers):
+---
+
+## The session entry point
+
+The `Cascade` class (also importable under its older alias `CascadeWrapperBase`) serves as the central context manager that ties together the logger, the REST driver, and the operations builder for a single script session. When the `with` block exits, the session automatically triggers batch execution and enforces failure handling. By default, `exit_on_failure=True` means any recorded failure ends the script immediately with a non-zero exit code so that subsequent code does not run; passing `exit_on_failure=False` prevents this behavior, making it ideal for embedding the wrapper inside longer-lived processes like an MCP server where results should be inspected programmatically via `.success` and `.failed`.
 
 ```python
-from cascade_cms.wrapper import Cascade, EnvironmentVars
+from cascade_cms import Cascade
+from cascade_cms.wrapper import EnvironmentVars
 
-env: EnvironmentVars = {
-    "SERVER": "my-site",
-    "API_KEY": "your-api-key",
-    "CASCADE_URL": "https://your-cascade-instance.com",
+environment_variables: EnvironmentVars = {
+    "SERVER": "cascade.example.com",
+    "API_KEY": "12345678-abcd-ef01-2345-6789abcdef01",
+    "CASCADE_URL": "http://cascade.example.com:8080/api/v1"
 }
 
-with Cascade(env) as cascade:
-    # queue operations here
-    ...
+with Cascade(environment_variables) as cascade:
+    pass
 ```
-
-Previously known as `CascadeWrapperBase`; the alias still works but `Cascade`
-is the current name.
 
 ### Constructor
 
 ```python
-Cascade(
-    environmentVariables: EnvironmentVars,
-    debug: dict[str, Any] | None = None,
-    *,
-    exit_on_failure: bool = True,
-    log_dir: str | os.PathLike | None = None,
-)
+class Cascade:
+    def __init__(self, environment_variables: EnvironmentVars, *, exit_on_failure: bool = True, debug: bool = False, log_file: str | None = None) -> None
 ```
 
-`EnvironmentVars` is a `TypedDict` with three required keys:
-
 | Key | Description |
-|---|---|
-| `SERVER` | Label used in log output (not a network address) |
-| `API_KEY` | Cascade REST API bearer token |
-| `CASCADE_URL` | Base URL of your Cascade CMS instance |
+| :--- | :--- |
+| `SERVER` | The Cascade CMS server hostname or IP address. |
+| `API_KEY` | The authentication API key provided by Cascade. |
+| `CASCADE_URL` | The fully qualified base URL for the Cascade REST API. |
 
-`exit_on_failure=True` (default) ends the script non-zero on any failure.
-Pass `False` for long-lived processes like the MCP server.
+- `environment_variables`: A dictionary satisfying the `EnvironmentVars` TypedDict containing connection properties (`SERVER`, `API_KEY`, `CASCADE_URL`).
+- `exit_on_failure`: A boolean flag determining whether the context manager exits the script with a non-zero status code if any operation chain fails (defaults to `True`).
+- `debug`: A boolean flag enabling verbose logging and request detail tracking (defaults to `False`).
+- `log_file`: An optional file path string to redirect or write operation audit logs.
 
 ---
 
 ## Operations
 
-`cascade.operations` is the entry point for all CMS operations. It returns
-an `Operations` builder that accepts the first call in a chain:
+The operations builder acts as a fluent entry point where every method call instantiates and returns a brand-new `OperationChain` rather than executing immediately. 
 
-```python
-with Cascade(env) as cascade:
-    chain = cascade.operations.read("abc123")
-```
+| Method | Description |
+| :--- | :--- |
+| `read` | Reads an asset or container by identifier or path. |
+| `edit` | Saves one or more modified assets via a POST request. |
+| `delete` | Deletes an asset, folder, or site. |
+| `create` | Creates a new asset from payload configurations. |
+| `copy` | Copies an asset to a destination container. |
+| `move` | Moves an asset to a new container and/or renames it. |
+| `publish` | Publishes or unpublishes an asset. |
+| `search` | Queries Cascade using search terms and filters. |
+| `checkIn` | Checks in an asset using a check-in comment payload. |
+| `checkOut` | Checks out an asset, returning its working copy identifier. |
+| `listSites` | Lists available sites on the server. |
+| `readAudits` | Reads audit logs based on audit parameters. |
+| `listSubscribers` | Lists subscribers associated with an asset. |
+| `siteCopy` | Copies an entire site configuration. |
+| `readAccessRights` | Reads user and group access control entries. |
+| `editAccessRights` | Modifies access control configurations. |
+| `readWorkflowSettings` | Reads workflow settings assigned to an asset. |
+| `editWorkflowSettings` | Edits an asset's workflow settings. |
+| `listMessages` | Lists user inbox messages. |
+| `markMessage` | Marks a message with a specific status. |
+| `deleteMessage` | Deletes an inbox message. |
+| `readPreferences` | Reads user preferences. |
+| `editPreference` | Modifies an individual user preference. |
+| `readWorkflowInformation` | Reads active workflow step and action details. |
+| `performWorkflowTransition` | Performs a transition action on a workflow instance. |
 
-Available operations mirror the Cascade REST API:
-
-| Operation | Description |
-|---|---|
-| `.read(id)` | Read one asset |
-| `.edit(payload)` | Edit an asset via callback or direct payload |
-| `.publish(id)` | Publish an asset |
-| `.delete(id)` | Delete an asset |
-| `.copy(id, dest)` | Copy an asset |
-| `.move(id, dest)` | Move an asset |
-| `.checkIn(id)` | Check in an asset |
-| `.checkOut(id)` | Check out an asset |
-| `.search(query)` | Search assets |
-| `.create(asset)` | Create a new asset |
-
-See the [API Reference](../operations/operations.md) for full signatures.
+For full method signatures and parameter details, consult [the API reference](../operations/operations.md).
 
 ---
 
 ## Operation chains
 
-Each operation call returns an `OperationChain`, not a result. Nothing
-executes until you call `.submit_requests()`. This design lets you compose
-multi-step workflows before any network requests are made:
+An `OperationChain` is an ordered sequence of steps consisting of REST operations and local callbacks. Nodes run strictly in order where each step receives the preceding node's result. Execution is deferred entirely until `submit_requests()` is invoked. If a callback returns `None`, it is treated as a side effect and the previous result is passed through unchanged.
 
 ```python
-from cascade_cms.cmstypes import Asset
+from cascade_cms import Cascade
+from cascade_cms.cmstypes import Asset, IdentifierType
 
-def set_searchable(asset: Asset) -> Asset:
-    asset.searchable = True
-    return asset
+def report(asset: Asset) -> None:
+    print(f"Inspected asset name: {asset.internal_type}")
 
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .read("abc123")
-        .edit(set_searchable)
-        .publish("abc123")
-        .submit_requests(Asset)
-    )
+with Cascade(environment_variables) as cascade:
+    target_id = IdentifierType(identifier="12345678-1234-1234-1234-1234567890ab", asset_type="page")
+    cascade.operations.read(target_id).then(report)
+    results = cascade.submit_requests()
 ```
-
-The type argument to `.submit_requests()` is for the type checker. `Asset`
-covers most cases; use a more specific type when the operation returns one.
 
 ---
 
-## `edit()` and callbacks
+## Editing with callbacks
 
-`edit()` accepts a callable, a single asset, or a list of assets. The
-callable form is the most common in practice:
+The `edit` step accepts an `Asset`, a list of `Asset` objects, or a callable producing an asset from the previous node's output. The callable form is most common in a `read → then(transform) → edit` pipeline because it receives the fetched asset, modifies it in memory, and returns it for saving. The identity of the edited asset is derived automatically from its internal identifiers.
 
 ```python
-def update_keywords(asset: Asset) -> Asset:
-    asset.keywords = "updated"
+from cascade_cms import Cascade
+from cascade_cms.cmstypes import Asset, IdentifierType
+
+def rewrite(asset: Asset) -> Asset:
     return asset
 
-cascade.operations.edit(update_keywords)
+with Cascade(environment_variables) as cascade:
+    page_id = IdentifierType(identifier="12345678-1234-1234-1234-1234567890ab", asset_type="page")
+    cascade.operations.read(page_id).edit(rewrite)
+    results = cascade.submit_requests()
 ```
-
-The callback receives the current asset and must return the modified asset.
-The identifier is derived from the asset's own `id`/`path`/`siteName` fields
-— there is no separate identifier argument on `edit()` in 3.9.1.
 
 ---
 
-## Batch execution and `ChainGroup`
+## Batch execution
 
-Passing a list to operations that accept identifiers — `read`, `delete`,
-`publish`, etc. — creates one independent `OperationChain` per identifier,
-returned as a `ChainGroup`:
+When an operation that accepts identifiers receives a list, the library automatically fans out the request into one independent chain per identifier (Approach A). Subsequent chaining methods like `.then()` or `.edit()` apply to all generated chains. Chains execute concurrently while steps within individual chains remain sequential, ensuring that a failure in one asset's chain does not halt execution for the others.
 
 ```python
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .read(["id1", "id2", "id3"])
-        .submit_requests(Asset)
-    )
-```
+from cascade_cms import Cascade
+from cascade_cms.cmstypes import IdentifierType
 
-Failures in one chain do not cancel others. The returned `ChainResults`
-covers all chains in the group.
+with Cascade(environment_variables) as cascade:
+    id_one = IdentifierType(identifier="11111111-1111-1111-1111-111111111111", asset_type="page")
+    id_two = IdentifierType(identifier="22222222-2222-2222-2222-222222222222", asset_type="page")
+    
+    cascade.operations.read([id_one, id_two]).then(lambda asset: print(asset.internal_type))
+    results = cascade.submit_requests()
+```
 
 ---
 
 ## Result handling
 
-`.submit_requests()` returns `ChainResults[T]` — a list subclass with
-`.success` and `.failed` properties. See [Result Handling](../getting-started/result-handling.md)
-for full details.
+Submitting requests returns a `ChainResults` container holding one result per chain in creation order, along with computed `.success` and `.failed` lists. A failure record contains comprehensive diagnostic details including the failing step index, node type, failure category, and error message. Because errors are captured as values in the results collection rather than raising unhandled exceptions during batch evaluation, callers can inspect failures directly without complex `try/except` blocks.
 
 ```python
-results = cascade.operations.read("abc123").submit_requests(Asset)
+with Cascade(environment_variables) as cascade:
+    cascade.operations.read(page_a).then(rewrite).edit(rewrite)
+    results = cascade.submit_requests()
 
-for asset in results.success:
-    print(asset.path)
+    for success_item in results.success:
+        print("Succeeded:", success_item)
 
-for failure in results.failed:
-    print(f"[{failure.category}] {failure.message}")
+    for failure_record in results.failed:
+        print(f"Failed at step {failure_record.step} ({failure_record.step_name}): {failure_record.message}")
 ```
+
+For more details, see [Result Handling](../getting-started/result-handling.md).
 
 ---
 
 ## Script logging
 
-`script_log.note()` writes annotated log lines from within a script:
+The library provides a built-in `script_log` helper to write custom notes directly into the session's operation log. This utility can be called from anywhere inside or outside an active session, automatically redacting sensitive properties or keys when appropriate.
 
 ```python
-from cascade_cms.utils import script_log
+from cascade_cms.utils.extension import script_log
 
-with Cascade(env) as cascade:
-    script_log.note("Starting run")
-    results = cascade.operations.read("abc123").submit_requests(Asset)
-    script_log.note(f"Done — {len(results.success)} succeeded")
+script_log.log_note("Starting batch migration of configuration blocks.")
 ```
-
-Calls outside the `with` block drop silently with a `RuntimeWarning`.
-API keys are automatically redacted from log output.
 
 ---
 
 ## Identifiers
 
-The `utils.identifiers` module (added in 3.8.3) coerces raw Cascade
-identifier dicts to `IdentifierType`:
+Assets can be addressed in Cascade either by their unique UUID identifier combined with an asset type, or by specifying a site name and path location. Raw identifier dictionaries returned from API responses can be safely converted into robust `IdentifierType` objects using extension helpers.
 
 ```python
-from cascade_cms.utils.identifiers import to_identifier, to_identifiers
+from cascade_cms.cmstypes import IdentifierType, Path
+from cascade_cms.utils.extension import to_identifier, to_identifiers
 
-identifier = to_identifier({"id": "abc123", "type": "page", "path": None})
-identifiers = to_identifiers([{"id": "a"}, {"id": "b"}])
+raw_dict = {"id": "12345678-1234-1234-1234-1234567890ab", "type": "page"}
+parsed_id = to_identifier(raw_dict)
+
+batch_list = to_identifiers([{"id": "11111111-1111-1111-1111-111111111111", "type": "folder"}])
 ```
 
-Use these when processing raw API responses before passing identifiers to
-operations.
+---
 
-<!-- synthesized-for: 3.9.1 -->
+## Next Steps
+
+Explore task-oriented recipes in [Examples](../examples/main-patterns.md) or look into logging configurations and CPU-heavy callbacks under [Advanced](../advanced/index.md).
+
+<!-- synthesized-for: 3.10.1 -->
