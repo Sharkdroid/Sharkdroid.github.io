@@ -1,16 +1,19 @@
 # Main Patterns
 
-Common usage patterns for `cascade-cms-rest` 3.9.1.
+Here are common recipes for everyday asset workflows using version 3.10.1 of the library, assuming the shared setup below:
 
 ```python
-from cascade_cms.wrapper import Cascade, EnvironmentVars
-from cascade_cms.cmstypes import Asset
+from cascade_cms.cmstypes import Asset, IdentifierType, Path, SearchInformation
+from cascade_cms.wrapper import Cascade
 
-env: EnvironmentVars = {
-    "SERVER": "my-site",
+environment_variables = {
     "API_KEY": "your-api-key",
-    "CASCADE_URL": "https://your-cascade-instance.com",
+    "CASCADE_URL": "https://cascade.example.com/api/v1",
+    "SERVER": "prod",
 }
+
+identifier = IdentifierType(identifier="e868f539ac1001062cfa029c4c5df4d0", asset_type="folder")
+page_identifier = IdentifierType(identifier="e868f539ac1001062cfa029c4c5df4d1", asset_type="page")
 ```
 
 ---
@@ -18,174 +21,126 @@ env: EnvironmentVars = {
 ## Read a single asset
 
 ```python
-with Cascade(env) as cascade:
-    results = cascade.operations.read("abc123").submit_requests(Asset)
+with Cascade(environment_variables) as cascade:
+    cascade.operations.read(identifier)
+    results = cascade.submit_requests(Asset)
 
-if results.success:
-    asset = results.success[0]
-    print(asset.path)
-    print(asset.siteName)
+for asset in results.success:
+    print(asset.internal_type)
 ```
+
+A read operation retrieves a dynamic wrapper around the raw asset payload, returning an `Asset` instance on success.
 
 ---
 
 ## Edit and save
 
-Use a callback that receives the current asset and returns the modified one:
-
 ```python
-def update_metadata(asset: Asset) -> Asset:
-    asset.keywords = "cascade, cms, updated"
-    asset.metaDescription = "Updated via py-cascade-cms"
+def update_asset(asset):
     return asset
 
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .read("abc123")
-        .edit(update_metadata)
-        .submit_requests(Asset)
-    )
+with Cascade(environment_variables) as cascade:
+    cascade.operations.read(page_identifier).edit(page_identifier, update_asset)
+    results = cascade.submit_requests()
 
-if results.failed:
-    for failure in results.failed:
-        print(f"[{failure.category}] {failure.step_name}: {failure.message}")
+for failure in results.failed:
+    print(failure.message)
 ```
 
-The callback receives the asset after `.read()` completes. The identifier
-is derived from the asset's own `id`/`path`/`siteName` fields — no separate
-argument on `edit()`.
+The edit step automatically addresses the request using the asset's own identifier fields, writing back the transformed asset returned by the callback.
 
 ---
 
 ## Publish
 
-Chain `.publish()` after editing to write and publish in one batch:
-
 ```python
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .read("abc123")
-        .edit(update_metadata)
-        .publish("abc123")
-        .submit_requests(Asset)
-    )
+with Cascade(environment_variables) as cascade:
+    cascade.operations.read(page_identifier).edit(page_identifier, update_asset).publish(page_identifier)
+    cascade.operations.publish(page_identifier)
+    results = cascade.submit_requests()
 ```
 
-Or publish without editing:
-
-```python
-with Cascade(env) as cascade:
-    results = cascade.operations.publish("abc123").submit_requests(Asset)
-```
+You pass a `publishInformation` payload only when specific options like unpublishing need customization; otherwise, calling `.publish()` without arguments defaults to standard publishing behavior.
 
 ---
 
 ## Search
 
 ```python
-from cascade_cms.cmstypes import SearchInformation, ListElements
-
-payload = SearchInformation(
-    searchTerms="annual report",
-    siteName="site123",
-)
-
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .search(payload)
-        .submit_requests(ListElements)
+with Cascade(environment_variables) as cascade:
+    search_payload = SearchInformation(
+        siteName="default",
+        searchTerms="news",
+        searchFields=["title"],
+        searchTypes=["page"]
     )
+    cascade.operations.search(search_payload)
+    results = cascade.submit_requests()
 
-if results.success:
-    for item in results.success:
-        print(item)
+for match in results.success:
+    for element in match.elements:
+        print(element)
 ```
 
-`SearchInformation` is the typed payload; `ListElements` is the return type
-from `.search()`. Both are in `cascade_cms.cmstypes`.
+The `SearchInformation` payload is imported from `cascade_cms.cmstypes` and returns a `ListElements` container whose matches are stored in `elements`.
 
 ---
 
 ## Bulk operations
 
-Pass a list of identifiers. Each gets its own independent chain — failures
-in one do not cancel others:
-
 ```python
-asset_ids = ["id1", "id2", "id3"]
+identifiers = [
+    IdentifierType(identifier="e868f539ac1001062cfa029c4c5df4d1", asset_type="page"),
+    IdentifierType(identifier="e868f539ac1001062cfa029c4c5df4d2", asset_type="page"),
+]
 
-def tag_asset(asset: Asset) -> Asset:
-    asset.tags = [{"name": "bulk-update"}]
-    return asset
+with Cascade(environment_variables) as cascade:
+    cascade.operations.read(identifiers).edit(identifiers, update_asset).publish(identifiers)
+    results = cascade.submit_requests()
 
-with Cascade(env) as cascade:
-    results = (
-        cascade.operations
-        .read(asset_ids)
-        .edit(tag_asset)
-        .publish(asset_ids)
-        .submit_requests(Asset)
-    )
-
-print(f"{len(results.success)} updated, {len(results.failed)} failed")
-
+print(f"Success: {len(results.success)}, Failed: {len(results.failed)}")
 for failure in results.failed:
-    print(f"  {failure.identifier}: [{failure.category}] {failure.message}")
+    print(f"Chain {failure.chain_index} failed at step {failure.step}: {failure.message}")
 ```
+
+Passing a sequence of identifiers to an operation automatically fans out the work into independent chains that execute concurrently.
 
 ---
 
 ## Handling failures by category
 
-`ChainFailure.category` holds the `FailureCategory` value — use it directly:
-
 ```python
-from cascade_cms.utils.failures import FailureCategory
-
-with Cascade(env, exit_on_failure=False) as cascade:
-    results = cascade.operations.read(asset_ids).submit_requests(Asset)
-
-network_errors = []
-cascade_errors = []
+with Cascade(environment_variables, exit_on_failure=False) as cascade:
+    cascade.operations.read(identifier)
+    results = cascade.submit_requests(Asset)
 
 for failure in results.failed:
-    if failure.category == FailureCategory.NETWORK:
-        network_errors.append(failure.identifier)
-    elif failure.category == FailureCategory.CASCADE:
-        cascade_errors.append(failure.identifier)
-
-if network_errors:
-    print(f"Network failures (retry candidates): {network_errors}")
-if cascade_errors:
-    print(f"Cascade errors (check identifiers): {cascade_errors}")
+    if failure.category == "CASCADE":
+        print(f"API rejected request: {failure.message}")
+    elif failure.category == "NETWORK":
+        print(f"Network error: {failure.message}")
+    elif failure.category == "LIBRARY":
+        print(f"Library error: {failure.message}")
+    elif failure.category == "CALLBACK":
+        print(f"Callback exception: {failure.message}")
 ```
 
-`exit_on_failure=False` keeps the process alive to inspect failures
-programmatically.
+Setting `exit_on_failure=False` keeps longer-lived processes like MCP servers alive, allowing you to inspect specific `FailureCategory` values (`CASCADE`, `NETWORK`, `LIBRARY`, `CALLBACK`) on failed chains.
 
 ---
 
 ## Script logging
 
 ```python
-from cascade_cms.utils import script_log
+from cascade_cms.utils.extension import script_log
 
-with Cascade(env) as cascade:
-    script_log.note("Starting bulk keyword update")
-
-    results = (
-        cascade.operations
-        .read(asset_ids)
-        .edit(tag_asset)
-        .submit_requests(Asset)
-    )
-
-    script_log.note(f"Complete: {len(results.success)} updated")
+script_log.log_note("Starting batch synchronization script")
+with Cascade(environment_variables) as cascade:
+    cascade.operations.read(identifier)
+    results = cascade.submit_requests(Asset)
+script_log.log_note("Finished batch synchronization script")
 ```
 
-`script_log.note()` only works inside the `with` block.
+The `script_log` helper instance can be imported directly from `cascade_cms.utils.extension` and called anywhere in your script to write notes to the run's log.
 
-<!-- synthesized-for: 3.9.1 -->
+<!-- synthesized-for: 3.10.1 -->
