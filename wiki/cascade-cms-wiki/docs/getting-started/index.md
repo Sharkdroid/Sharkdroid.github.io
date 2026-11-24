@@ -122,6 +122,5 @@ chain do not cancel others.
 ## Further reading
 
 - [Result Handling](./result-handling.md) — `.success`, `.failed`, `classify_failure`
-- [Version History](./version-history.md) — changes from older versions
 - [Core Concepts](../core-concepts/index.md) — `Cascade` class, `EnvironmentVars`, operations
 - [Examples](../examples/main-patterns.md) — read, edit, publish, search, bulk patterns
