@@ -43,7 +43,6 @@ nav:
   - Getting Started:
       - Introduction: getting-started/index.md
       - Result Handling: getting-started/result-handling.md
-      - Version History: getting-started/version-history.md
   - Core Concepts: ./core-concepts/index.md
   - Advanced:
       - Logging: advanced/logging.md

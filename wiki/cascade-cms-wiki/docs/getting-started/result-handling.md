@@ -122,6 +122,3 @@ results = cascade.operations.read(id).submit_requests(Asset)
 for failure in results.failed:
     print(f"[{failure.category}] {failure.message}")
 ```
-
-See [Version History](./version-history.md) for the full list of breaking
-changes between versions.
